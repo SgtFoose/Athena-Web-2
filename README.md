@@ -2,9 +2,11 @@
 
 > Tactical second-screen web companion for Arma 3 (Proof of Concept)
 
+Version: v0.0.1-alpha (first public draft)
+
 ## SITREP
 
-Athena Web 2 is currently a **Proof of Concept** that connects to the local Athena relay and renders live mission data in a mobile-friendly web view.
+Athena Web 2 is currently a **Proof of Concept** at **v0.0.1-alpha** that connects to the local Athena relay and renders live mission data in a mobile-friendly web view.
 
 This project will evolve into a full operational tool in the coming weeks.
 
