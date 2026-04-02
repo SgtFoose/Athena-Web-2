@@ -1,0 +1,534 @@
+# ClientOnly Worklog (Athena Web 2)
+
+Purpose: track every step, fix, and next action while migrating from the legacy backend/DLL approach to a Bus-compatible client-only architecture.
+
+## Scope Rules
+- Use only Bus-approved original mod runtime (extension + relay behavior as shipped).
+- Do not modify Bus DLLs/relay binaries.
+- Build around local client-side bridge + browser UI.
+- This folder is the new working surface for cleanup and future GitHub publication.
+
+## Timeline
+
+### 2026-04-01 — Pivot Validation
+- Confirmed BattleEye risk with custom extension path.
+- Validated PoC relay bridge approach in `Athena Web 2/poc`:
+  - Relay TCP 28800 connection works.
+  - Browser receives live unit feed through bridge WebSocket.
+
+### 2026-04-01 — START Investigation (decompilation-backed)
+- Investigated `Athena Desktop.exe` and `Relay.exe` behavior.
+- Verified protocol framing:
+  - separator: `<ath_sep>`
+  - terminator: `<ath_sep>end`
+- Verified Desktop START action sends:
+  - `command<ath_sep>mapexport`
+- Verified map import message types consumed by Desktop:
+  - `mapbegin`, `maprow`, `mapobjects`, `maplocations`, `maproads`, `mapfoliage`, `mapend`
+
+### 2026-04-01 — PoC Bridge Enhancements
+- Added browser START action support in bridge (`startMapExport`).
+- Bridge now sends exact relay command to trigger map export.
+- Added map import status events to browser:
+  - stage, world, per-type counters
+- Added map import completion summary payload:
+  - road/object/location/foliage counts and parsed totals
+- Fixed browser runtime bug (`world-name` wrong element id) causing blank behavior on updates.
+
+### 2026-04-01 — New Clean Workspace
+- Created new clean folder for future-focused work:
+  - `AthenaRemastered/ClientOnly/`
+- Copied remastered frontend into:
+  - `AthenaRemastered/ClientOnly/ui`
+- Copied proven bridge into:
+  - `AthenaRemastered/ClientOnly/bridge`
+
+### 2026-04-01 — ClientOnly UI Wiring (in progress)
+- Replaced `ClientOnly/ui` hook data source:
+  - old: SignalR + ASP.NET backend
+  - new: Relay bridge WebSocket
+- Implemented mapping from bridge state -> UI `GameFrame` shape.
+- Wired `requestWorldExport('world')` -> bridge `startMapExport` message.
+- Changed dev API base to bridge port `:3000`.
+
+### 2026-04-01 — Validation + Tracking Setup
+- Updated `.github/copilot-instructions.md` with ClientOnly pivot rules and mandatory worklog usage.
+- Added this `WORKLOG.md` as the single running technical record for migration work.
+- Installed dependencies and built `ClientOnly/ui` successfully (`npm run build` passed).
+- Result: new isolated path is now buildable and ready for geometry decoding work.
+
+### 2026-04-01 — Bridge Compatibility Endpoints + Geometry Hydration
+- Added compatibility API endpoints to `ClientOnly/bridge/server.js`:
+  - `/api/game/worldinfo`
+  - `/api/game/roads`
+  - `/api/game/forests`
+  - `/api/game/locations`
+  - `/api/game/structures`
+  - `/api/game/elevations`
+  - `/api/game/trees`
+  - `/api/game/exportstatus`
+  - `/api/staticmap/{world}`
+  - `/api/staticmap/{world}/contours/{z}` (empty placeholder)
+  - `/api/staticmap/{world}/landmask` (full-land placeholder mask)
+- Bridge now reads local Athena map cache from `%USERPROFILE%/Documents/Athena/Maps/{world}` (or `ATHENA_MAPS_DIR` override).
+- Added transformations from Athena cache shapes into remastered UI geometry types (roads/locations/structures/trees/worldinfo).
+- Updated `ClientOnly/ui/src/hooks/useAthenaHub.ts` to hydrate geometry from bridge endpoints on connect/state/map-import completion.
+
+### 2026-04-01 — Fixes During Integration
+- Fixed TypeScript hook dependency error in `useAthenaHub.ts` (`hydrateGeometry` self-reference issue).
+- Resolved port confusion by stopping old PoC server instance so `ClientOnly/bridge` owns port 3000.
+
+### 2026-04-01 — Runtime Validation
+- `ClientOnly/ui` build passed after integration changes.
+- `ClientOnly/bridge` syntax check passed.
+- Endpoint smoke test passed and returned JSON payloads:
+  - world info
+  - roads
+  - locations
+  - structures
+  - trees
+  - static map metadata
+
+### 2026-04-01 — Geometry Fidelity Pass (roads + forests)
+- Improved road conversion in `ClientOnly/bridge/server.js`:
+  - uses first/last cached road nodes to produce real line segments (`beg1` -> `end2`)
+  - infers fallback length from segment distance when cache length is missing/zero
+  - keeps width/type mapping for existing map styling
+- Implemented forest cell conversion from cache index tokens (`"x,y"`) to Athena `ForestsData` cells:
+  - parses both `CellsLight` and `CellsHeavy`
+  - computes sample size from detected index range vs. world size
+  - maps light/heavy to different density levels for rendering
+- Re-ran bridge syntax validation (`node --check server.js`) and confirmed clean parse.
+
+### 2026-04-01 — Elevation + Land/Ocean + Runway Data Pass
+- Replaced static-map placeholders in `ClientOnly/bridge/server.js`:
+  - `/api/staticmap/{world}` now returns real `availableZ` from `Height/Z*.txt` files.
+  - `/api/staticmap/{world}/contours/{z}` now parses `PointGroups` into world-metre contour polylines.
+  - `/api/staticmap/{world}/landmask` now builds raster masks from coastline contour rings with caching and fast fallback.
+- Implemented `/api/game/elevations` bridge response:
+  - emits coarse elevation cells derived from major contour levels (20m bands).
+  - payload now includes `sampleSize`, `worldSize`, and populated `cells`.
+- Added bridge-side in-memory caches for world metadata, contour lines, and land masks to reduce repeated heavy parsing.
+- Verified endpoint responses after bridge restart:
+  - `Altis`: `availableZ=58`, `contours/0 lines=151`, valid landmask payload returned.
+  - Active world endpoint now returns non-null elevation payload with populated cells.
+
+### 2026-04-01 — Runtime Elevation Decode Pass (maprow + elevation)
+- Added robust runtime elevation parsing in `ClientOnly/bridge/server.js`:
+  - decodes `maprow` payloads into `{x,y,z}` cells using multiple formats (JSON object/array/csv triples).
+  - added relay command support for `elevation` and `elevationscomplete` message variants.
+  - stores decoded runtime terrain samples in `mapImportData.runtimeElevations`.
+- Updated `/api/game/elevations` behavior:
+  - now prefers decoded runtime samples when available.
+  - falls back to contour-derived coarse elevations only when runtime samples are absent.
+  - infers runtime sample size from decoded point spacing.
+- Validation:
+  - bridge syntax check passed.
+  - active world endpoint currently returns dense elevation payload (`cells=372311`, `sampleSize=4` on Malden).
+
+### 2026-04-01 — Road Fidelity Pass (multi-segment reconstruction)
+- Upgraded road conversion in `ClientOnly/bridge/server.js`:
+  - non-`hide` roads now emit one road record per adjacent node pair (`road-{idx}-{segment}`) for line fidelity.
+  - per-segment length and direction are now inferred from node geometry.
+  - center point (`posX`,`posY`) is now midpoint of each segment for consistent map usage.
+- Preserved runway/airport surfaces behavior:
+  - `hide` roads remain single area tiles (rectangle rendering path unchanged).
+- Validation after bridge restart:
+  - `/api/game/roads` now returns segmented geometry (`roads=6438`, `hide=415`, `nonHide=6023`).
+  - runway tile count remains stable while non-hide road detail increased significantly.
+
+### 2026-04-01 — Runtime Elevation Parser Diagnostics
+- Added parser telemetry to `ClientOnly/bridge/server.js` runtime map import state:
+  - counts parsed vs failed runtime elevation messages.
+  - stores sample unparsed payloads (capped) for fast format debugging.
+- Added new debug endpoint:
+  - `/api/game/elevationdebug`
+  - returns active world, in-progress state, maprow count, runtime cell count, parse success/failure counts, success rate, and payload samples.
+- Included elevation parse metrics in `mapImportDataReady` broadcast summary.
+- Validation:
+  - bridge syntax check passed.
+  - endpoint smoke test returned expected structured payload on active world.
+
+### 2026-04-01 — Relay Command Trace for Stalled Export
+- Added bridge-side relay command ring buffer in `ClientOnly/bridge/server.js`:
+  - records recent command names with timestamp and payload preview.
+  - keeps the latest 120 relay commands for short-window troubleshooting.
+- Added new endpoint:
+  - `/api/game/relaydebug`
+  - returns relay connection state, export stage/last command, and recent relay command tail.
+- Verified behavior after restart:
+  - bridge remains relay-connected and continuously receives `frame` traffic.
+  - stalled export reproduces as `phase=requested`, `stalled=true`, `lastCommand=mapexport-requested` when no map chunks arrive.
+  - during idle monitoring, relay trace shows only `frame` commands (no `mapbegin`/`maprow` yet captured in this window).
+
+### 2026-04-01 — GUID-Routed Export Request Attempt
+- Found protocol clue in legacy Athena notes: relay supports client GUID mapping for map export routing.
+- Updated `ClientOnly/bridge/server.js` export trigger behavior:
+  - sends GUID-targeted command frame: `command<ath_sep>{bridgeGuid}<ath_sep>mapexport<ath_sep>end`
+  - keeps legacy fallback frame: `command<ath_sep>mapexport<ath_sep>end`
+- Added outbound trace label `command@self` to verify GUID-routed request is emitted on each export click.
+- Next validation step: confirm whether this produces inbound `mapbegin/maprow/...` chunks instead of `requested/stalled`.
+
+### 2026-04-01 — Export Routing Revalidation + Frame Introspection
+- Live capture during user exports showed:
+  - outbound: `command<ath_sep>mapexport`
+  - inbound: `success`
+  - no inbound `mapbegin/maprow/mapobjects/maproads/mapfoliage/mapend` commands observed.
+- GUID-routed variant produced `malformed` from relay in current setup, so export trigger was reverted to legacy accepted form only.
+- Added frame diagnostics endpoint in bridge:
+  - `/api/game/framedebug`
+  - reports frame schema keys, GUID hints, and map/export-related field hints to detect whether export payload is embedded in `frame` JSON.
+
+### 2026-04-01 — Post-Export Delivery Gap (Reproduced)
+- User-side game messages confirm full export pipeline progression:
+  - adding foliage/structures/roads to buffer
+  - all world data supplied to relay for delivery
+- Immediate bridge diagnostics after export click:
+  - `/api/game/exportstatus`: `phase=requested`, `stalled=true`, all geometry counters remain `0`
+  - `/api/game/relaydebug`: outbound `command -> mapexport`, inbound `success` only
+  - `/api/game/elevationdebug`: no parsed/failed maprow payloads
+  - `/api/game/framedebug`: still no frame payload observations in this run window
+- Conclusion for this stage:
+  - relay acknowledges request but does not deliver map chunk stream to the current bridge consumer path.
+
+### 2026-04-01 — Deep Relay Diagnostics Added
+- Added configurable relay registration command type in bridge config:
+  - `RELAY_CLIENT_TYPE` (default `General`)
+  - handshake now logs the active registration type at connect time.
+- Added raw relay dump endpoint for non-keepalive traffic:
+  - `/api/game/rawrelaydebug?limit=10&clear=1`
+  - captures raw message snippets with command tag and timestamp for unknown/new command forms.
+- Updated `/api/game/relaydebug` payload to include current `relayClientType`.
+
+### 2026-04-01 — Raw Relay Capture (General Registration)
+- Post-export capture with clean raw buffer (`General` registration) returned:
+  - outbound: `command -> mapexport`
+  - inbound raw non-keepalive messages: exactly one entry, `success`
+- No map chunk command forms observed (`mapbegin/maprow/mapobjects/maproads/mapfoliage/mapend` all absent).
+- Export status remains `requested/stalled` with zero geometry counters in bridge state.
+
+### 2026-04-01 — Desktop-Open A/B Check
+- Ran export test with Athena Desktop open while bridge stayed on `General` registration.
+- Capture outcome remained unchanged:
+  - outbound: `command -> mapexport`
+  - inbound raw non-keepalive: only `success`
+  - no map chunk command stream delivered to bridge.
+- Conclusion: merely running Desktop does not change relay delivery behavior to this bridge client in current setup.
+
+### 2026-04-01 — MapExport Strategy Harness
+- Added configurable export payload strategy to bridge:
+  - env var: `MAPEXPORT_STRATEGY`
+  - supported values: `basic` (default), `guid-csv`, `guid-pipe`, `guid-colon`, `guid-space`, `all-guid`
+- Export trigger now sends one or more `command` payload variants according to strategy.
+- Purpose: quickly test relay routing expectations without further code edits between runs.
+
+### 2026-04-01 — Live Cache World Fallback (Documents/Athena/Maps)
+- Added active-world fallback logic in `ClientOnly/bridge/server.js`:
+  - if relay-hinted world is missing/unusable, bridge now selects the most recently updated world folder under `%USERPROFILE%/Documents/Athena/Maps`.
+  - probe considers core map files and live chunk directories (`Rows`, `Roads`) with short TTL caching for performance.
+- Validation after restart:
+  - `/api/game/worldinfo` now resolves to live generated cache world (`Stratis`).
+  - `/api/game/roads` returns populated road geometry for resolved world.
+
+### 2026-04-01 — World Cache Selection Controls
+- Added environment controls to choose between live and stable map cache selection:
+  - `WORLD_SELECTION_MODE=fresh|stable`
+    - `fresh` (default): prefers most recently updated world, including live chunk dirs (`Rows`, `Roads`).
+    - `stable`: ignores live chunk dir mtimes and prefers worlds based on core cache files only.
+  - `WORLD_CACHE_OVERRIDE=<WorldName>` to force a specific world folder (if present).
+- This allows testing the "desktop loads stored map offline" behavior without deleting Stratis cache data.
+
+### 2026-04-01 — Runtime Cache Mode API (No Restart Needed)
+- Added API endpoint in bridge for live cache selection control:
+  - `GET /api/game/cachemode` returns current mode/override and resolved active world.
+  - `GET /api/game/cachemode?mode=fresh|stable&world=<WorldName>` updates settings via query.
+  - `POST /api/game/cachemode` with JSON `{ mode, worldOverride }` updates settings.
+- Cache mode changes now clear in-memory world/contour/landmask memoization to apply immediately.
+- Validation:
+  - default read returned `fresh` + `Stratis`.
+  - switching to `stable+Altis` changed active world to `Altis` instantly.
+  - switching back to `fresh` with cleared override returned to `Stratis`.
+
+### 2026-04-01 — UI Map Source Controls
+- Added map source controls in `ClientOnly/ui/src/components/Sidebar.tsx` (COMMON tab):
+  - active cache world display
+  - mode selector (`fresh` / `stable`)
+  - world override input
+  - `Apply` and `Refresh` actions
+- Wired UI to bridge runtime cache API in `ClientOnly/ui/src/hooks/useAthenaHub.ts`:
+  - loads current cache mode via `/api/game/cachemode`
+  - applies updates via `POST /api/game/cachemode`
+
+### 2026-04-01 — Empty-Ocean Fix (Desktop Cache Land Base)
+- Investigated empty blue map in browser despite active world controls.
+- Root cause identified in land base pipeline:
+  - UI attempted contour polygon fill before raster mask fallback; contour branch could short-circuit without visible land fill.
+  - Bridge landmask endpoint returned all-land fallback at high requested grid sizes when contour operation estimate exceeded threshold.
+- Updated `ClientOnly/ui/src/components/AthenaMap.tsx`:
+  - land build now prioritizes `/api/staticmap/{world}/landmask` first.
+  - reduced requested landmask resolution from 1024 to 512 for faster/safer generation.
+  - validates non-empty mask data and falls back to contour/elevation paths if needed.
+- Updated `ClientOnly/bridge/server.js` landmask endpoint:
+  - keeps requested grid for cache keying but auto-reduces effective raster grid (down to 64 min) when coastline complexity is high.
+  - now returns a real generated coastline mask instead of defaulting to all-land for complex worlds.
+- Validation after bridge restart:
+  - `GET /api/staticmap/Stratis/landmask?gridSize=512` returned `width=256,height=256` with mixed land/ocean ratio (`18807/65536`, ~0.287).
+  - `ClientOnly/ui` build passed (`npm run build`).
+- Next concrete task:
+  - Add optional direct `Rows`-based terrain texture overlay path (when row cache files exist) to match original desktop visual style beyond land/ocean silhouette.
+
+### 2026-04-01 — Blue-Map Runtime Safety Fallback
+- Added a last-resort land fill fallback in `ClientOnly/ui/src/components/AthenaMap.tsx`.
+- New behavior:
+  - if landmask fetch/render fails,
+  - and contour fallback is unavailable,
+  - and runtime elevations are missing/invalid,
+  - map now renders a readable neutral land base rectangle instead of staying full ocean-blue.
+- This keeps operator usability (units/roads context) while cache terrain sources recover.
+
+### 2026-04-01 — Geometry Hydration Fault-Tolerance
+- Diagnosed case where units were live but roads/structures/locations were missing in UI.
+- Updated `ClientOnly/ui/src/hooks/useAthenaHub.ts` geometry hydration:
+  - replaced brittle endpoint parsing with per-endpoint `fetchJsonSafe` handling.
+  - each dataset now hydrates independently (`worldinfo`, `roads`, `forests`, `locations`, `structures`, `elevations`, `exportstatus`).
+  - a single endpoint failure no longer prevents all geometry layers from appearing.
+- Validation:
+  - bridge endpoints are reachable and populated (`roads`, `structures`, `forests`, `locations`, `elevations`).
+  - UI build passed after hook update.
+
+### 2026-04-01 — Static Unit/No Group Labels Diagnosis
+- Symptom reported: only land fallback visible; unit marker appears static; no group labels.
+- Verified bridge diagnostics:
+  - `/api/game/framedebug` `seenCount` stalled (and later zero after clean restart).
+  - relay command tail showed no live `frame` stream, only occasional `success` acknowledgements.
+- Conclusion:
+  - movement/heading/group labels depend on continuous relay `frame` telemetry.
+  - when relay stops sending `frame`, UI can only show stale/initial marker snapshots.
+- Attempted bridge-side heartbeat to provoke frame updates, then rolled it back after it did not restore streaming.
+- Current bridge state returned to clean mode (`General` registration, no synthetic heartbeat spam).
+- Next concrete task:
+  - validate Arma->Relay live frame production path (mission script/export loop and extension feed) until `/api/game/framedebug.seenCount` increments continuously.
+
+### 2026-04-01 — Relay Endpoint/Type Verification + Pipe Recovery
+- Verified active relay process and path:
+  - `C:\Program Files (x86)\Steam\steamapps\common\Arma 3\!Workshop\@Athena - An Arma 2nd Screen Application\Relay.exe`
+  - listening on port `28800`.
+- Confirmed accepted relay client type for bridge remains `General`.
+  - `Athena` and other guessed types return `error: unrecognized type`.
+- Probed likely frame-poll command payloads (`frame`, `state`, `update`, `subscribe`, etc.): all returned `success` without enabling continuous frame stream.
+- Inspected active `Relay.exe.log` and found repeated historical pipe instability (`SendPipeMessage :: Error: Pipe is broken`).
+- Performed clean relay restart.
+- Post-restart bridge observations:
+  - frame count increased from 1 to 2 once,
+  - but still not continuous (stalls at fixed `lastSeenAt`).
+- Interpretation:
+  - bridge/web path is healthy and connected,
+  - remaining blocker is upstream continuous frame production from Arma extension -> Relay pipe for this run.
+
+### 2026-04-01 — Dev URL Routing Fix (Splash Screen Confusion)
+- Confirmed URL split:
+  - `http://localhost:3000` = legacy bridge PoC page (`Athena Web PoC`)
+  - `http://localhost:5173` = active React UI
+- Added bridge root redirect in `ClientOnly/bridge/server.js`:
+  - requests to `/` on port `3000` now redirect to `http://{host}:5173/` by default.
+  - can be disabled with `UI_DEV_REDIRECT=false` if needed.
+- Purpose:
+  - prevent accidental landing on splash page while testing ClientOnly UI.
+  - refreshes geometry immediately after apply/refresh
+- Threaded cache-mode state/actions through `ClientOnly/ui/src/App.tsx` into the sidebar.
+- Validation:
+  - `npm run build` passed after UI integration changes.
+
+### 2026-04-01 — Mission Init Instrumentation (Live Frame Stall)
+- Revalidated ACS path is not required for original Relay/Desktop flow.
+- Restarted bridge and relay stack; bridge remains relay-connected on `General` registration.
+- Verified active mission launch path from latest RPT:
+  - `...\missions\Editor%20Athena%20Test.Malden\`
+- Added mission-side `init.sqf` in that folder and upgraded it with explicit `diag_log` probes:
+  - `Athena Mission Init: starting`
+  - `Athena Mission Init: player ready (...)`
+  - `Athena Mission Init: launched init/loop scripts`
+- Startup now triggers both preferred and fallback script paths:
+  - `execVM "\athena\init.sqf"`
+  - `execVM "\athena\loopPut.sqf"`
+  - `execVM "\athena\loopGet.sqf"`
+- Current status:
+  - bridge API healthy, relay connected.
+  - `framedebug.seenCount` still stalled at `1` until mission is restarted so new init instrumentation executes.
+
+### 2026-04-01 — Eden Mission Path Sweep + Script Path Correction
+- Applied `init.sqf` startup bootstrap to all local Eden mission folders under:
+  - `...\NightHawk\missions\*Athena*`
+  - `...\NightHawk\missions\~Editor*`
+  - `...\NightHawk\missions\~tempMissionSP*`
+- Added diagnostics + startup commands in each mission init:
+  - `diag_log "Athena Mission Init: ..."`
+  - `execVM "\athena\init.sqf"`
+  - `execVM "\athena\loopPut.sqf"`
+  - `execVM "\athena\loopGet.sqf"`
+- Fixed path escaping bug introduced during batch injection:
+  - normalized `"\\athena\\..."` to `"\athena\..."` in mission init files.
+
+### 2026-04-01 — Relay Queue Pull Breakthrough (Frame Stream Restored)
+- Root cause identified for stalled unit updates:
+  - relay appears to require queue polling via `next` command for continuous delivery.
+  - prior bridge behavior relied on passive receive (or `command` polling) and only saw sparse/cached frames.
+- Updated bridge protocol polling in `ClientOnly/bridge/server.js`:
+  - added configurable poll command type (`relayFramePollType`).
+  - validated `next<ath_sep><ath_sep>end` polling restores continuous frames.
+- Set new defaults:
+  - `RELAY_FRAME_POLL_TYPE=next`
+  - `RELAY_FRAME_POLL_INTERVAL_MS=250`
+  - command payload remains empty.
+  - guard added so empty `command` polls are not sent.
+- Validation:
+  - `/api/game/framedebug` now increments continuously (seen count rising each sample).
+  - `/api/game/relaydebug` shows outbound `next` and inbound steady `frame` traffic.
+
+### 2026-04-01 — End-of-Day Mission Init Cleanup
+- Removed temporary mission-wide debug bootstrap injections created during triage.
+- Current mission init footprint is now minimal and scoped to the active test mission only:
+  - `Editor%20Athena%20Test.Malden/init.sqf`
+  - content: `[] execVM "\athena\init.sqf";`
+- Verification:
+  - only one `init.sqf` remains under `...\NightHawk\missions`.
+  - no remaining files contain `Athena Mission Init:` debug markers.
+
+### 2026-04-02 — World-Change Auto-Detection Audit + Cache Fix
+- Audited full world-change pipeline for fresh map scenario:
+  1. Bridge receives new `map` name from relay frames → `gameState.map` updates immediately
+  2. `buildClientState()` returns new world via `gameState.map || detectActiveWorld()`
+  3. UI detects world change (`relayWorld !== lastHydratedWorld`) → triggers `hydrateGeometry()`
+  4. REST endpoints use `detectActiveWorld()` → returns new world name → reads Athena Desktop disk cache
+  5. `AthenaMap.tsx` resets `staticCacheRef` on world change → clears all rendered layers
+- **Bug found and fixed**: `worldCacheMemo` was never invalidated when `mapend` arrived after export.
+  - Result: if REST endpoints were called before Athena Desktop finished writing cache files, the stale/empty result was memoized and never refreshed.
+  - Fix: added `worldCacheMemo.clear()`, `contourCacheMemo.clear()`, `landMaskCacheMemo.clear()` inside `handleMapImportMessage()` on `mapend`.
+  - After fix, `mapImportDataReady` → UI `hydrateGeometry()` → REST endpoints re-read fresh disk cache.
+- Confirmed safe behavior for already-cached worlds:
+  - `loadWorldCache()` returns `null` (not memoized) when world dir doesn't exist.
+  - Switching between cached worlds (Altis/Malden/Stratis/etc.) creates separate memo entries per world — no cross-contamination.
+- Confirmed UI "Export World Data" button exists in Sidebar → sends `startMapExport` WS message → bridge sends `command<ath_sep>mapexport` to relay.
+- Expected flow for fresh map test:
+  1. Start Arma on new map → relay frames arrive with new `map` name
+  2. Bridge updates `gameState.map` → UI detects world change → layers clear + re-hydrate from cache (if exists)
+  3. User clicks "Export World Data" → Athena Desktop exports + writes cache files
+  4. Relay delivers `mapbegin`→`mapend` → bridge clears all memos → broadcasts `mapImportDataReady`
+  5. UI re-hydrates from REST → reads fresh disk cache → all layers render
+
+### 2026-04-02 — Flat Military Cartography Style Overhaul
+- Goal: match Bus's original Athena Desktop visual style — clean, flat, solid, sharp. No gradients, no fading, no soft edges. "16-bit precision military nav" aesthetic.
+- **Rendering priority swap**: Z=0 contour vector polygon fill is now primary land path (smooth coastlines), raster mask demoted to fallback.
+- **All opacities hardened to 1.0** (was 0.35–0.92 on various layers):
+  - Road fills: 0.85 → 1.0
+  - Road borders: 0.7 → 1.0
+  - Airport surface strokes: 0.35 → 1.0
+  - Contour lines: 0.58/0.7/0.76 → 1.0 (all three tiers)
+  - Walls/fences: 0.88 → 1.0
+  - Structure strokes: 0.92 → 1.0
+  - Structure fills: 0.55 → 1.0
+  - Waypoint lines: 0.85 → 1.0
+  - Projectile trails: 0.9 → 1.0
+  - Topo overlay: 0.75 → 1.0
+  - Land fallback rectangle: 0.9 → 1.0
+- **Forest cells fully opaque** (was semi-transparent alpha blending):
+  - Dense (level 3): alpha 155 → 255 (solid dark green)
+  - Medium (level 2): alpha 110 → 255 (new distinct mid-green: 148,182,140)
+  - Sparse (level 1): alpha 78 → 255 (solid light green: 188,210,180)
+- **Trees**: fill alpha 0.9 → 1.0 (solid forest green)
+- **All line caps/joins changed to sharp**:
+  - Coastline Z=0: round → butt/miter
+  - Inland contours: round → butt/miter
+  - Removed Chaikin corner-cutting smoothing on coastline (was softening grid-derived contour edges)
+  - Coastline now single solid stroke (was dual outer+inner with semi-transparency)
+- **Drop shadows solidified**:
+  - Unit icons: rgba(0,0,0,0.5) → #000
+  - Group icons: rgba(0,0,0,0.55) → #000
+  - Vehicle SVG strokes: rgba(0,0,0,0.75) → #000
+- **Text outlines solidified**:
+  - Location labels: rgba(0,0,0,0.85) → #000
+  - Unit marker labels: rgba(0,0,0,0.92) → #000
+- **Global CSS added**:
+  - `svg { shape-rendering: crispEdges; }` — flat SVG rendering, no anti-aliased softness
+  - `canvas { image-rendering: pixelated; }` — global crisp canvas rendering
+- **Dead code removed**: `smoothRing()` Chaikin function (no longer used after coastline change)
+- Files changed: `AthenaMap.tsx`, `App.css`
+
+### 2026-04-02 — Bus-Exact Rendering Values (dnSpy Decompilation)
+- Decompiled Athena Desktop.exe with dnSpy and read all rendering code (MapHelper.cs, Common.cs, Marker.cs, Unit.cs, Vehicle.cs, XAML templates).
+- Extracted every color, weight, alpha, and size value from Bus's original WPF renderer.
+- Applied Bus-exact values to `ClientOnly/ui/src/components/AthenaMap.tsx`:
+  - **Side colors**: `sideColor()` now returns Bus's ARGB(180,...) values as rgba (0.706 alpha):
+    - WEST `rgba(78,118,204,0.706)`, EAST `rgba(204,78,78,0.706)`, GUER `rgba(0,128,0,0.706)`, CIV `rgba(178,0,255,0.706)`
+  - **Road colors**: `roadStyle()` uses Bus named colors:
+    - Highway=SandyBrown `#F4A460`, Concrete=LightGray `#D3D3D3`, Asphalt=DimGray `#696969`, Dirt=Tan `#D2B48C`, Unknown=Brown `#A52A2A`
+  - **Contour lines**: `contourStyle()` uniform weight 0.75 (was variable 0.35–1.5):
+    - Z=0 MediumBlue `#0000CD`, Z<0 DodgerBlue `#1E90FF`, Z>0 RosyBrown `#BC8F8F`
+  - **Tree radius**: Fixed 2.0 (was zoom-scaled 1.5–3px), matching Bus's `EllipseGeometry(2.0, 2.0)`
+  - **Ocean background**: `#B0E0E6` PowderBlue (already correct)
+  - **Land fill**: `#FFFFF0` Ivory in all 5 render paths (was `#FEFFEF`)
+  - **Coastline**: `#0000CD` MediumBlue, weight 0.75 (was `#7789C0`, weight 1.5)
+  - **Forest cells**: Semi-transparent 27.5% alpha matching Bus's `ARGB(70,...)`:
+    - Heavy `rgba(0,127,12,0.275)`, Light `rgba(0,181,18,0.275)` (was fully opaque 3-tier)
+  - **Marching-squares contours**: Uniform 0.75 weight, exact named colors, no alpha variation
+- Removed unused `is120`/`is60`/`is30` variables from marching-squares loop (were left over from old variable-weight logic).
+- All changes verified with zero compile errors.
+
+### 2026-04-02 — Forest Cell Size + Y-Flip Fix (Bus-Exact)
+- Investigated Bus's `GenerateForestGeometry` via dnSpy decompilation:
+  - Bus uses fixed 16×16 pixel cells: `new Rect(ForestPoint.X * 16.0, ForestPoint.Y * 16.0, 16.0, 16.0)`
+- **Bridge fix**: Hardcoded `sampleSize = 16` in `bridge/server.js`:
+  - Was: `Math.max(4, Math.round(worldSize / (maxIndex + 1)))` — gave 17 for Stratis, 21 for Tanoa (wrong grid sizes)
+  - Now: fixed 16, matching Bus exactly
+- **Y-flip off-by-one fix**: Changed Y formula from `worldSize - yIdx * sampleSize` to `worldSize - (yIdx + 1) * sampleSize`
+  - Without this, cells at yIdx=0 mapped to worldY=worldSize instead of worldSize-16
+- Result: forest overlay now aligns correctly with coastline, no longer leaks into ocean.
+
+### 2026-04-02 — Land Polygon Bus-Exact Border
+- Added `stroke: true, color: '#FFFFF0', weight: 1` to Z=0 land polygon, matching Bus's `GeneratePen(Thickness=1.0)`.
+
+### 2026-04-02 — Land Refresh Race Condition Fix
+- Diagnosed land fill disappearing on browser refresh:
+  - contours start empty → fallback sets `landCacheRef.ready=true` → Z=0 contours arrive → guard blocks upgrade
+- Fix 1: Added `source` field to `landCacheRef` (`'z0'` vs `'fallback'`) — fallbacks can be upgraded when Z=0 data arrives.
+- Fix 2: Removed upfront `clearLayers()` — all three render paths now clear atomically just before adding replacement content, preventing blue flash during async fetches.
+- Fix 3: Last-resort fallback skips if better content already showing.
+
+### 2026-04-02 — v0.0.1 Release
+- Published to GitHub: https://github.com/SgtFoose/Athena-Web-2
+- Full bridge + React UI with Bus-exact rendering fidelity.
+- All map layers functional: coastline, roads, forests, structures, contours, locations, elevation, live units.
+- Video: https://youtu.be/4-AioVt9iUQ
+
+## Current Known Limitations
+- Runtime maprow parser is heuristic-first; needs live-capture verification against multiple mission/maprow payload variants.
+- Road segment stitching is per-object local; optional future step is endpoint dedup/merge for long polylines to reduce draw calls.
+- Relay map export delivery not yet confirmed working through bridge (relay acknowledges but does not deliver chunks).
+
+## Next Tasks
+1. Runtime export data serving via REST (for custom maps without Athena Desktop cache)
+2. Runtime maprow parser fix for `{y, z}` JSON format
+3. Wall/structure rotation audit
+4. Filter trees outside land boundary
+5. Mobile UI polish
+
+## Quick Run Commands
+```powershell
+# Terminal 1: bridge
+cd bridge
+npm install
+node server.js
+
+# Terminal 2: UI
+cd ui
+npm install
+npm run dev
+```
+
+## Verification Checklist
+- UI loads (not blank)
+- Relay connected state turns green
+- Live units render and update
+- Map layers render (coastline, roads, forests, structures, contours, locations)
+- Layer toggles work
+- World auto-detection resolves correct map

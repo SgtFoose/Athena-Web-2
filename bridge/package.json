@@ -1,0 +1,13 @@
+{
+  "name": "athena-web-poc",
+  "version": "0.0.1-alpha",
+  "description": "Athena Arma3 relay web proof of concept",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "probe": "node probe.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

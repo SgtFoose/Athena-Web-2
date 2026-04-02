@@ -1,0 +1,1037 @@
+[
+  {
+    "Class": "Mount",
+    "Font": "RobotoCondensed",
+    "Name": "Mount",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 4.0,
+    "DrawStyle": "mount"
+  },
+  {
+    "Class": "Name",
+    "Font": "RobotoCondensed",
+    "Name": "Name",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 4.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "Strategic",
+    "Font": "RobotoCondensed",
+    "Name": "Strategic key point",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "StrongpointArea",
+    "Font": "RobotoCondensed",
+    "Name": "Strongpoint area",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "FlatArea",
+    "Font": "RobotoCondensed",
+    "Name": "Flat area",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "FlatAreaCity",
+    "Font": "RobotoCondensed",
+    "Name": "Flat area in a city",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "FlatAreaCitySmall",
+    "Font": "RobotoCondensed",
+    "Name": "Flat area in a city - small",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "CityCenter",
+    "Font": "RobotoCondensed",
+    "Name": "Center of the village/town/city",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "Airport",
+    "Font": "RobotoCondensed",
+    "Name": "Airport",
+    "Texture": "#(argb,8,8,3)color(1,1,1,1)",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "NameMarine",
+    "Font": "RobotoCondensed",
+    "Name": "Name Marine",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "NameCityCapital",
+    "Font": "RobotoCondensed",
+    "Name": "Name Capital",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 7.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "NameCity",
+    "Font": "RobotoCondensed",
+    "Name": "Name City",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 6.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "NameVillage",
+    "Font": "RobotoCondensed",
+    "Name": "Name Village",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "NameLocal",
+    "Font": "RobotoCondensed",
+    "Name": "Name Local",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "Hill",
+    "Font": "RobotoCondensed",
+    "Name": "Hill",
+    "Texture": "hill_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "ViewPoint",
+    "Font": "RobotoCondensed",
+    "Name": "View Point",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "RockArea",
+    "Font": "RobotoCondensed",
+    "Name": "Rock Area",
+    "Texture": "rockarea_ca",
+    "Size": 12.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "BorderCrossing",
+    "Font": "RobotoCondensed",
+    "Name": "Border Crossing",
+    "Texture": "bordercrossing_ca",
+    "Size": 16.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "VegetationBroadleaf",
+    "Font": "RobotoCondensed",
+    "Name": "Vegetation Broadleaf",
+    "Texture": "vegetationbroadleaf_ca",
+    "Size": 18.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "VegetationFir",
+    "Font": "RobotoCondensed",
+    "Name": "Vegetation Fir",
+    "Texture": "vegetationfir_ca",
+    "Size": 18.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "VegetationPalm",
+    "Font": "RobotoCondensed",
+    "Name": "Vegetation Palm",
+    "Texture": "vegetationpalm_ca",
+    "Size": 18.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "VegetationVineyard",
+    "Font": "RobotoCondensed",
+    "Name": "Vegetation Vineyard",
+    "Texture": "vegetationvineyard_ca",
+    "Size": 16.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "fakeTown",
+    "Font": "RobotoCondensed",
+    "Name": "Name",
+    "Texture": "",
+    "Size": 0.0,
+    "SizeText": 4.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "Area",
+    "Font": "PuristaMedium",
+    "Name": "Area",
+    "Texture": "#(argb,8,8,3)color(1,1,1,1)",
+    "Size": 0.0,
+    "SizeText": 5.0,
+    "DrawStyle": "area"
+  },
+  {
+    "Class": "Flag",
+    "Font": "RobotoCondensed",
+    "Name": "Hill",
+    "Texture": "hill_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_unknown",
+    "Font": "RobotoCondensed",
+    "Name": "Unknown",
+    "Texture": "b_unknown",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_unknown",
+    "Font": "RobotoCondensed",
+    "Name": "Unknown",
+    "Texture": "o_unknown",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_unknown",
+    "Font": "RobotoCondensed",
+    "Name": "Unknown",
+    "Texture": "n_unknown",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Infantry",
+    "Texture": "b_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Infantry",
+    "Texture": "o_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Infantry",
+    "Texture": "n_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_motor_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Motorized",
+    "Texture": "b_motor_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_motor_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Motorized",
+    "Texture": "o_motor_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_motor_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Motorized",
+    "Texture": "n_motor_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_mech_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Mechanized",
+    "Texture": "b_mech_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_mech_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Mechanized",
+    "Texture": "o_mech_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_mech_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Mechanized",
+    "Texture": "n_mech_inf",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_armor",
+    "Font": "RobotoCondensed",
+    "Name": "Armor",
+    "Texture": "b_armor",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_armor",
+    "Font": "RobotoCondensed",
+    "Name": "Armor",
+    "Texture": "o_armor",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_armor",
+    "Font": "RobotoCondensed",
+    "Name": "Armor",
+    "Texture": "n_armor",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_recon",
+    "Font": "RobotoCondensed",
+    "Name": "Recon",
+    "Texture": "b_recon",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_recon",
+    "Font": "RobotoCondensed",
+    "Name": "Recon",
+    "Texture": "o_recon",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_recon",
+    "Font": "RobotoCondensed",
+    "Name": "Recon",
+    "Texture": "n_recon",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_air",
+    "Font": "RobotoCondensed",
+    "Name": "Helicopter",
+    "Texture": "b_air",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_air",
+    "Font": "RobotoCondensed",
+    "Name": "Helicopter",
+    "Texture": "o_air",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_air",
+    "Font": "RobotoCondensed",
+    "Name": "Helicopter",
+    "Texture": "n_air",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_plane",
+    "Font": "RobotoCondensed",
+    "Name": "Plane",
+    "Texture": "b_plane",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_plane",
+    "Font": "RobotoCondensed",
+    "Name": "Plane",
+    "Texture": "o_plane",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_plane",
+    "Font": "RobotoCondensed",
+    "Name": "Plane",
+    "Texture": "n_plane",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_uav",
+    "Font": "RobotoCondensed",
+    "Name": "UAV",
+    "Texture": "b_uav",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_uav",
+    "Font": "RobotoCondensed",
+    "Name": "UAV",
+    "Texture": "o_uav",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_uav",
+    "Font": "RobotoCondensed",
+    "Name": "UAV",
+    "Texture": "n_uav",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_naval",
+    "Font": "RobotoCondensed",
+    "Name": "Naval",
+    "Texture": "b_naval",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_naval",
+    "Font": "RobotoCondensed",
+    "Name": "Naval",
+    "Texture": "o_naval",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_naval",
+    "Font": "RobotoCondensed",
+    "Name": "Naval",
+    "Texture": "n_naval",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_med",
+    "Font": "RobotoCondensed",
+    "Name": "Medical",
+    "Texture": "b_med",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_med",
+    "Font": "RobotoCondensed",
+    "Name": "Medical",
+    "Texture": "o_med",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_med",
+    "Font": "RobotoCondensed",
+    "Name": "Medical",
+    "Texture": "n_med",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_art",
+    "Font": "RobotoCondensed",
+    "Name": "Artillery",
+    "Texture": "b_art",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_art",
+    "Font": "RobotoCondensed",
+    "Name": "Artillery",
+    "Texture": "o_art",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_art",
+    "Font": "RobotoCondensed",
+    "Name": "Artillery",
+    "Texture": "n_art",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_mortar",
+    "Font": "RobotoCondensed",
+    "Name": "Mortar",
+    "Texture": "b_mortar",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_mortar",
+    "Font": "RobotoCondensed",
+    "Name": "Mortar",
+    "Texture": "o_mortar",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_mortar",
+    "Font": "RobotoCondensed",
+    "Name": "Mortar",
+    "Texture": "n_mortar",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_hq",
+    "Font": "RobotoCondensed",
+    "Name": "HQ",
+    "Texture": "b_hq",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_hq",
+    "Font": "RobotoCondensed",
+    "Name": "HQ",
+    "Texture": "o_hq",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_hq",
+    "Font": "RobotoCondensed",
+    "Name": "HQ",
+    "Texture": "n_hq",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_support",
+    "Font": "RobotoCondensed",
+    "Name": "Support",
+    "Texture": "b_support",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_support",
+    "Font": "RobotoCondensed",
+    "Name": "Support",
+    "Texture": "o_support",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_support",
+    "Font": "RobotoCondensed",
+    "Name": "Support",
+    "Texture": "n_support",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_maint",
+    "Font": "RobotoCondensed",
+    "Name": "Maintenance",
+    "Texture": "b_maint",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_maint",
+    "Font": "RobotoCondensed",
+    "Name": "Maintenance",
+    "Texture": "o_maint",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_maint",
+    "Font": "RobotoCondensed",
+    "Name": "Maintenance",
+    "Texture": "n_maint",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_service",
+    "Font": "RobotoCondensed",
+    "Name": "Service",
+    "Texture": "b_service",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_service",
+    "Font": "RobotoCondensed",
+    "Name": "Service",
+    "Texture": "o_service",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_service",
+    "Font": "RobotoCondensed",
+    "Name": "Service",
+    "Texture": "n_service",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_installation",
+    "Font": "RobotoCondensed",
+    "Name": "Installation",
+    "Texture": "b_installation",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_installation",
+    "Font": "RobotoCondensed",
+    "Name": "Installation",
+    "Texture": "o_installation",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_installation",
+    "Font": "RobotoCondensed",
+    "Name": "Installation",
+    "Texture": "n_installation",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "u_installation",
+    "Font": "RobotoCondensed",
+    "Name": "Installation",
+    "Texture": "u_installation",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "b_antiair",
+    "Font": "RobotoCondensed",
+    "Name": "Anti-Air",
+    "Texture": "b_antiair",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "o_antiair",
+    "Font": "RobotoCondensed",
+    "Name": "Anti-Air",
+    "Texture": "o_antiair",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "n_antiair",
+    "Font": "RobotoCondensed",
+    "Name": "Anti-Air",
+    "Texture": "n_antiair",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "c_unknown",
+    "Font": "RobotoCondensed",
+    "Name": "Unknown",
+    "Texture": "c_unknown",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "c_car",
+    "Font": "RobotoCondensed",
+    "Name": "Car",
+    "Texture": "c_car",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "c_ship",
+    "Font": "RobotoCondensed",
+    "Name": "Ship",
+    "Texture": "c_ship",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "c_air",
+    "Font": "RobotoCondensed",
+    "Name": "Helicopter",
+    "Texture": "c_air",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "c_plane",
+    "Font": "RobotoCondensed",
+    "Name": "Plane",
+    "Texture": "c_plane",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_0",
+    "Font": "RobotoCondensed",
+    "Name": "Fire Team",
+    "Texture": "group_0",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_1",
+    "Font": "RobotoCondensed",
+    "Name": "Squad",
+    "Texture": "group_1",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_2",
+    "Font": "RobotoCondensed",
+    "Name": "Section",
+    "Texture": "group_2",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_3",
+    "Font": "RobotoCondensed",
+    "Name": "Platoon",
+    "Texture": "group_3",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_4",
+    "Font": "RobotoCondensed",
+    "Name": "Company",
+    "Texture": "group_4",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_5",
+    "Font": "RobotoCondensed",
+    "Name": "Battalion",
+    "Texture": "group_5",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_6",
+    "Font": "RobotoCondensed",
+    "Name": "Regiment",
+    "Texture": "group_6",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_7",
+    "Font": "RobotoCondensed",
+    "Name": "Brigade",
+    "Texture": "group_7",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_8",
+    "Font": "RobotoCondensed",
+    "Name": "Division",
+    "Texture": "group_8",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_9",
+    "Font": "RobotoCondensed",
+    "Name": "Corps",
+    "Texture": "group_9",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_10",
+    "Font": "RobotoCondensed",
+    "Name": "Army",
+    "Texture": "group_10",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "group_11",
+    "Font": "RobotoCondensed",
+    "Name": "Army Group",
+    "Texture": "group_11",
+    "Size": 29.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_unknown",
+    "Font": "RobotoCondensed",
+    "Name": "Respawn",
+    "Texture": "respawn_unknown_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_inf",
+    "Font": "RobotoCondensed",
+    "Name": "Infantry Respawn",
+    "Texture": "respawn_inf_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_motor",
+    "Font": "RobotoCondensed",
+    "Name": "Car Respawn",
+    "Texture": "respawn_motor_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_armor",
+    "Font": "RobotoCondensed",
+    "Name": "Armor Respawn",
+    "Texture": "respawn_armor_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_air",
+    "Font": "RobotoCondensed",
+    "Name": "Helicopter Respawn",
+    "Texture": "respawn_air_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_plane",
+    "Font": "RobotoCondensed",
+    "Name": "Plane Respawn",
+    "Texture": "respawn_plane_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_naval",
+    "Font": "RobotoCondensed",
+    "Name": "Naval Respawn",
+    "Texture": "respawn_naval_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "respawn_para",
+    "Font": "RobotoCondensed",
+    "Name": "Airborne Respawn",
+    "Texture": "respawn_para_ca",
+    "Size": 14.0,
+    "SizeText": 4.0,
+    "DrawStyle": "icon"
+  },
+  {
+    "Class": "Invisible",
+    "Font": "RobotoCondensed",
+    "Name": "",
+    "Texture": "#(argb,8,8,3)color(0,0,0,0)",
+    "Size": 0.0,
+    "SizeText": 0.0,
+    "DrawStyle": "area"
+  },
+  {
+    "Class": "HistoricalSite",
+    "Font": "RobotoCondensed",
+    "Name": "",
+    "Texture": "#(argb,8,8,3)color(1,1,1,1)",
+    "Size": 0.0,
+    "SizeText": 0.0,
+    "DrawStyle": "area"
+  },
+  {
+    "Class": "CivilDefense",
+    "Font": "RobotoCondensed",
+    "Name": "Strategic key point",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "CulturalProperty",
+    "Font": "RobotoCondensed",
+    "Name": "Strategic key point",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "DangerousForces",
+    "Font": "RobotoCondensed",
+    "Name": "Strategic key point",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "SafetyZone",
+    "Font": "RobotoCondensed",
+    "Name": "Strategic key point",
+    "Texture": "viewpoint_ca",
+    "Size": 16.0,
+    "SizeText": 5.0,
+    "DrawStyle": "name"
+  },
+  {
+    "Class": "HandDrawnCamp",
+    "Font": "RobotoCondensed",
+    "Name": "Name",
+    "Texture": "#(rgb,1,1,1)color(0,0,0,0)",
+    "Size": 32.0,
+    "SizeText": 8.0,
+    "DrawStyle": "icon"
+  }
+]

@@ -14,5 +14,9 @@ Thumbs.db
 coverage/
 dist/
 
+# Analysis/temp
+.analysis/
+Temp/
+
 # Never commit original Athena mod distribution folder
 @Athena - An Arma 2nd Screen Application/

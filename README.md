@@ -1,68 +1,149 @@
 # ATHENA WEB 2
 
-> Tactical second-screen web companion for Arma 3 (Proof of Concept)
+> Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-Version: v0.0.1-alpha (first public draft)
+**Version: v0.0.1**
+
+![Athena Web 2 v0.0.1 — Tanoa](Images/Athena%20Web%202%20v0.0.1.png)
+
+## Latest Video
+
+[![Athena Web 2 v0.0.1](https://img.youtube.com/vi/4-AioVt9iUQ/maxresdefault.jpg)](https://youtu.be/4-AioVt9iUQ)
 
 ## SITREP
 
-Athena Web 2 is currently a **Proof of Concept** at **v0.0.1-alpha** that connects to the local Athena relay and renders live mission data in a mobile-friendly web view.
+Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This project will evolve into a full operational tool in the coming weeks.
+This is v0.0.1 — the first functional release. It works today for live sessions.
 
-## WHAT THIS DOES TODAY
+## FEATURES
 
-- Connects to Athena Relay on TCP `28800`
-- Parses Athena protocol messages using `<ath_sep>` and `<ath_sep>end`
-- Bridges relay data to browser clients over WebSocket
-- Renders live units on a tactical map canvas
-- Supports phone/tablet viewing on local network
+- **Live unit tracking** — groups, vehicles, units with real-time position and heading updates
+- **Full map rendering** — coastlines, roads, forests, structures, contour lines, locations, elevation data
+- **Bus-exact visual fidelity** — colors, weights, and styles faithfully match Bus's original Athena Desktop renderer
+- **Layer controls** — toggle contours, forests, trees, roads, structures, locations, groups, vehicles, units, waypoints, projectile tracking
+- **Map style modes** — 2D, Ground, Pilot views
+- **ORBAT panel** — unit/vehicle listing with side filtering
+- **Events feed** — kills and shots with timestamps
+- **World auto-detection** — automatically loads the correct map from Athena Desktop cache
+- **Multi-map support** — works with any cached Arma 3 map (Altis, Stratis, Malden, Tanoa, Enoch, etc.)
+- **Export World Data** — trigger map data export from the browser
+- **No custom DLL required** — uses Bus's original unmodified Athena mod and relay
+- **Phone/tablet support** — responsive layout for mobile viewing on local network
 
-## QUICK START (TESTERS)
+## QUICK START
 
-### 1. Prerequisites
+### Prerequisites
 
-- Arma 3 with **Athena - An Arma 2nd Screen Application** installed and running
+- Arma 3 with **[Athena - An Arma 2nd Screen Application](https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736)** mod installed and running
+- **Athena Desktop** must have exported the map at least once (creates cache in `Documents/Athena/Maps/`)
 - Node.js 18+ installed
-- Local network access (for phone/tablet testing)
 
-### 2. Configure Athena extension
+### 1. Configure Athena extension
 
 Open:
 
-`C:\Program Files (x86)\Steam\steamapps\common\Arma 3\!Workshop\@Athena - An Arma 2nd Screen Application\AthenaExtensionSettings.txt`
+```
+C:\Program Files (x86)\Steam\steamapps\common\Arma 3\!Workshop\@Athena - An Arma 2nd Screen Application\AthenaExtensionSettings.txt
+```
 
-Recommended:
+Recommended settings:
 
 - `ath_launch_relay=true`
-- `ath_launch_app=false` (so desktop app does not compete with this PoC)
+- `ath_launch_app=false` (optional — Desktop app can run alongside)
 
-### 3. Run the PoC
+### 2. Start the bridge
 
 ```powershell
-cd poc
+cd bridge
 npm install
 node server.js
 ```
 
-### 4. Open on device
+### 3. Start the UI
 
-Use the network URL printed in terminal, for example:
+```powershell
+cd ui
+npm install
+npm run dev
+```
 
-`http://192.168.x.x:3000`
+### 4. Open in browser
+
+- **Local**: http://localhost:5173
+- **Network** (phone/tablet): Use the network URL printed by Vite, e.g. `http://192.168.x.x:5173`
+
+The bridge runs on port `3000` (REST API + WebSocket). The UI dev server runs on port `5173`.
+
+## PROJECT STRUCTURE
+
+```
+bridge/
+  server.js          # TCP relay → REST API + WebSocket bridge
+  probe.js           # Protocol probing utility
+  package.json
+
+ui/
+  src/
+    components/
+      AthenaMap.tsx   # Leaflet map with all rendering layers
+      Sidebar.tsx     # MAP/ORBAT tabs, layer toggles, location list
+      EventFeed.tsx   # Kill/shot event feed panel
+    hooks/
+      useAthenaHub.ts # Bridge WebSocket + REST data hydration
+      useStaticMap.ts # Static map contour/landmask fetching
+    types/
+      game.ts         # TypeScript interfaces for all game data
+    App.tsx            # Root component
+  index.html
+  package.json
+  vite.config.ts
+
+poc/                   # Original proof-of-concept (preserved for reference)
+
+Images/                # Screenshots
+WORKLOG.md             # Detailed development log
+CHANGELOG.md           # Release history
+```
+
+## HOW IT WORKS
+
+```
+Arma 3 → Athena Extension → Relay (TCP 28800) → Bridge (Node.js) → Browser (React + Leaflet)
+```
+
+1. **Athena mod** (SQF scripts + DLL) collects game state from Arma 3
+2. **Relay** (`Relay.exe`) receives data over named pipe, serves it on TCP port 28800
+3. **Bridge** (`bridge/server.js`) connects to relay, parses the `<ath_sep>` protocol, and serves REST endpoints + WebSocket events
+4. **UI** (`ui/`) connects to bridge, fetches map geometry from Athena Desktop cache (via bridge), and renders everything with Leaflet
+
+### Map data sources
+
+- **Live data**: Units, vehicles, groups, kills, shots — streamed from relay in real time
+- **Static geometry**: Roads, structures, forests, trees, locations, elevation, contours — read from Athena Desktop cache on disk (`Documents/Athena/Maps/{world}/`)
+
+## ENVIRONMENT VARIABLES (bridge)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | Bridge HTTP/WS port |
+| `RELAY_HOST` | `127.0.0.1` | Athena relay host |
+| `RELAY_PORT` | `28800` | Athena relay TCP port |
+| `ATHENA_MAPS_DIR` | `~/Documents/Athena/Maps` | Path to Athena Desktop map cache |
+| `WORLD_SELECTION_MODE` | `fresh` | `fresh` (latest updated) or `stable` (core files only) |
+| `WORLD_CACHE_OVERRIDE` | _(empty)_ | Force a specific world name |
 
 ## CONTRIBUTING
 
-Contributions are welcome while this is moving from prototype to full release.
+Contributions are welcome. This project is actively developed.
 
 ### Priority areas
 
-- Better map rendering and scaling logic
-- Marker and vehicle visualization
-- Mission/session persistence
-- UI/UX hardening for mobile
-- Error handling and reconnect resilience
+- Mobile UI improvements
+- Additional map layer types
+- Performance optimization for large maps
 - Packaging for non-technical users
+- Error handling and reconnect resilience
 
 ### Contribution workflow
 
@@ -70,44 +151,22 @@ Contributions are welcome while this is moving from prototype to full release.
 2. Create a feature branch
 3. Keep changes scoped and documented
 4. Test with a live Athena relay session
-5. Open a PR with:
-   - What changed
-   - How to test
-   - Screenshots/gifs when UI changed
-
-## PROJECT STRUCTURE
-
-```text
-poc/
-  package.json
-  server.js        # TCP relay -> WebSocket bridge
-  probe.js         # Protocol probing utility
-  public/
-    index.html     # Mobile tactical map client
-```
-
-## ROADMAP (NEAR TERM)
-
-- Stabilize protocol and frame parsing
-- Improve tactical rendering fidelity
-- Add client-side filters and layer toggles
-- Add configuration UI
-- Prepare packaged release path
+5. Open a PR with what changed, how to test, and screenshots when UI changed
 
 ## CREDITS
 
 ### Original Athena mod
 
 - **Athena - An Arma 2nd Screen Application**
-- Creator credit: **Bus**
-- Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736&searchtext=athena
+- Creator: **Bus**
+- Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736
 
-### Related work by this team
+### Athena Remastered (related work)
 
-- https://steamcommunity.com/sharedfiles/filedetails/?id=3687225607
+- Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3687225607
 
-## DISCLAIMER
+## LICENSE
 
-This repository is an independent web proof-of-concept bridge/client around Athena relay output and is not a replacement for the original Athena mod.
+This repository is an independent web client built around the Athena relay protocol. It does not modify or redistribute any original Athena mod binaries.
 
 Respect all rights and credits of original authors.

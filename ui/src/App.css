@@ -1,0 +1,224 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Global crisp rendering — flat military cartography, no anti-aliased softness */
+svg { shape-rendering: crispEdges; }
+canvas { image-rendering: pixelated; }
+
+body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
+.app-shell { display: grid; grid-template-columns: 260px 1fr 220px; height: 100vh; }
+.sidebar { background: #161b22; border-right: 1px solid #21262d; overflow-y: auto; display: flex; flex-direction: column; }
+.sidebar-header { background: #0d1117; padding: 10px 16px; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo-text { font-weight: 800; font-size: 14px; letter-spacing: 2px; color: #2ecc71; text-transform: uppercase; }
+.donate-link { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #f0a500; text-decoration: none; opacity: 0.75; white-space: nowrap; transition: opacity 0.15s; }
+.donate-link:hover { opacity: 1; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.version-label { font-size: 9px; font-weight: 600; letter-spacing: 0.5px; color: #555; white-space: nowrap; }
+.map-area { position: relative; background: #1a2a1a; }
+.map-area > div:first-child { width: 100%; height: 100%; }
+
+/* -- Welcome overlay (no game data yet) ----------------------------------- */
+.welcome-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  pointer-events: none;
+  background: #0d1117;
+}
+.welcome-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.welcome-banner {
+  position: relative;
+  z-index: 1;
+  margin-top: 32px;
+  background: rgba(13, 17, 23, 0.92);
+  border: 1px solid #21262d;
+  border-radius: 10px;
+  padding: 20px 32px;
+  text-align: center;
+  max-width: 480px;
+  pointer-events: auto;
+}
+.welcome-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #2ecc71;
+  margin-bottom: 10px;
+}
+.welcome-status {
+  font-size: 13px;
+  color: #f0a500;
+  margin-bottom: 14px;
+}
+.welcome-instructions {
+  font-size: 12px;
+  color: #c9d1d9;
+  text-align: left;
+  line-height: 1.8;
+}
+.welcome-instructions code {
+  background: rgba(110, 118, 129, 0.25);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #e6edf3;
+}
+.welcome-export-progress {
+  margin-top: 10px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.welcome-export-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+/* -- Export status overlay (bottom-left of map) --------------------------- */
+.export-status-overlay {
+  position: absolute;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  left: 12px;
+  z-index: 1000;
+  background: rgba(13, 17, 23, 0.88);
+  border: 1px solid #21262d;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #e6edf3;
+  pointer-events: none;
+  min-width: 160px;
+  max-height: calc(100% - 24px - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+}
+.export-status-title {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  color: #2ecc71;
+}
+.export-status-row {
+  line-height: 1.6;
+}
+
+/* Keep export panel readable and fully visible on iPad/tablet-sized viewports */
+@media (max-width: 1200px), (max-height: 820px) {
+  .export-status-overlay {
+    left: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 8px;
+    font-size: 10px;
+    min-width: 132px;
+    max-width: min(42vw, 200px);
+    max-height: calc(100% - 16px - env(safe-area-inset-bottom, 0px));
+  }
+
+  .export-status-title {
+    font-size: 10px;
+    margin-bottom: 3px;
+    letter-spacing: 0.35px;
+  }
+
+  .export-status-row {
+    line-height: 1.35;
+  }
+}
+.export-status-row .done {
+  color: #2ecc71;
+}
+.export-status-row .pending {
+  color: #f0a500;
+}
+.event-panel { background: #161b22; border-left: 1px solid #21262d; display: flex; flex-direction: column; overflow: hidden; }
+.panel-header { background: #0d1117; padding: 14px 16px; border-bottom: 1px solid #21262d; font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #888; }
+.event-panel > div:last-child { flex: 1; overflow-y: auto; padding: 12px; }
+
+/* -- Location labels on map ----------------------------------------------- */
+.location-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: #e0dcc8;
+  font-family: 'Aptos', 'Aptos Display', 'Calibri', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  /* Dark outline halo — military topo map style, readable on any background */
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000,
+    -1px  0   0 #000,
+     1px  0   0 #000,
+     0   -1px 0 #000,
+     0    1px 0 #000;
+  white-space: nowrap;
+  pointer-events: none;
+  text-transform: uppercase;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  filter: none;
+ }
+
+.map-marker-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  pointer-events: none;
+}
+
+.map-marker-label {
+  color: #f2f2ec;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  text-shadow: -1px 0 0 #000, 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000;
+}
+
+.map-marker-player .map-marker-label {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.map-marker-label-group {
+  transform: translate(8px, -3px);
+  color: #101010;
+  font-family: 'Aptos', 'Aptos Display', 'Calibri', 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.2px;
+  text-shadow:
+    -1px -1px 0 rgba(255,255,255,0.92),
+     1px -1px 0 rgba(255,255,255,0.92),
+    -1px  1px 0 rgba(255,255,255,0.92),
+     1px  1px 0 rgba(255,255,255,0.92);
+}
+
+.map-marker-label-crew {
+  color: #f0f0e8;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-shadow: -1px 0 0 rgba(0,0,0,0.88), 1px 0 0 rgba(0,0,0,0.88), 0 -1px 0 rgba(0,0,0,0.88), 0 1px 0 rgba(0,0,0,0.88);
+}

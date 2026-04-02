@@ -42,6 +42,8 @@ let relaySocket    = null;
 let relayStringBuf = '';         // string accumulator for <ath_sep> protocol
 let relayConnected = false;
 let gameState      = createEmptyState();    // last known game state for late-joiners
+let mapImportState = createEmptyMapImportState();
+let mapImportData  = createEmptyMapImportData();
 
 /** @type {Set<WebSocket>} */
 const wsClients = new Set();
@@ -62,6 +64,43 @@ function createEmptyState() {
     groups     : [],
     vehicles   : [],
   };
+}
+
+function createEmptyMapImportState() {
+  return {
+    inProgress: false,
+    startedAt: null,
+    completedAt: null,
+    stage: 'idle',
+    counts: {
+      maprow: 0,
+      mapobjects: 0,
+      maplocations: 0,
+      maproads: 0,
+      mapfoliage: 0,
+    },
+    world: null,
+    lastCommand: null,
+  };
+}
+
+function createEmptyMapImportData() {
+  return {
+    maprows: [],
+    mapobjects: [],
+    maplocations: [],
+    maproads: [],
+    mapfoliage: [],
+  };
+}
+
+function tryParseJson(text) {
+  if (!text || !text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 function broadcast(obj) {
@@ -114,9 +153,97 @@ function handleAthenaMessage(raw) {
     }
   } else if (cmd === 'keepalive') {
     // nothing — just keeps the connection alive
+  } else if (cmd === 'mapbegin' || cmd === 'maprow' || cmd === 'mapobjects' || cmd === 'maplocations' || cmd === 'maproads' || cmd === 'mapfoliage' || cmd === 'mapend') {
+    handleMapImportMessage(cmd, parts[1] || '');
   } else {
     console.log('[relay] Unknown command:', cmd, parts.slice(1, 2));
   }
+}
+
+function handleMapImportMessage(cmd, payload) {
+  if (cmd === 'mapbegin') {
+    mapImportState = createEmptyMapImportState();
+    mapImportData = createEmptyMapImportData();
+    mapImportState.inProgress = true;
+    mapImportState.startedAt = new Date().toISOString();
+    mapImportState.stage = 'receiving';
+    mapImportState.world = payload || null;
+  } else if (cmd === 'mapend') {
+    mapImportState.inProgress = false;
+    mapImportState.completedAt = new Date().toISOString();
+    mapImportState.stage = 'complete';
+    broadcast({
+      type: 'mapImportDataReady',
+      data: {
+        world: mapImportState.world,
+        counts: {
+          rows: mapImportData.maprows.length,
+          roads: mapImportData.maproads.length,
+          objects: mapImportData.mapobjects.length,
+          locations: mapImportData.maplocations.length,
+          foliage: mapImportData.mapfoliage.length,
+        },
+        parse: {
+          roadSegments: mapImportData.maproads
+            .reduce((sum, item) => sum + (((item && item.Segments) || []).length), 0),
+          objectCount: mapImportData.mapobjects
+            .reduce((sum, item) => sum + (((item && item.Objects) || []).length), 0),
+          locationCount: mapImportData.maplocations
+            .reduce((sum, item) => sum + (((item && item.Locations) || []).length), 0),
+          treeCount: mapImportData.mapfoliage
+            .reduce((sum, item) => sum + (((item && item.Trees) || []).length), 0),
+          bushCount: mapImportData.mapfoliage
+            .reduce((sum, item) => sum + (((item && item.Bushes) || []).length), 0),
+        },
+      },
+    });
+  } else {
+    if (!mapImportState.inProgress) {
+      mapImportState.inProgress = true;
+      mapImportState.startedAt = mapImportState.startedAt || new Date().toISOString();
+      mapImportState.stage = 'receiving';
+    }
+    if (Object.prototype.hasOwnProperty.call(mapImportState.counts, cmd)) {
+      mapImportState.counts[cmd] += 1;
+    }
+
+    if (payload) {
+      if (cmd === 'maprow') {
+        mapImportData.maprows.push(payload);
+      } else if (cmd === 'mapobjects') {
+        mapImportData.mapobjects.push(tryParseJson(payload) || { _raw: payload });
+      } else if (cmd === 'maplocations') {
+        mapImportData.maplocations.push(tryParseJson(payload) || { _raw: payload });
+      } else if (cmd === 'maproads') {
+        mapImportData.maproads.push(tryParseJson(payload) || { _raw: payload });
+      } else if (cmd === 'mapfoliage') {
+        mapImportData.mapfoliage.push(tryParseJson(payload) || { _raw: payload });
+      }
+    }
+  }
+
+  mapImportState.lastCommand = cmd;
+  broadcast({
+    type: 'mapImportStatus',
+    data: {
+      command: cmd,
+      world: mapImportState.world,
+      inProgress: mapImportState.inProgress,
+      stage: mapImportState.stage,
+      counts: mapImportState.counts,
+      startedAt: mapImportState.startedAt,
+      completedAt: mapImportState.completedAt,
+      hasPayload: Boolean(payload),
+      payloadLength: payload ? payload.length : 0,
+    },
+  });
+}
+
+function sendRelayCommand(command, data = '') {
+  if (!relaySocket || !relayConnected) return false;
+  const frame = command + SEP + data + SEP + END;
+  relaySocket.write(frame);
+  return true;
 }
 
 /**
@@ -223,6 +350,8 @@ function connectToRelay() {
     relayConnected = false;
     relayStringBuf = '';
     gameState      = createEmptyState();
+    mapImportState = createEmptyMapImportState();
+    mapImportData = createEmptyMapImportData();
     broadcast({ type: 'relayDisconnected' });
     setTimeout(connectToRelay, CONFIG.reconnectMs);
   });
@@ -273,6 +402,60 @@ wss.on('connection', (ws, req) => {
   // Send current state immediately so late joiners catch up
   ws.send(JSON.stringify({ type: 'state', data: buildClientState() }));
   ws.send(JSON.stringify({ type: relayConnected ? 'relayConnected' : 'relayDisconnected' }));
+  ws.send(JSON.stringify({ type: 'mapImportStatus', data: {
+    command: mapImportState.lastCommand,
+    world: mapImportState.world,
+    inProgress: mapImportState.inProgress,
+    stage: mapImportState.stage,
+    counts: mapImportState.counts,
+    startedAt: mapImportState.startedAt,
+    completedAt: mapImportState.completedAt,
+    hasPayload: false,
+    payloadLength: 0,
+  }}));
+
+  ws.on('message', (raw) => {
+    let msg;
+    try {
+      msg = JSON.parse(raw.toString('utf8'));
+    } catch {
+      ws.send(JSON.stringify({ type: 'bridgeError', data: { message: 'Malformed client message' } }));
+      return;
+    }
+
+    if (msg?.type === 'startMapExport') {
+      const ok = sendRelayCommand('command', 'mapexport');
+      if (!ok) {
+        ws.send(JSON.stringify({ type: 'bridgeError', data: { message: 'Relay not connected' } }));
+        return;
+      }
+
+      mapImportState = createEmptyMapImportState();
+      mapImportData = createEmptyMapImportData();
+      mapImportState.inProgress = true;
+      mapImportState.startedAt = new Date().toISOString();
+      mapImportState.stage = 'requested';
+      mapImportState.lastCommand = 'mapexport-requested';
+
+      broadcast({
+        type: 'mapImportStatus',
+        data: {
+          command: mapImportState.lastCommand,
+          world: null,
+          inProgress: true,
+          stage: 'requested',
+          counts: mapImportState.counts,
+          startedAt: mapImportState.startedAt,
+          completedAt: null,
+          hasPayload: false,
+          payloadLength: 0,
+        },
+      });
+      return;
+    }
+
+    ws.send(JSON.stringify({ type: 'bridgeError', data: { message: 'Unknown client action' } }));
+  });
 
   ws.on('close', () => {
     wsClients.delete(ws);
