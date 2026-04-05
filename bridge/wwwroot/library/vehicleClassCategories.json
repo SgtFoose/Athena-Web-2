@@ -1,0 +1,90 @@
+[
+  {
+    "Category": "AAs",
+    "Class": "EdSubcat_AAs",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "APCs",
+    "Class": "EdSubcat_APCs",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Artillery",
+    "Class": "EdSubcat_Artillery",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Boats",
+    "Class": "EdSubcat_Boats",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Cars",
+    "Class": "EdSubcat_Cars",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Drones",
+    "Class": "EdSubcat_Drones",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Helicopters",
+    "Class": "EdSubcat_Helicopters",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Planes",
+    "Class": "EdSubcat_Planes",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Submersibles",
+    "Class": "EdSubcat_Submersibles",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Tanks",
+    "Class": "EdSubcat_Tanks",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  },
+  {
+    "Category": "Turrets",
+    "Class": "EdSubcat_Turrets",
+    "TexturePathB": "",
+    "TexturePathC": "",
+    "TexturePathN": "",
+    "TexturePathO": ""
+  }
+]
