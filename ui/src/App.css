@@ -1,8 +1,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Global crisp rendering ΓÇö flat military cartography, no anti-aliased softness */
-svg { shape-rendering: crispEdges; }
+/* Keep raster overlays crisp, but allow anti-aliased vector coast/contour paths. */
 canvas { image-rendering: pixelated; }
+.leaflet-overlay-pane svg,
+.leaflet-pane svg {
+  shape-rendering: geometricPrecision;
+}
 
 body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
 .app-shell { display: grid; grid-template-columns: 260px 1fr 220px; height: 100vh; }

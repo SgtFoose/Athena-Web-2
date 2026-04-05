@@ -2040,8 +2040,8 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           color:       '#0000CD',
           weight:      0.75,
           opacity:     1,
-          lineJoin:    'miter',
-          lineCap:     'butt',
+          lineJoin:    'round',
+          lineCap:     'round',
           interactive: false,
           pane:        'athena-coast',
         }).addTo(coastLayerRef.current);
