@@ -1677,44 +1677,8 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
         landCacheRef.current = { world, ready: true, source: 'fallback' };
       };
 
-      // ΓöÇΓöÇ Path 0 (primary): Z=0 contour polygon fill (smooth vector coastline) ΓöÇ
-      const z0 = contours.find(c => c.z === 0);
-      if (z0 && z0.lines.length > 0) {
-        const scale = 100 / worldSize;
-        const rings: L.LatLngExpression[][] = z0.lines
-          .map(flat => {
-            const pts: L.LatLngExpression[] = [];
-            for (let i = 0; i + 1 < flat.length; i += 2) {
-              // [lat=Y, lng=X] in normalised 0..100 map space
-              pts.push([flat[i + 1] * scale, flat[i] * scale]);
-            }
-            return pts;
-          })
-          .filter(r => r.length >= 3);
-
-        if (rings.length > 0) {
-          if (cancelled) return;
-          landLayerRef.current.clearLayers();
-          L.polygon(rings, {
-            pane:        'athena-land',
-            // Bus exact: GenerateVisual draws each elevation polygon with
-            // GenerateBrush (fill) + GeneratePen (Thickness=1.0).
-            // Z=0 fill = Ivory, pen gives subtle crisp border.
-            stroke:      true,
-            color:       '#FFFFF0',
-            weight:      1,
-            fillColor:   '#FFFFF0',
-            fillOpacity: 1,
-            fillRule:    'evenodd',
-            smoothFactor: 1,
-            interactive: false,
-          }).addTo(landLayerRef.current);
-          landCacheRef.current = { world, ready: true, source: 'z0' };
-          return;
-        }
-      }
-
-      // ΓöÇΓöÇ Path 1 (fallback): static Bus cache raster land mask ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+      // Path 0 (primary): static raster land mask for fully solid land/ocean fill.
+      // This avoids shoreline anti-alias artifacts from polygon ring rendering.
       if (world) {
         try {
           const resp = await fetch(
@@ -1752,6 +1716,40 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
             return;
           }
         } catch { /* fall through to elevation fallback */ }
+      }
+
+      // Path 1 (fallback): Z=0 contour polygon fill (vector coastline).
+      const z0 = contours.find(c => c.z === 0);
+      if (z0 && z0.lines.length > 0) {
+        const scale = 100 / worldSize;
+        const rings: L.LatLngExpression[][] = z0.lines
+          .map(flat => {
+            const pts: L.LatLngExpression[] = [];
+            for (let i = 0; i + 1 < flat.length; i += 2) {
+              // [lat=Y, lng=X] in normalised 0..100 map space
+              pts.push([flat[i + 1] * scale, flat[i] * scale]);
+            }
+            return pts;
+          })
+          .filter(r => r.length >= 3);
+
+        if (rings.length > 0) {
+          if (cancelled) return;
+          landLayerRef.current.clearLayers();
+          L.polygon(rings, {
+            pane:        'athena-land',
+            stroke:      true,
+            color:       '#FFFFF0',
+            weight:      1,
+            fillColor:   '#FFFFF0',
+            fillOpacity: 1,
+            fillRule:    'evenodd',
+            smoothFactor: 1,
+            interactive: false,
+          }).addTo(landLayerRef.current);
+          landCacheRef.current = { world, ready: true, source: 'z0' };
+          return;
+        }
       }
       if (cancelled) return;
 
