@@ -3,7 +3,7 @@ import type { GameFrame, Group, Unit, MapLocation, ServerSettings } from '../typ
 import type { LayerVisibility, RenderMode } from '../App';
 import { APP_VERSION } from '../version';
 
-// ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  Helpers 
 
 function formatXY(posX: number, posY: number): string {
   return `X:${posX.toFixed(2)} Y:${posY.toFixed(2)}`;
@@ -19,7 +19,7 @@ function sideColor(side: string): string {
   }
 }
 
-// ΓöÇΓöÇ Styles ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  Styles 
 
 const tabBarStyle: React.CSSProperties = {
   display: 'flex', gap: 0, background: '#0d0d18', borderBottom: '1px solid #222',
@@ -43,7 +43,7 @@ const sectionLabel: React.CSSProperties = {
   color: '#888', marginBottom: 8, fontWeight: 600, letterSpacing: '0.05em', fontSize: 11,
 };
 
-// ΓöÇΓöÇ Props ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  Props 
 
 interface Props {
   frame: GameFrame | null;
@@ -77,7 +77,7 @@ type TopTab = 'MAP' | 'ORBAT';
 type MapSubTab = 'COMMON' | 'LOCATIONS';
 type OrbatSide = 'WEST' | 'EAST' | 'GUER' | 'CIV';
 
-// ΓöÇΓöÇ Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  Component 
 
 export function Sidebar({
   frame, connected, onRequestWorld,
@@ -90,12 +90,12 @@ export function Sidebar({
   const [mapSub, setMapSub]       = useState<MapSubTab>('COMMON');
   const [orbatSide, setOrbatSide] = useState<OrbatSide>('WEST');
 
-  // ΓöÇΓöÇ Computed data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Computed data 
 
   const t = frame?.time;
   const timeStr = t
     ? `${t.year}/${String(t.month).padStart(2,'0')}/${String(t.day).padStart(2,'0')} ${String(t.hour).padStart(2,'0')}:${String(t.minute).padStart(2,'0')}`
-    : 'ΓÇö';
+    : '--';
 
   const unitCount  = frame ? Object.keys(frame.units).length : 0;
   const vehCount   = frame ? Object.keys(frame.vehicles).length : 0;
@@ -105,7 +105,7 @@ export function Sidebar({
   const sideKey = orbatSide.toLowerCase();
   const sideGroups = useMemo(() => {
     const unitList = Object.values(units);
-    // Map groupId ΓåÆ side from the group's leader unit
+    // Map groupId  side from the group's leader unit
     const groupSides = new Map<string, string>();
     for (const u of unitList) {
       if (u.id === u.leaderId || !groupSides.has(u.groupId)) {
@@ -121,7 +121,7 @@ export function Sidebar({
     [locations],
   );
 
-  // ΓöÇΓöÇ Render ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  // Render
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -145,7 +145,7 @@ export function Sidebar({
           </div>
         )}
 
-        <div style={{ color: '#ddd', fontSize: 13, marginBottom: 8 }}>≡ƒòÉ {timeStr}</div>
+        <div style={{ color: '#ddd', fontSize: 13, marginBottom: 8 }}>Time: {timeStr}</div>
 
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, textAlign: 'center', marginBottom: 8 }}>
@@ -162,14 +162,14 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ Top-level tabs: MAP | ORBAT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/*  Top-level tabs: MAP | ORBAT  */}
       <div style={tabBarStyle}>
         {(['MAP', 'ORBAT'] as TopTab[]).map(tb => (
           <button key={tb} style={tabStyle(topTab === tb)} onClick={() => setTopTab(tb)}>{tb}</button>
         ))}
       </div>
 
-      {/* ΓöÇΓöÇ Scrollable body ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/*  Scrollable body  */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 16px' }}>
         {topTab === 'MAP' && (
           <>
@@ -242,7 +242,7 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Footer ΓÇö version */}
+      {/* Footer  version */}
       <div style={{ padding: '6px 16px', borderTop: '1px solid #222', color: '#444', fontSize: 10, textAlign: 'center' }}>
         v{APP_VERSION}
       </div>
@@ -250,7 +250,7 @@ export function Sidebar({
   );
 }
 
-// ΓöÇΓöÇ COMMON panel ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  COMMON panel 
 
 function CommonPanel({
   layers, onToggleLayer, followActivePlayer, activePlayerName, onToggleFollowActivePlayer, renderMode, onChangeRenderMode,
@@ -301,7 +301,7 @@ function CommonPanel({
                 marginBottom: 2,
               }}
             >
-              <option value="">ΓÇö select a map ΓÇö</option>
+              <option value=""> select a map </option>
               {cachedWorlds.map(w => (
                 <option key={w} value={w}>{w}</option>
               ))}
@@ -408,7 +408,7 @@ function CommonPanel({
           <div key={g.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
             <span style={{ color: '#aaa' }}>{g.label}</span>
             <span style={{ color: g.value > 0 ? '#2ecc71' : '#555' }}>
-              {g.value > 0 ? `${g.value.toLocaleString()} ${g.unit}` : 'ΓÇö'}
+              {g.value > 0 ? `${g.value.toLocaleString()} ${g.unit}` : ''}
             </span>
           </div>
         ))}
@@ -417,7 +417,7 @@ function CommonPanel({
   );
 }
 
-// ΓöÇΓöÇ LOCATIONS panel ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  LOCATIONS panel 
 
 function LocationsPanel({
   locations, onFocusPosition,
@@ -451,7 +451,7 @@ function LocationsPanel({
   );
 }
 
-// ΓöÇΓöÇ ORBAT panel ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  ORBAT panel 
 
 function OrbatPanel({
   side, groups, units, onFocusPosition, serverSettings,
@@ -493,7 +493,7 @@ function OrbatPanel({
 
         return (
           <div key={g.id} style={{ background: '#1e1e2e', borderRadius: 4, borderLeft: `3px solid ${color}` }}>
-            {/* Group header ΓÇö click to focus */}
+            {/* Group header  click to focus */}
             <button
               onClick={() => onFocusPosition(posX, posY)}
               style={{
@@ -504,7 +504,7 @@ function OrbatPanel({
             >
               <span style={{ color, fontWeight: 700, fontSize: 12 }}>{g.name || g.id}</span>
               <span style={{ color: '#555', fontSize: 10, fontFamily: 'monospace' }}>
-                {formatXY(posX, posY)} ┬╖ {groupUnits.length}
+                {formatXY(posX, posY)}  {groupUnits.length}
               </span>
             </button>
             {/* Unit list */}

@@ -7,6 +7,13 @@ canvas { image-rendering: pixelated; }
   shape-rendering: geometricPrecision;
 }
 
+/* Smooth land/ocean shoreline transitions for raster land masks. */
+.leaflet-athena-land-pane .leaflet-image-layer.athena-landmask-overlay {
+  image-rendering: auto !important;
+  -ms-interpolation-mode: bicubic;
+  transform: translateZ(0);
+}
+
 body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
 .app-shell { display: grid; grid-template-columns: 260px 1fr 220px; height: 100vh; }
 .sidebar { background: #161b22; border-right: 1px solid #21262d; overflow-y: auto; display: flex; flex-direction: column; }
@@ -232,7 +239,7 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, 
   color: #e0dcc8;
   font-family: 'Aptos', 'Aptos Display', 'Calibri', 'Segoe UI', system-ui, sans-serif;
   font-weight: 700;
-  /* Dark outline halo ΓÇö military topo map style, readable on any background */
+  /* Dark outline halo  military topo map style, readable on any background */
   text-shadow:
     -1px -1px 0 #000,
      1px -1px 0 #000,

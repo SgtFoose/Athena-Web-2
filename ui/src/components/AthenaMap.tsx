@@ -7,35 +7,35 @@ import { API_BASE } from '../apiBase';
 import 'leaflet/dist/leaflet.css';
 
 // Arma uses a square world coordinate system [0..worldSize].
-// We project it onto Leaflet CRS.Simple with a normalised 0├óΓé¼ΓÇ£100 space.
+// We project it onto Leaflet CRS.Simple with a normalised 0100 space.
 // Y is flipped so "North" (higher Y in Arma) appears at the top.
 
-// Side ├óΓÇáΓÇÖ colour matching Arma 3 faction conventions
+// Side  colour matching Arma 3 faction conventions
 function sideColor(side: string): string {
   switch (side.toLowerCase()) {
-    case 'west':     return '#4e9de0'; // BLUFOR ├óΓé¼ΓÇ£ blue
-    case 'east':     return '#d93b3b'; // OPFOR  ├óΓé¼ΓÇ£ red
-    case 'guer':     return '#4ec94e'; // INDFOR ├óΓé¼ΓÇ£ green
-    case 'civ':      return '#9b59b6'; // CIV    ├óΓé¼ΓÇ£ purple
+    case 'west':     return '#4e9de0'; // BLUFOR  blue
+    case 'east':     return '#d93b3b'; // OPFOR   red
+    case 'guer':     return '#4ec94e'; // INDFOR  green
+    case 'civ':      return '#9b59b6'; // CIV     purple
     default:         return '#cccccc';
   }
 }
 
-// ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Road styling ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+//  Road styling 
 
 function roadStyle(type: string, foot: boolean): { color: string; weight: number } | null {
   if (foot) return null;  // skip footpaths
   // Bus exact road colors: MapHelper.cs PopulateRoads
   // Our Arma type strings map to Bus's RoadType enum:
-  //   '' / 'road' ΓåÆ Highway (main paved), 'main road' ΓåÆ Concrete,
-  //   'track' ΓåÆ Dirt, 'hide' ΓåÆ airport surfaces (Concrete)
+  //   '' / 'road'  Highway (main paved), 'main road'  Concrete,
+  //   'track'  Dirt, 'hide'  airport surfaces (Concrete)
   switch (type.toLowerCase()) {
-    case '':           return { color: '#F4A460', weight: 7.0  };  // Highway ΓåÆ SandyBrown
-    case 'road':       return { color: '#F4A460', weight: 7.0  };  // Highway ΓåÆ SandyBrown
-    case 'main road':  return { color: '#D3D3D3', weight: 5.0  };  // Concrete ΓåÆ LightGray
-    case 'track':      return { color: '#D2B48C', weight: 3.0  };  // Dirt ΓåÆ Tan
-    case 'hide':       return { color: '#D3D3D3', weight: 2.0  };  // airport ΓåÆ LightGray
-    default:           return { color: '#A52A2A', weight: 3.0  };  // Unknown ΓåÆ Brown
+    case '':           return { color: '#F4A460', weight: 7.0  };  // Highway  SandyBrown
+    case 'road':       return { color: '#F4A460', weight: 7.0  };  // Highway  SandyBrown
+    case 'main road':  return { color: '#D3D3D3', weight: 5.0  };  // Concrete  LightGray
+    case 'track':      return { color: '#D2B48C', weight: 3.0  };  // Dirt  Tan
+    case 'hide':       return { color: '#D3D3D3', weight: 2.0  };  // airport  LightGray
+    default:           return { color: '#A52A2A', weight: 3.0  };  // Unknown  Brown
   }
 }
 
@@ -45,7 +45,7 @@ function rotatedRoadRect(road: Road, scale: number): [number, number][] {
   // Fall back to midpoint of beg/end for old cached data lacking posX/posY.
   const cx = (road.posX ? road.posX : (road.beg1X + road.end2X) / 2) * scale;
   const cy = (road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2) * scale;
-  // Pad each tile by 1m so adjacent 20├ù20 tiles overlap slightly, hiding
+  // Pad each tile by 1m so adjacent 2020 tiles overlap slightly, hiding
   // sub-pixel gaps from floating-point position/rotation precision.
   const pad = 1;
   const halfWidth = ((road.width + pad) / 2) * scale;
@@ -170,7 +170,7 @@ class TreeGridLayer extends L.GridLayer {
     const gyMin = Math.max(0, Math.floor(wMinY / cellW));
     const gyMax = Math.min(gridSize - 1, Math.floor(wMaxY / cellW));
 
-    // Bus exact: EllipseGeometry radius 2.0├ù2.0 (fixed size)
+    // Bus exact: EllipseGeometry radius 2.02.0 (fixed size)
     const radius = 2.0;
     ctx.fillStyle = 'rgba(34, 139, 34, 1)';  // Forest green, solid fill
 
@@ -202,12 +202,12 @@ class TreeGridLayer extends L.GridLayer {
   }
 }
 
-// ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Unit icons ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+//  Unit icons 
 // Match Athena Desktop Unit.GetMarkerType() logic exactly.
 function unitIconFile(unit: Unit): string {
   const t = (unit.type ?? '').trim().toLowerCase();
   const r = (unit.rank ?? '').toLowerCase();
-  // Rank >= Lieutenant ΓåÆ officer
+  // Rank >= Lieutenant  officer
   if (/colonel|major|captain|lieutenant/.test(r)) return 'iconmanofficer';
   // Squad/team leader
   if (t.includes('_sl') || t.includes('_tl_')) return 'iconmanleader';
@@ -315,22 +315,22 @@ function shortRank(rank: string): string {
   return rank;
 }
 
-// ΓöÇΓöÇ Waypoint line styling per type ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  Waypoint line styling per type 
 function waypointStyle(wpType: string): { color: string; endColor: string; endIcon: string } {
   const t = wpType.toUpperCase();
-  // Attack / aggressive types ΓÇö red
+  // Attack / aggressive types  red
   if (t === 'DESTROY' || t === 'SAD' || t === 'SEEK AND DESTROY' || t === 'ATTACK')
     return { color: '#d32f2f', endColor: '#d32f2f', endIcon: '<line x1="4" y1="4" x2="10" y2="10" stroke="#fff" stroke-width="1.5"/><line x1="10" y1="4" x2="4" y2="10" stroke="#fff" stroke-width="1.5"/>' };
-  // Guard / support ΓÇö amber
+  // Guard / support  amber
   if (t === 'GUARD' || t === 'SUPPORT')
     return { color: '#f9a825', endColor: '#f9a825', endIcon: '' };
-  // Get in / board ΓÇö blue
+  // Get in / board  blue
   if (t === 'GETIN' || t === 'GET IN' || t === 'GETOUT' || t === 'GET OUT' || t === 'LOAD' || t === 'UNLOAD')
     return { color: '#1976d2', endColor: '#1976d2', endIcon: '' };
-  // Sentry / hold ΓÇö purple
+  // Sentry / hold  purple
   if (t === 'SENTRY' || t === 'HOLD')
     return { color: '#9c27b0', endColor: '#9c27b0', endIcon: '' };
-  // Move / default ΓÇö dark grey
+  // Move / default  dark grey
   return { color: '#333', endColor: '#aaa', endIcon: '' };
 }
 
@@ -346,7 +346,7 @@ type ProjectileProfile = {
   preferLiveLaze: boolean;
   launchDelayMs: number;
   lingerAfterImpactMs: number;
-  // Ballistic trajectory: ETA (s) = ballA * distance^ballB ΓÇö derived from live calibration.
+  // Ballistic trajectory: ETA (s) = ballA * distance^ballB  derived from live calibration.
   // When set, overrides the fixed-speed speedMps formula for ETA calculation.
   useBallistics?: boolean;
   ballA?: number;
@@ -391,18 +391,18 @@ function getProjectileProfile(ev: FiredEvent): ProjectileProfile | null {
   if ((text.includes('artillery') || text.includes('shell') || text.includes('mortar')) &&
       !text.includes('shipcannon') &&
       !text.includes('weapon_shipcannon_120mm')) {
-    // Calibrated from M4 Scorcher: 1391mΓåÆ29s, 11178mΓåÆ72s ΓåÆ ETA Γëê 1.235 ├ù d^0.4363
+    // Calibrated from M4 Scorcher: 1391m29s, 11178m72s  ETA  1.235  d^0.4363
      return { speedMps: 230, rangeM: 9000, lateralFactor: 0, color: '#ffd43b', maxTrackAngleDeg: 28, requiresLock: false, allowEnemyTargetInference: false, preferLiveLaze: false, launchDelayMs: 0, lingerAfterImpactMs: 2500, useBallistics: true, ballA: 1.235, ballB: 0.4363 };
   }
   if (text.includes('rocket') || text.includes('mlrs') || text.includes('230mm')) {
-    // Calibrated from MLRS rockets_230mm_GAT: 1393mΓåÆ23s ΓåÆ ETA Γëê 0.979 ├ù d^0.4363 (same exponent as SPG)
+    // Calibrated from MLRS rockets_230mm_GAT: 1393m23s  ETA  0.979  d^0.4363 (same exponent as SPG)
      return { speedMps: 190, rangeM: 5000, lateralFactor: 0, color: '#74c0fc', maxTrackAngleDeg: 22, requiresLock: false, allowEnemyTargetInference: false, preferLiveLaze: false, launchDelayMs: 0, lingerAfterImpactMs: 2500, useBallistics: true, ballA: 0.979, ballB: 0.4363 };
   }
   if (text.includes('shipcannon')) {
-    // MK45 naval gun (weapon_ShipCannon_120mm). Non-monotonic ETA curve ΓÇö medium ranges are slowest
-    // (high-arc trajectory). Ballistic fit anchored at 762mΓåÆ29s and 12352mΓåÆ76s.
+    // MK45 naval gun (weapon_ShipCannon_120mm). Non-monotonic ETA curve  medium ranges are slowest
+    // (high-arc trajectory). Ballistic fit anchored at 762m29s and 12352m76s.
     // fired_impact telemetry will correct the mid-range underestimate after the first shot lands.
-    // lateralFactor: 0 ΓÇö indirect fire flies a straight horizontal path; curvature is only vertical.
+    // lateralFactor: 0  indirect fire flies a straight horizontal path; curvature is only vertical.
     // A non-zero factor always curves left of the bearing which looks wrong (south for NW shots, etc.).
     return { speedMps: 90, rangeM: 14000, lateralFactor: 0, color: '#e599f7', maxTrackAngleDeg: 22, requiresLock: false, allowEnemyTargetInference: false, preferLiveLaze: false, launchDelayMs: 0, lingerAfterImpactMs: 2500, useBallistics: true, ballA: 3.424, ballB: 0.3457 };
   }
@@ -842,7 +842,7 @@ function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, st
   return '';
 }
 
-// ΓöÇΓöÇ Vehicle subtype resolution ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  Vehicle subtype resolution 
 
 function resolveDroneSubtype(vehicleClass: string): string {
   const t = vehicleClass.toLowerCase();
@@ -887,7 +887,7 @@ function resolveTurretSubtype(vehicleClass: string): string {
   return 'hmg';                                                           // default HMG / static
 }
 
-// ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Vehicle icons ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+//  Vehicle icons 
 
 
 function categoryToIconFile(category: string, vehicleClass?: string): string {
@@ -1208,7 +1208,7 @@ function vehicleSvg(category: string, color: string, dir: number, vehicleClass?:
         `<line x1="20" y1="16" x2="20" y2="12" stroke="${s}" stroke-width="1.2"/>`
       );
     case 'Mines':
-      // Red caution triangle ΓÇö ΓÜá warning icon (not rotated by dir)
+      // Red caution triangle   warning icon (not rotated by dir)
       return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 40 40" style="display:block;">` +
         `<polygon points="20,4 37,34 3,34" fill="#cc2222" stroke="#880000" stroke-width="2" stroke-linejoin="round"/>` +
         `<text x="20" y="29" text-anchor="middle" fill="#fff" font-weight="bold" font-size="20" font-family="Arial,sans-serif">!</text>` +
@@ -1260,12 +1260,12 @@ function vehicleIcon(vehicle: Vehicle, units: Record<string, Unit>, category: st
   });
 }
 
-// ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Layer manager ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+//  Layer manager 
 
 // Static contour styling (from pre-computed Athena Desktop cache)
 // sea level -> blue; index (div 100m) -> darker/thicker brown; major (div 20m) -> medium brown
 function contourStyle(z: number): { color: string; weight: number; opacity: number } {
-  // Bus exact: MapHelper.cs PopulateHeights ΓÇö uniform strokeThickness 0.75
+  // Bus exact: MapHelper.cs PopulateHeights  uniform strokeThickness 0.75
   // Colors: MediumBlue (Z=0), DodgerBlue (Z<0), RosyBrown (Z>0)
   if (z === 0) return { color: '#0000CD', weight: 0.75, opacity: 1 };  // MediumBlue
   if (z < 0)   return { color: '#1E90FF', weight: 0.75, opacity: 1 };  // DodgerBlue
@@ -1274,13 +1274,13 @@ function contourStyle(z: number): { color: string; weight: number; opacity: numb
 
 import type { LayerVisibility, RenderMode } from '../App';
 
-// Elevation colour ramp helpers ΓÇö Bus Athena Desktop palette.
-// HeatMap 1 (ground forces): green #0A7002 ΓåÆ red smooth transition
+// Elevation colour ramp helpers  Bus Athena Desktop palette.
+// HeatMap 1 (ground forces): green #0A7002  red smooth transition
 function topoColorHeatmap1(t: number): [number, number, number] {
-  // Simple 2-stop ramp: green at low elevation ΓåÆ red at high elevation
-  const r = Math.round(10 + t * (200 - 10));    // 10 ΓåÆ 200
-  const g = Math.round(112 - t * (112 - 10));   // 112 ΓåÆ 10
-  const b = Math.round(2 + t * (5 - 2));        // 2 ΓåÆ 5
+  // Simple 2-stop ramp: green at low elevation  red at high elevation
+  const r = Math.round(10 + t * (200 - 10));    // 10  200
+  const g = Math.round(112 - t * (112 - 10));   // 112  10
+  const b = Math.round(2 + t * (5 - 2));        // 2  5
   return [r, g, b];
 }
 
@@ -1304,6 +1304,7 @@ interface LayerManagerProps {
   renderMode: RenderMode;
   vehicleMap:  Map<string, string>;
   locationMap: Map<string, { DrawStyle: string; SizeText: number; Name: string }>;
+  shorelineRefreshToken: number;
   onProjectileDebugChange?: (entries: ProjectileDebugEntry[]) => void;
 }
 
@@ -1319,7 +1320,7 @@ type ProjectileDebugEntry = {
   lockSwitched: boolean;
 };
 
-function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpacts, world, worldSize, roads, forests: _forests, locations, structures, elevations, contours, layers, onLayersChange, renderMode, vehicleMap, locationMap, onProjectileDebugChange }: LayerManagerProps) {
+function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpacts, world, worldSize, roads, forests: _forests, locations, structures, elevations, contours, layers, onLayersChange, renderMode, vehicleMap, locationMap, shorelineRefreshToken, onProjectileDebugChange }: LayerManagerProps) {
   const map = useMap();
 
   useEffect(() => {
@@ -1339,6 +1340,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
   // When the world name changes all flags reset so they re-render for the new map.
   const staticCacheRef = useRef({ world: '', roads: false, locations: false, structures: false, objects: false, forests: false, trees: false, treesWorld: '', objectsWorld: '', roadsWorld: '' });
   const landCacheRef = useRef<{ world: string; ready: boolean; source?: string }>({ world: '', ready: false });
+  const landRefreshTokenRef = useRef(shorelineRefreshToken);
 
   useEffect(() => {
     if (!world || world === staticCacheRef.current.world) return;
@@ -1348,6 +1350,14 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     landCacheRef.current = { world, ready: false, source: undefined };
     landLayerRef.current.clearLayers();
   }, [world]);
+
+  useEffect(() => {
+    if (!world) return;
+    if (shorelineRefreshToken === landRefreshTokenRef.current) return;
+    landRefreshTokenRef.current = shorelineRefreshToken;
+    landCacheRef.current = { world: '', ready: false, source: undefined };
+    landLayerRef.current.clearLayers();
+  }, [world, shorelineRefreshToken]);
 
   // Layer groups (created once, never recreated)
   const forestLayerRef     = useRef<L.LayerGroup>(L.layerGroup());
@@ -1421,12 +1431,12 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     mk('athena-road',       300);
     mk('athena-structure',  310);
     mk('athena-peak',       360);
-    mk('athena-objects',    205);  // buildings/objects ΓÇö auto-shown at zoom ΓëÑ2x
+    mk('athena-objects',    205);  // buildings/objects  auto-shown at zoom 2x
     mk('athena-tree',       207);  // individual trees above objects
     mk('athena-location',   600);
     mk('athena-vehicle',    700);
     mk('athena-unit',       710);
-    mk('athena-waypoint',   715);  // waypoint lines ΓÇö always visible, between units and groups
+    mk('athena-waypoint',   715);  // waypoint lines  always visible, between units and groups
     mk('athena-laze',       716);  // active laser designation points
     mk('athena-projectile', 717);  // simulated projectile paths
     mk('athena-group',      720);  // groups on top of units/vehicles
@@ -1435,7 +1445,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     structureCanvasRef.current = L.canvas({ padding: 0.5, pane: 'athena-structure' });
     // Bus exact: ocean base = Colors.PowderBlue (#B0E0E6)
     map.getContainer().style.background = '#B0E0E6';
-    // Add all layer groups once ΓÇö they stay on the map forever;
+    // Add all layer groups once  they stay on the map forever;
     // visibility is controlled by pane CSS (and addTo/removeLayer for locations)
     landLayerRef.current.addTo(map);
     contourLayerRef.current.addTo(map);
@@ -1503,7 +1513,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     }
   }, [map, layers, renderMode, structures.length, hasRuntimeTrees]);
 
-  // ΓöÇΓöÇ Trees ΓÇö precise points from static cache (zoomed-in only) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Trees  precise points from static cache (zoomed-in only) 
   useEffect(() => {
     // Reset cache when world changes
     if (staticCacheRef.current.treesWorld !== world) {
@@ -1593,16 +1603,16 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     };
   }, [world, worldSize, map]);
 
-  // ΓöÇΓöÇ Objects ΓÇö vector tile rendering (sharp at every zoom, like roads) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Objects  vector tile rendering (sharp at every zoom, like roads) 
   useEffect(() => {
     objectLayerRef.current.clearLayers();
     // Do not render raw Objects.txt from Athena Desktop cache here.
     // Runtime/cached structures from our own export pipeline render via the structure layer.
   }, [world, worldSize]);
 
-  // ΓöÇΓöÇ Zoom auto-show for tree pane + unit/vehicle Γåö group auto-toggle ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Zoom auto-show for tree pane + unit/vehicle  group auto-toggle 
   useEffect(() => {
-    const UNIT_GROUP_THRESHOLD = 2.5;  // Swap groups Γåö units at 2.5x display scale
+    const UNIT_GROUP_THRESHOLD = 2.5;  // Swap groups  units at 2.5x display scale
     // Initialise to opposite of current zone so the first update() establishes correct state.
     const prevZoneRef = { current: !(zoomToDisplayScale(map.getZoom()) >= UNIT_GROUP_THRESHOLD) };
     const update = () => {
@@ -1620,7 +1630,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const op = map.getPane('athena-objects');
       if (op) op.style.display = '';
       // At scale < 2.5x (zoomed out): show groups, hide units + vehicles
-      // At scale ΓëÑ 2.5x (zoomed in):  show units + vehicles, hide groups
+      // At scale  2.5x (zoomed in):  show units + vehicles, hide groups
       // Auto-toggle fires only when crossing the threshold;
       // user can still override manually within a zoom zone.
       const inUnitZone = scale >= UNIT_GROUP_THRESHOLD;
@@ -1639,7 +1649,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     return () => { map.off('zoomend', update); };
   }, [map, onLayersChange, layers.forest, layers.trees, hasRuntimeTrees]);
 
-  // ΓöÇΓöÇ Land silhouette ΓÇö permanent base showing land (Ivory #FFFFF0) vs ocean (transparent) ΓöÇ
+  //  Land silhouette  permanent base showing land (Ivory #FFFFF0) vs ocean (transparent) 
   // Tries vector fill from static Z=0 contour first (smooth/exact coastline),
   // then falls back to static raster land mask, then Arma elevation data.
   useEffect(() => {
@@ -1654,14 +1664,33 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     const hasZ0 = contours.some(c => c.z === 0 && c.lines.length > 0);
     if (landCacheRef.current.world === world && landCacheRef.current.ready) {
       if (landCacheRef.current.source === 'z0' || !hasZ0) return;
-      // Z=0 contours just arrived and we only had a fallback ΓÇö upgrade below.
+      // Z=0 contours just arrived and we only had a fallback  upgrade below.
     }
 
-    // Don't clear layers upfront ΓÇö only clear when we have replacement content ready.
+    // Don't clear layers upfront  only clear when we have replacement content ready.
     // This prevents the map flashing blue during async fetches.
     let cancelled = false;
 
     async function buildLandLayer() {
+      const dilateMask = (src: Uint8Array, width: number, height: number): Uint8Array => {
+        const out = src.slice();
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            const idx = y * width + x;
+            if (!src[idx]) continue;
+            for (let oy = -1; oy <= 1; oy += 1) {
+              for (let ox = -1; ox <= 1; ox += 1) {
+                const nx = x + ox;
+                const ny = y + oy;
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                out[ny * width + nx] = 1;
+              }
+            }
+          }
+        }
+        return out;
+      };
+
       const applyLastResortLandFallback = () => {
         if (cancelled) return;
         // Only apply if nothing better is already showing
@@ -1677,48 +1706,8 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
         landCacheRef.current = { world, ready: true, source: 'fallback' };
       };
 
-      // Path 0 (primary): static raster land mask for fully solid land/ocean fill.
-      // This avoids shoreline anti-alias artifacts from polygon ring rendering.
-      if (world) {
-        try {
-          const resp = await fetch(
-            `${API_BASE}/api/staticmap/${encodeURIComponent(world)}/landmask?gridSize=1024`);
-          if (!cancelled && resp.ok) {
-            const data: { width: number; height: number; worldSize: number; mask: string } =
-              await resp.json();
-            const bytes = Uint8Array.from(atob(data.mask), c => c.charCodeAt(0));
-            let landPixels = 0;
-            for (let i = 0; i < bytes.length; i += 1) if (bytes[i]) landPixels += 1;
-            if (landPixels === 0) throw new Error('Land mask contained no land pixels');
-            const cvs   = document.createElement('canvas');
-            cvs.width = data.width; cvs.height = data.height;
-            const ctx = cvs.getContext('2d')!;
-            const img = ctx.createImageData(data.width, data.height);
-            for (let gy = 0; gy < data.height; gy++) {
-              // Mask row 0 = worldYΓëê0 (south). Canvas row 0 = top of image = north.
-              // Flip vertically so south maps to bottom of overlay.
-              const srcRow = (data.height - 1 - gy) * data.width;
-              for (let gx = 0; gx < data.width; gx++) {
-                if (bytes[srcRow + gx]) {
-                  const o = (gy * data.width + gx) * 4;
-                  img.data[o] = 255; img.data[o+1] = 255; img.data[o+2] = 240; img.data[o+3] = 255;
-                }
-              }
-            }
-            ctx.putImageData(img, 0, 0);
-            landLayerRef.current.clearLayers();
-            const ov = L.imageOverlay(cvs.toDataURL('image/png'), [[0, 0], [100, 100]], {
-              opacity: 1, interactive: false, pane: 'athena-land',
-            }).addTo(landLayerRef.current);
-            const el = ov.getElement();
-            if (el) { el.style.imageRendering = 'pixelated'; el.style.willChange = 'transform'; }
-            landCacheRef.current = { world, ready: true, source: 'fallback' };
-            return;
-          }
-        } catch { /* fall through to elevation fallback */ }
-      }
-
-      // Path 1 (fallback): Z=0 contour polygon fill (vector coastline).
+      // Path 0 (primary): Z=0 contour polygon fill (vector coastline).
+      // Prefer this first to avoid blocky shoreline edges from downscaled raster masks.
       const z0 = contours.find(c => c.z === 0);
       if (z0 && z0.lines.length > 0) {
         const scale = 100 / worldSize;
@@ -1740,7 +1729,9 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
             pane:        'athena-land',
             stroke:      true,
             color:       '#FFFFF0',
-            weight:      1,
+            weight:      2,
+            lineJoin:    'round',
+            lineCap:     'round',
             fillColor:   '#FFFFF0',
             fillOpacity: 1,
             fillRule:    'evenodd',
@@ -1751,9 +1742,55 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           return;
         }
       }
+
+      // Path 1 (fallback): static raster land mask for fully solid land/ocean fill.
+      if (world) {
+        try {
+          const resp = await fetch(
+            `${API_BASE}/api/staticmap/${encodeURIComponent(world)}/landmask?gridSize=1536`);
+          if (!cancelled && resp.ok) {
+            const data: { width: number; height: number; worldSize: number; mask: string } =
+              await resp.json();
+            const bytes = Uint8Array.from(atob(data.mask), c => c.charCodeAt(0));
+            const grown = dilateMask(bytes, data.width, data.height);
+            let landPixels = 0;
+            for (let i = 0; i < grown.length; i += 1) if (grown[i]) landPixels += 1;
+            if (landPixels === 0) throw new Error('Land mask contained no land pixels');
+            const cvs   = document.createElement('canvas');
+            cvs.width = data.width; cvs.height = data.height;
+            const ctx = cvs.getContext('2d')!;
+            const img = ctx.createImageData(data.width, data.height);
+            for (let gy = 0; gy < data.height; gy++) {
+              // Mask row 0 = worldY0 (south). Canvas row 0 = top of image = north.
+              // Flip vertically so south maps to bottom of overlay.
+              const srcRow = (data.height - 1 - gy) * data.width;
+              for (let gx = 0; gx < data.width; gx++) {
+                if (grown[srcRow + gx]) {
+                  const o = (gy * data.width + gx) * 4;
+                  img.data[o] = 255; img.data[o+1] = 255; img.data[o+2] = 240; img.data[o+3] = 255;
+                }
+              }
+            }
+            ctx.putImageData(img, 0, 0);
+            landLayerRef.current.clearLayers();
+            const ov = L.imageOverlay(cvs.toDataURL('image/png'), [[0, 0], [100, 100]], {
+              opacity: 1, interactive: false, pane: 'athena-land',
+            }).addTo(landLayerRef.current);
+            const el = ov.getElement();
+            if (el) {
+              el.classList.add('athena-landmask-overlay');
+              el.style.imageRendering = 'auto';
+              el.style.willChange = 'transform';
+            }
+            landCacheRef.current = { world, ready: true, source: 'fallback' };
+            return;
+          }
+        } catch { /* fall through to elevation fallback */ }
+      }
+
       if (cancelled) return;
 
-      // ΓöÇΓöÇ Path 2: Arma elevation data (arrives after slow in-game export) ΓöÇΓöÇ
+      //  Path 2: Arma elevation data (arrives after slow in-game export) 
       if (!elevations || elevations.cells.length === 0) {
         applyLastResortLandFallback();
         return;
@@ -1812,7 +1849,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     return () => { cancelled = true; };
   }, [contours, world, elevations, worldSize]);
 
-  // ΓöÇΓöÇ Elevation layers (topo colour ramp + greyscale + contour lines) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Elevation layers (topo colour ramp + greyscale + contour lines) 
   useEffect(() => {
     topoLayerRef.current.clearLayers();
     if (!elevations || elevations.cells.length === 0) return;
@@ -1836,7 +1873,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     if (!Number.isFinite(cols) || !Number.isFinite(rows) || cols <= 1 || rows <= 1) return;
     const zRange = maxZ - minZ;
 
-    // Render at 3├ù the grid resolution so contour lines are anti-aliased and smooth
+    // Render at 3 the grid resolution so contour lines are anti-aliased and smooth
     // when the image overlay is stretched to fill the Leaflet map bounds.
     const UP = 3;
     const W  = cols * UP;
@@ -1864,13 +1901,13 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       // Choose fill colour by render mode
       let fr: number, fg: number, fb: number, fa: number;
       if (renderMode === '2d') {
-        fr = fg = fb = fa = 0;  // fully transparent ΓÇö land base layer provides the colour
+        fr = fg = fb = fa = 0;  // fully transparent  land base layer provides the colour
       } else if (renderMode === 'heatmap2') {
-        const v = Math.round(255 - t * 255); fr = fg = fb = v; fa = 200;  // white ΓåÆ black
+        const v = Math.round(255 - t * 255); fr = fg = fb = v; fa = 200;  // white  black
       } else {
         [fr, fg, fb] = topoColorHeatmap1(t); fa = 200;       // heatmap1 (default)
       }
-      // Fill UP├ùUP block per cell in the upscaled image data
+      // Fill UPUP block per cell in the upscaled image data
       for (let dy = 0; dy < UP; dy++) {
         for (let dx = 0; dx < UP; dx++) {
           const idx = ((row * UP + dy) * W + (col * UP + dx)) * 4;
@@ -1883,16 +1920,16 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     // Commit colour-fill pixels first so contour strokes render on top.
     topoCtx.putImageData(topoImg, 0, 0);
     // Scale context so all existing moveTo/lineTo coordinates (in grid pixels)
-    // automatically map to the upscaled canvas ΓÇö no changes needed below.
+    // automatically map to the upscaled canvas  no changes needed below.
     topoCtx.scale(UP, UP);
 
-    // ΓöÇΓöÇ Marching squares contour lines ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    //  Marching squares contour lines 
     // Contour style cadence matches original Athena Desktop:
-    //   every 10 m ΓåÆ thin brown (faint texture)
-    //   every 30 m ΓåÆ medium stroke
-    //   every 60 m ΓåÆ bolder
-    //   every 120 m ΓåÆ boldest, always visible
-    //   sea level (z=0) ΓåÆ blue
+    //   every 10 m  thin brown (faint texture)
+    //   every 30 m  medium stroke
+    //   every 60 m  bolder
+    //   every 120 m  boldest, always visible
+    //   sea level (z=0)  blue
     const minZ10 = Math.ceil (minZ / 10) * 10;
     const maxZ10 = Math.floor(maxZ / 10) * 10;
 
@@ -1927,20 +1964,20 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           // Each case draws 0-2 line segments between edge midpoints.
           // Using moveTo+lineTo batched inside a single beginPath for performance.
           switch (ci) {
-            case  1: case 14:  // left ΓåÆ bottom
+            case  1: case 14:  // left  bottom
               topoCtx.moveTo(c2 + 0.5, r + 1);  topoCtx.lineTo(c2,       r + 0.5); break;
-            case  2: case 13:  // bottom ΓåÆ right
+            case  2: case 13:  // bottom  right
               topoCtx.moveTo(c2 + 0.5, r + 1);  topoCtx.lineTo(c2 + 1,   r + 0.5); break;
-            case  3: case 12:  // left ΓåÆ right
+            case  3: case 12:  // left  right
               topoCtx.moveTo(c2,       r + 0.5); topoCtx.lineTo(c2 + 1,   r + 0.5); break;
-            case  4: case 11:  // top ΓåÆ right
+            case  4: case 11:  // top  right
               topoCtx.moveTo(c2 + 0.5, r);       topoCtx.lineTo(c2 + 1,   r + 0.5); break;
             case  5:           // saddle: (tl+br above, tr+bl below)
               topoCtx.moveTo(c2,       r + 0.5); topoCtx.lineTo(c2 + 0.5, r);
               topoCtx.moveTo(c2 + 0.5, r + 1);   topoCtx.lineTo(c2 + 1,   r + 0.5); break;
-            case  6: case  9:  // top ΓåÆ bottom
+            case  6: case  9:  // top  bottom
               topoCtx.moveTo(c2 + 0.5, r);       topoCtx.lineTo(c2 + 0.5, r + 1);   break;
-            case  7: case  8:  // top ΓåÆ left
+            case  7: case  8:  // top  left
               topoCtx.moveTo(c2 + 0.5, r);       topoCtx.lineTo(c2,       r + 0.5); break;
             case 10:           // saddle: (tl+br above, tr+bl below)
               topoCtx.moveTo(c2,       r + 0.5); topoCtx.lineTo(c2 + 0.5, r + 1);
@@ -1951,7 +1988,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       }
       topoCtx.stroke();
     }
-    // ΓöÇΓöÇ End contour lines ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    //  End contour lines 
 
     const scale  = 100 / worldSize;
     const bounds: L.LatLngBoundsExpression = [
@@ -1964,13 +2001,13 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     const topoEl = topoOv.getElement();
     if (topoEl) topoEl.style.willChange = 'transform';
 
-    // ΓöÇΓöÇ Peak markers (local terrain maxima) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    //  Peak markers (local terrain maxima) 
     // Detect cells that are the highest point within a sliding-window radius,
     // matching the summit triangles Arma renders on its in-game map.
     peakLayerRef.current.clearLayers();
-    const RADIUS   = 16;  // cells (~512 m at 32 m step) ΓÇö only dominant summits
+    const RADIUS   = 16;  // cells (~512 m at 32 m step)  only dominant summits
     const MIN_ELEV = 50;  // ignore low hills and coastal bumps
-    const MIN_PROM = 30;  // must be ΓëÑ30 m above all neighbors within radius
+    const MIN_PROM = 30;  // must be 30 m above all neighbors within radius
     const sc = 100 / worldSize;
     for (let r = RADIUS; r < rows - RADIUS; r++) {
       for (let c = RADIUS; c < cols - RADIUS; c++) {
@@ -2084,7 +2121,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
 
       const idx = (row * cols + col) * 4;
       // Bus exact forest colors: ARGB(70, 0, 127, 12) heavy, ARGB(70, 0, 181, 18) light
-      // Alpha 70/255 Γëê 27.5% opacity. level>=3 = heavy, else = light.
+      // Alpha 70/255  27.5% opacity. level>=3 = heavy, else = light.
       if (cell.level >= 3) {
         img.data[idx] = 0;
         img.data[idx + 1] = 127;
@@ -2110,7 +2147,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     staticCacheRef.current.forests = true;
   }, [_forests, worldSize]);
 
-  // ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Road layer ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+  //  Road layer 
   useEffect(() => {
     if (staticCacheRef.current.roads) return; // already rendered for this world
     roadLayerRef.current.clearLayers();
@@ -2126,7 +2163,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     const airportRoads: Road[] = [];
 
     roads.forEach(road => {
-      // Airport surfaces ΓÇö collect for later
+      // Airport surfaces  collect for later
       if (road.type.toLowerCase() === 'hide' && road.width > 0 && road.length > 0) {
         airportRoads.push(road);
         return;
@@ -2189,7 +2226,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     staticCacheRef.current.roads = true;
   }, [roads, worldSize]);
 
-  // ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Location labels ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+  //  Location labels 
   useEffect(() => {
     if (staticCacheRef.current.locations) return; // already rendered for this world
     locationLayerRef.current.clearLayers();
@@ -2222,7 +2259,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     staticCacheRef.current.locations = true;
   }, [locations, worldSize, locationMap]);
 
-  // ΓöÇΓöÇ Structures as vector geometry (road-like visual quality) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Structures as vector geometry (road-like visual quality) 
   // Rendered in batches via requestIdleCallback/setTimeout to avoid freezing the browser
   // on large maps (Altis: 40K+ structures after server-side limit).
   useEffect(() => {
@@ -2358,7 +2395,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     return () => { cancelled = true; };
   }, [structures, worldSize]);
 
-  // ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Group waypoints ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+  //  Group waypoints 
   useEffect(() => {
     groupLayerRef.current.clearLayers();
     waypointLayerRef.current.clearLayers();
@@ -2379,7 +2416,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const groupCount = members.length;
       const groupType = resolveGroupType(members, vehicles, vehicleMap);
 
-      // ΓöÇΓöÇ Waypoint line + endpoint ΓöÇΓöÇ (only for explicit orders, not formation positions)
+      //  Waypoint line + endpoint  (only for explicit orders, not formation positions)
       if (grp.wpX !== 0 || grp.wpY !== 0) {
         const wpLL: [number, number] = [grp.wpY * scale, grp.wpX * scale];
         const wpType = grp.wpType || 'MOVE';
@@ -2434,7 +2471,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     });
   }, [groups, units, vehicles, worldSize, vehicleMap, recentShooterIds]);
 
-  // ΓöÇΓöÇ Active laser designations ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Active laser designations 
   useEffect(() => {
     lazeLayerRef.current.clearLayers();
     if (lazes.length === 0) return;
@@ -2467,7 +2504,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     });
   }, [lazes, units, worldSize]);
 
-  // ΓöÇΓöÇ Simulated projectile tracking (prediction-only) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  //  Simulated projectile tracking (prediction-only) 
   useEffect(() => {
     projectileLayerRef.current.clearLayers();
     if (firedEvents.length === 0) {
@@ -2532,7 +2569,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       let dirDeg = normDeg(eventDir ?? vehicle?.dir ?? unit?.dir ?? 0);
 
       // If telemetry contains a concrete target point and heading points away from it,
-      // flip heading by 180┬░ for this event (some platforms report inverted weapon vectors).
+      // flip heading by 180 for this event (some platforms report inverted weapon vectors).
       if (typeof ev.targetX === 'number' && Number.isFinite(ev.targetX) && typeof ev.targetY === 'number' && Number.isFinite(ev.targetY)) {
         const toTargetX = ev.targetX - srcX;
         const toTargetY = ev.targetY - srcY;
@@ -2631,7 +2668,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       let dstY = target.y;
 
       // For unguided weapons, use actual impact coordinates once the shell has landed.
-      // The SQF tracker sends fired_impact Γëê0.1 s after impact with the last-known position.
+      // The SQF tracker sends fired_impact 0.1 s after impact with the last-known position.
       // Also accept data from a previous shot of the same fire mission (same unit+weapon aimed
       // in the same direction) to correct the predicted range before the current shell lands.
       if (!profile.requiresLock) {
@@ -2645,10 +2682,10 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
         if (impact) {
           const impactReceivedAt = Date.parse(impact.at);
           const impactAge = now - impactReceivedAt;
-          // Current shot: impact arrived after firing with wall-clock delta Γëê TOF
+          // Current shot: impact arrived after firing with wall-clock delta  TOF
           const isCurrentShot = impactReceivedAt > firedAt &&
               Math.abs((impactReceivedAt - firedAt) - impact.timeOfFlight * 1000) < 10_000;
-          // Previous shot, same fire mission: recent (<10 min) and aimed in the same direction (<25┬░)
+          // Previous shot, same fire mission: recent (<10 min) and aimed in the same direction (<25)
           const toImpactX = impact.impactX - launch.x;
           const toImpactY = impact.impactY - launch.y;
           const impactBearing = normDeg((Math.atan2(toImpactX, toImpactY) * 180) / Math.PI);
@@ -2799,7 +2836,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     onProjectileDebugChange?.(debugWithSwitch.slice(0, 5));
   }, [firedEvents, firedImpacts, units, vehicles, groups, lazes, worldSize, clockMs, onProjectileDebugChange]);
 
-  // ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Vehicle markers ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+  //  Vehicle markers 
   useEffect(() => {
     vehicleLayerRef.current.clearLayers();
     const scale = 100 / worldSize;
@@ -2855,7 +2892,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     });
   }, [vehicles, units, worldSize, vehicleMap, mapZoom, recentShooterIds]);
 
-  // ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Unit markers ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+  //  Unit markers 
   useEffect(() => {
     unitLayerRef.current.clearLayers();
     const scale = 100 / worldSize;
@@ -2869,7 +2906,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const ll: [number, number] = [posY * scale, posX * scale];
       const markerIcon = unitIcon(unit);
       L.marker(ll, { icon: markerIcon, pane: 'athena-unit' })
-        .bindTooltip(`<b>${unit.name}</b><br>${unit.side} ├é┬╖ ${unit.rank}<br>${unit.type}`, { sticky: true })
+        .bindTooltip(`<b>${unit.name}</b><br>${unit.side}  ${unit.rank}<br>${unit.type}`, { sticky: true })
         .addTo(unitLayerRef.current);
 
       if (recentShooterIds.has(unit.id)) {
@@ -2885,7 +2922,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
   return null;
 }
 
-// ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Main map component ├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+//  Main map component 
 
 interface MapProps {
   units:      Record<string, Unit>;
@@ -2907,6 +2944,7 @@ interface MapProps {
   renderMode?: RenderMode;
   vehicleMap?:  Map<string, string>;
   locationMap?: Map<string, { DrawStyle: string; SizeText: number; Name: string }>;
+  shorelineRefreshToken?: number;
   onRegisterFocus?: (fn: (posX: number, posY: number) => void) => void;
   onRegisterPan?: (fn: (posX: number, posY: number) => void) => void;
   onUserInteraction?: () => void;
@@ -2915,7 +2953,7 @@ interface MapProps {
 const DEFAULT_MAP_CENTER: [number, number] = [50, 50];
 const DEFAULT_MAP_ZOOM = 4;
 
-// ΓöÇΓöÇ Vertical zoom slider rendered inside the MapContainer (has access to the Leaflet map) ΓöÇΓöÇ
+//  Vertical zoom slider rendered inside the MapContainer (has access to the Leaflet map) 
 function ZoomSliderControl() {
   const map = useMap();
   // Keep zoom focused on useful tactical ranges:
@@ -2985,16 +3023,16 @@ function ZoomSliderControl() {
           background: 'transparent',
         }}
       />
-      <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>ΓêÆ</span>
+      <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}></span>
       <span style={{
         color: '#fff', fontSize: 11, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
         marginTop: 2, minWidth: 36, textAlign: 'center',
-      }}>{scaleLabel}├ù</span>
+      }}>{scaleLabel}</span>
     </div>
   );
 }
 
-// ΓöÇΓöÇ User-interaction bridge ΓÇö fires callback on manual drag / zoom ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  User-interaction bridge  fires callback on manual drag / zoom 
 function UserInteractionBridge({ onInteraction }: { onInteraction: () => void }) {
   const map = useMap();
   const callbackRef = useRef(onInteraction);
@@ -3012,7 +3050,7 @@ function UserInteractionBridge({ onInteraction }: { onInteraction: () => void })
   return null;
 }
 
-// ΓöÇΓöÇ Focus bridge ΓÇö lets sidebar pan the map to a world coordinate ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+//  Focus bridge  lets sidebar pan the map to a world coordinate 
 function FocusBridge({
   worldSize,
   onRegisterFocus,
@@ -3138,6 +3176,7 @@ export function AthenaMap({
   roads = [], forests = null, locations = [], structures = [], elevations = null, contours = [],
   layers, onLayersChange, renderMode = '2d',
   vehicleMap = new Map(), locationMap = new Map(),
+  shorelineRefreshToken = 0,
   onRegisterFocus,
   onRegisterPan,
   onUserInteraction,
@@ -3196,6 +3235,7 @@ export function AthenaMap({
         renderMode={renderMode}
         vehicleMap={vehicleMap}
         locationMap={locationMap}
+        shorelineRefreshToken={shorelineRefreshToken}
         onProjectileDebugChange={setProjectileDebugEntries}
       />
     </MapContainer>
@@ -3267,7 +3307,7 @@ export function AthenaMap({
                 background: entry.lockSwitched ? 'linear-gradient(90deg, rgba(255,94,94,0.22), rgba(255,180,120,0.04))' : 'transparent',
               }}
             >
-              <span style={{ color: '#E8F4D1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${entry.shooter} ┬╖ ${entry.weapon}`}>{entry.shooter}</span>
+              <span style={{ color: '#E8F4D1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${entry.shooter}  ${entry.weapon}`}>{entry.shooter}</span>
               <span style={{ color: entry.lock === 'LAZE' ? '#FF9B9B' : entry.lock === 'UNIT' ? '#FFC778' : '#A9D3FF', fontWeight: 700 }}>{entry.lock}</span>
               <span>{entry.source}</span>
               <span>{entry.etaSec}s</span>

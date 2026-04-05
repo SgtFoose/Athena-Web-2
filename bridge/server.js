@@ -1656,17 +1656,15 @@ const httpServer = http.createServer((req, res) => {
         let estimatedOps = z0.lines.length * effectiveGrid * effectiveGrid;
         // Lower raster resolution for very complex coastlines to keep endpoint responsive,
         // while still returning a real coastline mask instead of an all-land fallback.
-        while (estimatedOps >= 8_000_000 && effectiveGrid > 64) {
-          effectiveGrid = Math.max(64, Math.floor(effectiveGrid / 2));
+        while (estimatedOps >= 8_000_000 && effectiveGrid > 256) {
+          effectiveGrid = Math.max(256, Math.floor(effectiveGrid / 2));
           estimatedOps = z0.lines.length * effectiveGrid * effectiveGrid;
         }
 
-        if (estimatedOps < 8_000_000) {
-          const generated = buildLandMaskFromContour(z0, worldSize, effectiveGrid);
-          width = generated.width;
-          height = generated.height;
-          mask = generated.mask;
-        }
+        const generated = buildLandMaskFromContour(z0, worldSize, effectiveGrid);
+        width = generated.width;
+        height = generated.height;
+        mask = generated.mask;
       }
 
       const payload = {

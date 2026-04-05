@@ -28,7 +28,7 @@ export function MapCacheBanner({ health, healthError, activeWorld, onDismiss }: 
   // Cache folder exists but empty
   const cacheEmpty = health && cacheExists && worldCount === 0;
 
-  // Nothing wrong ΓÇö don't show
+  // Nothing wrong - don't show
   if (health && !worldMissing && !cacheNotFound && !cacheEmpty && !healthError) return null;
 
   let title: string;
@@ -47,7 +47,7 @@ export function MapCacheBanner({ health, healthError, activeWorld, onDismiss }: 
       '2. Launch Arma 3 with the @Athena mod and join a server\n' +
       '3. Open Athena Desktop and connect to the server\n' +
       '4. Click "Export" to cache the map data for that world\n' +
-      '5. Restart AthenaWeb.exe ΓÇö the cached map will be detected automatically\n\n' +
+      '5. Restart AthenaWeb.exe - the cached map will be detected automatically\n\n' +
       'You only need to do this once per map. The cache is stored locally and reused every time.';
   } else if (cacheEmpty) {
     title = 'Map cache is empty';
@@ -72,7 +72,7 @@ export function MapCacheBanner({ health, healthError, activeWorld, onDismiss }: 
       'To export this map:\n' +
       '1. In Athena Desktop, connect to a server running this map\n' +
       '2. Click "Export" to cache the map geometry\n' +
-      '3. Restart AthenaWeb.exe ΓÇö the new map will load automatically\n\n' +
+      '3. Restart AthenaWeb.exe - the new map will load automatically\n\n' +
       'Without this, the map will work but roads, buildings, trees, and locations won\'t render.';
   } else {
     return null;
@@ -81,8 +81,8 @@ export function MapCacheBanner({ health, healthError, activeWorld, onDismiss }: 
   return (
     <div className="map-cache-banner">
       <div className="map-cache-banner-inner">
-        <button className="map-cache-banner-close" onClick={onDismiss} title="Dismiss">Γ£ò</button>
-        <div className="map-cache-banner-icon">ΓÜá</div>
+        <button className="map-cache-banner-close" onClick={onDismiss} title="Dismiss">x</button>
+        <div className="map-cache-banner-icon">!</div>
         <div className="map-cache-banner-title">{title}</div>
         <pre className="map-cache-banner-message">{message}</pre>
         <div className="map-cache-banner-footer">

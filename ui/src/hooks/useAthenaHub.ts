@@ -227,6 +227,7 @@ export function useAthenHub() {
     worldOverride: '',
     activeWorld: '',
   });
+  const [shorelineRefreshToken, setShorelineRefreshToken] = useState(0);
 
   const fetchCacheMode = useCallback(async () => {
     try {
@@ -409,6 +410,7 @@ export function useAthenHub() {
 
         if (msg.type === 'mapImportDataReady') {
           hydrateGeometry();
+          setShorelineRefreshToken((prev) => prev + 1);
         }
       };
 
@@ -459,6 +461,7 @@ export function useAthenHub() {
     elevations,
     serverSettings,
     exportStatus,
+    shorelineRefreshToken,
     cacheMode,
     applyCacheMode,
     refreshMapCache,
@@ -478,6 +481,7 @@ export function useAthenHub() {
     elevations,
     serverSettings,
     exportStatus,
+    shorelineRefreshToken,
     cacheMode,
     applyCacheMode,
     refreshMapCache,

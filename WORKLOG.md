@@ -10,6 +10,13 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-05 — v0.0.2 Shoreline Fill + Release Packaging
+- Fixed shoreline rendering artifacts where land/ocean showed block overlap at coast borders.
+- Updated land fill priority in UI to prefer vector Z=0 coastline polygons before raster fallback.
+- Hardened raster fallback by increasing mask resolution and applying edge dilation to close shoreline seams.
+- Added export-complete shoreline refresh trigger so map fill rebuilds automatically after world export.
+- Verified bridge now serves latest UI bundle by syncing `ui/dist` -> `bridge/wwwroot` and restarting bridge.
+
 ### 2026-04-05 — Repository Separation Cleanup (v0.0.2)
 - Corrected cross-repo mix-up: Web2-specific changes were removed from `AthenaRemastered` and restored into `Athena Web 2`.
 - Moved v0.0.2 UI updates into Web2 repo scope:

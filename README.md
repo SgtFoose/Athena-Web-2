@@ -22,6 +22,9 @@ This is v0.0.2 — the current active Web2 release line. It includes map cache h
 - **World picker** lets you browse cached worlds offline for mission planning
 - **Live-world auto override** clears manual world selection when live Arma data arrives
 - **Follow Active Player auto-disable** turns off follow mode when you manually pan or zoom
+- **Shoreline fill improvements** reduce land/ocean edge block artifacts and seal coastline gaps
+- **Post-export shoreline refresh** automatically rebuilds land fill after world export completion
+- **Packaged UI deployment sync** ensures bridge `wwwroot` serves the latest built UI bundle
 
 ## FEATURES
 

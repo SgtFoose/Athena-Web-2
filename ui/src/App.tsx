@@ -86,6 +86,7 @@ function App() {
     elevations,
     serverSettings,
     exportStatus,
+    shorelineRefreshToken,
     selectWorld,
     requestWorldExport,
   } = useAthenHub()
@@ -129,7 +130,7 @@ function App() {
   // Load Athena Desktop vehicle/location classification library
   const { vehicleMap, locationMap } = useAthenaLibrary()
 
-  // Health check ΓÇö detect missing map cache and show first-time instructions
+  // Health check  detect missing map cache and show first-time instructions
   const { health, error: healthError } = useHealthCheck(15_000)
   const [cacheBannerDismissed, setCacheBannerDismissed] = useState(false)
 
@@ -162,7 +163,7 @@ function App() {
   const toggleLayer = (key: keyof LayerVisibility) =>
     setLayers(prev => ({ ...prev, [key]: !prev[key] }))
 
-  // Map focus callback ΓÇö allows sidebar to pan the map to a world coordinate
+  // Map focus callback  allows sidebar to pan the map to a world coordinate
   const mapFocusRef = useRef<(posX: number, posY: number) => void>(() => {})
   const mapPanRef = useRef<(posX: number, posY: number) => void>(() => {})
   const lastFollowPosRef = useRef<{ x: number; y: number } | null>(null)
@@ -264,7 +265,7 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <span className="logo-text">Γ¼í ATHENA REMASTERED</span>
+          <span className="logo-text">ATHENA REMASTERED</span>
           <span className="header-right">
             <span className="version-label">v{APP_VERSION}</span>
             <a
@@ -273,7 +274,7 @@ function App() {
               target="_blank"
               rel="noreferrer"
               title="Support development"
-            >ΓÖÑ Donate</a>
+            >Donate</a>
           </span>
         </div>
         <Sidebar
@@ -305,7 +306,7 @@ function App() {
         />
       </aside>
       <main className="map-area">
-        {/* Welcome overlay ΓÇö shown when no world has been loaded yet */}
+        {/* Welcome overlay shown when no world has been loaded yet */}
         {!worldInfo && (
           <div className="welcome-overlay">
             <img
@@ -314,13 +315,13 @@ function App() {
               alt="Athena Remastered"
             />
             <div className="welcome-banner">
-              <div className="welcome-title">Γ¼í ATHENA REMASTERED</div>
+              <div className="welcome-title">ATHENA REMASTERED</div>
               <div className="welcome-status">
                 {connected && exportStatus.phase !== 'idle'
-                  ? 'Loading world dataΓÇª'
+                  ? 'Loading world data...'
                   : connected
-                  ? 'Connected to server ΓÇö waiting for game dataΓÇª'
-                  : 'Connecting to serverΓÇª'}
+                  ? 'Connected to server - waiting for game data...'
+                  : 'Connecting to server...'}
               </div>
               {connected && exportStatus.phase !== 'idle' ? (
                 <div className="welcome-export-progress">
@@ -334,7 +335,7 @@ function App() {
                   ].map(g => (
                     <div key={g.label} className="welcome-export-row">
                       <span style={{ color: g.done ? '#2ecc71' : '#f0a500' }}>{g.label}</span>
-                      <span style={{ color: g.done ? '#2ecc71' : '#888' }}>{g.count}{g.done ? ' Γ£ô' : 'ΓÇª'}</span>
+                      <span style={{ color: g.done ? '#2ecc71' : '#888' }}>{g.count}{g.done ? ' OK' : '...'}</span>
                     </div>
                   ))}
                 </div>
@@ -342,8 +343,8 @@ function App() {
                 <div className="welcome-instructions">
                   <p>1. Launch <strong>AthenaWeb.exe</strong> (or <code>node server.js</code> in the bridge folder)</p>
                   <p>2. Launch Arma 3 with the <strong>@Athena</strong> mod enabled</p>
-                  <p>3. Open <strong>Athena Desktop</strong> and connect ΓÇö the relay starts on port 28800</p>
-                  <p>4. Start or join a mission ΓÇö live data will appear automatically</p>
+                  <p>3. Open <strong>Athena Desktop</strong> and connect - the relay starts on port 28800</p>
+                  <p>4. Start or join a mission - live data will appear automatically</p>
                 </div>
               )}
             </div>
@@ -379,6 +380,7 @@ function App() {
             layers={layers}
             onLayersChange={setLayers}
             renderMode={renderMode}
+            shorelineRefreshToken={shorelineRefreshToken}
             onRegisterFocus={(fn) => { mapFocusRef.current = fn }}
             onRegisterPan={(fn) => { mapPanRef.current = fn }}
             onUserInteraction={() => setFollowActivePlayer(false)}
@@ -387,38 +389,38 @@ function App() {
         {exportStatus.phase !== 'idle' && (
           <div className="export-status-overlay">
             <div className="export-status-title">
-              {exportStatus.phase === 'cached' ? 'ΓùÅ Loaded from cache'
-               : exportStatus.phase === 'complete' ? 'ΓùÅ Export complete'
-               : 'ΓùÅ Exporting world dataΓÇª'}
+              {exportStatus.phase === 'cached' ? 'Loaded from cache'
+               : exportStatus.phase === 'complete' ? 'Export complete'
+               : 'Exporting world data...'}
             </div>
             <div className="export-status-row">
               <span className={exportStatus.roadsComplete ? 'done' : 'pending'}>
-                Roads: {exportStatus.roadCount}{exportStatus.roadsComplete ? ' Γ£ô' : 'ΓÇª'}
+                Roads: {exportStatus.roadCount}{exportStatus.roadsComplete ? ' OK' : '...'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.treesComplete ? 'done' : 'pending'}>
-                Trees: {exportStatus.treeCount}{exportStatus.treesComplete ? ' Γ£ô' : 'ΓÇª'}
+                Trees: {exportStatus.treeCount}{exportStatus.treesComplete ? ' OK' : '...'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.forestsComplete ? 'done' : 'pending'}>
-                Forests: {exportStatus.forestCount}{exportStatus.forestsComplete ? ' Γ£ô' : 'ΓÇª'}
+                Forests: {exportStatus.forestCount}{exportStatus.forestsComplete ? ' OK' : '...'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.locationsComplete ? 'done' : 'pending'}>
-                Locations: {exportStatus.locationCount}{exportStatus.locationsComplete ? ' Γ£ô' : 'ΓÇª'}
+                Locations: {exportStatus.locationCount}{exportStatus.locationsComplete ? ' OK' : '...'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.structuresComplete ? 'done' : 'pending'}>
-                Structures: {exportStatus.structureCount}{exportStatus.structuresComplete ? ' Γ£ô' : 'ΓÇª'}
+                Structures: {exportStatus.structureCount}{exportStatus.structuresComplete ? ' OK' : '...'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.elevationsComplete ? 'done' : 'pending'}>
-                Elevations: {exportStatus.elevationCount}{exportStatus.elevationsComplete ? ' Γ£ô' : 'ΓÇª'}
+                Elevations: {exportStatus.elevationCount}{exportStatus.elevationsComplete ? ' OK' : '...'}
               </span>
             </div>
           </div>

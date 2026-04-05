@@ -46,6 +46,13 @@ When shipping Web2 updates, update at minimum:
 - `README.md` version
 - `CHANGELOG.md` top entry
 - relevant `WORKLOG.md` timeline entry
+- `ui/src/version.ts` (`APP_VERSION`)
+
+## Packaged UI Sync Rule
+- When shipping or validating Web2 from bridge port `3000`, ensure packaged UI is synced:
+  - build UI: `npm --prefix ui run build`
+  - mirror output: `robocopy ui\dist bridge\wwwroot /MIR`
+- Confirm `bridge/wwwroot/index.html` points to current asset hashes before release/push.
 
 ## Safety Check Before Commit
 - Confirm changed files are only Web2 paths (`bridge/`, `ui/`, Web2 docs/config).

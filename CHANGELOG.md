@@ -17,6 +17,13 @@ All notable changes to Athena Web 2 will be documented in this file.
 - Sidebar map source controls simplified for Web2 usage
 - README and worklog updated to keep Web2 documentation isolated from Athena Remastered
 
+### Fixed
+
+- Shoreline land/ocean edge artifacts reduced by preferring vector Z=0 coastline fill and sealing edge gaps
+- Raster fallback shoreline quality improved with higher-resolution masks and edge dilation for full shoreline coverage
+- Post-export map rebuild now refreshes shoreline fill automatically when `mapImportDataReady` is received
+- Packaged bridge UI (`bridge/wwwroot`) now synced from `ui/dist` during release flow so live bridge serves latest fixes
+
 ## [0.0.1] — 2026-04-02
 
 First functional release. Full second-screen tactical map rendered in the browser using Bus's original Athena relay.
