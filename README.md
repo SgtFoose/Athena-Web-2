@@ -40,6 +40,25 @@ This is v0.0.2 — the current active Web2 release line. It includes map cache h
 
 ## QUICK START
 
+### Option A: Standalone EXE (recommended)
+
+Use this when you want a one-file launcher with no dev setup.
+
+1. Download `AthenaWeb.exe` from this repository's release artifacts
+2. Run `AthenaWeb.exe`
+3. Open `http://localhost:3000`
+4. Start Arma 3 with the original Athena mod running (relay path)
+
+What the EXE includes:
+
+- Built-in bridge server (HTTP + WebSocket)
+- Built-in precompiled web UI (`wwwroot`)
+- Built-in map cache health checks (`/api/health`) used by the in-app cache warning banner
+
+### Option B: Development mode (Node.js)
+
+Use this if you are developing or debugging the source code.
+
 ### Prerequisites
 
 - Arma 3 with **[Athena - An Arma 2nd Screen Application](https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736)** mod installed and running
@@ -81,6 +100,21 @@ npm run dev
 - **Network** (phone/tablet): Use the network URL printed by Vite, e.g. `http://192.168.x.x:5173`
 
 The bridge runs on port `3000` (REST API + WebSocket). The UI dev server runs on port `5173`.
+
+## EXE DEPENDENCY VERIFICATION
+
+`AthenaWeb.exe` is built via:
+
+```json
+"build:exe": "npx @yao-pkg/pkg . --targets node22-win-x64 --output dist/AthenaWeb.exe --compress GZip"
+```
+
+Verification summary:
+
+- `AthenaWeb.exe` bundles the Node.js runtime (target `node22-win-x64`) into the executable.
+- No separate Node.js installation is required to run the EXE.
+- No .NET runtime is required for `AthenaWeb.exe`.
+- External requirements still apply: Arma 3 + original Athena mod/relay and Athena Desktop map cache data.
 
 ## PROJECT STRUCTURE
 

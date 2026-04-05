@@ -2,7 +2,7 @@
  * server.js — Athena Web PoC bridge
  *
  * Bridges Athena Relay.exe (TCP 28800) → WebSocket → Browser
- * Also serves public/index.html over HTTP on port 3000.
+ * Also serves the web UI over HTTP on port 3000.
  *
  * Run: node server.js
  * Then open http://localhost:3000 on any device on the same network.
@@ -44,6 +44,13 @@ const RUNTIME = {
 
 const ATHENA_MAPS_DIR = process.env.ATHENA_MAPS_DIR
   || path.join(process.env.USERPROFILE || '', 'Documents', 'Athena', 'Maps');
+
+const STATIC_ROOT_WWWROOT = path.join(__dirname, 'wwwroot');
+const STATIC_ROOT_PUBLIC = path.join(__dirname, 'public');
+const ACTIVE_STATIC_ROOT = fs.existsSync(path.join(STATIC_ROOT_WWWROOT, 'index.html'))
+  ? STATIC_ROOT_WWWROOT
+  : STATIC_ROOT_PUBLIC;
+const IS_PACKAGED_UI = ACTIVE_STATIC_ROOT === STATIC_ROOT_WWWROOT;
 
 const worldCacheMemo = new Map();
 const contourCacheMemo = new Map();
@@ -437,6 +444,68 @@ function resolveMostRecentWorld(mode = 'fresh') {
 
   latestWorldProbe = { at: now, world: bestWorld };
   return bestWorld;
+}
+
+function listMapCacheWorlds() {
+  if (!fs.existsSync(ATHENA_MAPS_DIR)) {
+    return [];
+  }
+
+  try {
+    const dirs = fs.readdirSync(ATHENA_MAPS_DIR, { withFileTypes: true });
+    const worlds = [];
+    for (const d of dirs) {
+      if (!d.isDirectory()) continue;
+      const worldDir = path.join(ATHENA_MAPS_DIR, d.name);
+      const hasMapTxt = fs.existsSync(path.join(worldDir, 'Map.txt'));
+      if (!hasMapTxt) continue;
+      worlds.push({ name: d.name, hasMapTxt: true });
+    }
+    worlds.sort((a, b) => a.name.localeCompare(b.name));
+    return worlds;
+  } catch {
+    return [];
+  }
+}
+
+function buildHealthStatus() {
+  const activeWorld = detectActiveWorld();
+  const cacheExists = fs.existsSync(ATHENA_MAPS_DIR);
+  const worlds = listMapCacheWorlds();
+  const activeWorldCached = !!activeWorld && worlds.some((w) => w.name.toLowerCase() === String(activeWorld).toLowerCase());
+  const tips = [];
+
+  if (!relayConnected) {
+    tips.push('Relay is not connected. Ensure Relay.exe is running and reachable.');
+  }
+  if (!cacheExists) {
+    tips.push('Athena map cache folder was not found. Export a map from Athena Desktop to create it.');
+  } else if (worlds.length === 0) {
+    tips.push('Map cache folder exists but has no exported worlds. Export at least one map in Athena Desktop.');
+  }
+  if (activeWorld && !activeWorldCached) {
+    tips.push(`Active world "${activeWorld}" is not cached yet. Export this world in Athena Desktop.`);
+  }
+
+  return {
+    statusCode: (!cacheExists || worlds.length === 0 || (activeWorld && !activeWorldCached)) ? 503 : 200,
+    payload: {
+      relay: {
+        connected: relayConnected,
+        host: CONFIG.relayHost,
+        port: CONFIG.relayPort,
+      },
+      mapCache: {
+        path: ATHENA_MAPS_DIR,
+        exists: cacheExists,
+        worldCount: worlds.length,
+        worlds,
+      },
+      activeWorld: activeWorld || null,
+      activeWorldCached: activeWorld ? activeWorldCached : true,
+      tips,
+    },
+  };
 }
 
 function parseGridCoordToken(token) {
@@ -1247,6 +1316,7 @@ const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js'  : 'application/javascript',
   '.css' : 'text/css',
+  '.svg' : 'image/svg+xml',
   '.png' : 'image/png',
   '.ico' : 'image/x-icon',
   '.json': 'application/json',
@@ -1265,6 +1335,13 @@ const httpServer = http.createServer((req, res) => {
 
   const requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const pathname = decodeURIComponent(requestUrl.pathname);
+
+  if (pathname === '/api/health') {
+    const health = buildHealthStatus();
+    res.writeHead(health.statusCode, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(health.payload));
+    return;
+  }
 
   if (pathname === '/api/game/cachemode') {
     const respond = (changed) => {
@@ -1606,9 +1683,11 @@ const httpServer = http.createServer((req, res) => {
     }
   }
 
-  // In ClientOnly dev, opening :3000 by habit should land on the React UI (:5173),
-  // not the legacy PoC splash page served from bridge/public.
-  if ((pathname === '/' || pathname === '/index.html') && String(process.env.UI_DEV_REDIRECT || 'true').toLowerCase() !== 'false') {
+  // In development mode (when packaged UI is unavailable), opening :3000 by habit
+  // should land on the React dev server (:5173).
+  if (!IS_PACKAGED_UI
+    && (pathname === '/' || pathname === '/index.html')
+    && String(process.env.UI_DEV_REDIRECT || 'true').toLowerCase() !== 'false') {
     const hostHeader = String(req.headers.host || 'localhost');
     const hostName = hostHeader.includes(':') ? hostHeader.split(':')[0] : hostHeader;
     const target = `http://${hostName}:5173/`;
@@ -1619,12 +1698,12 @@ const httpServer = http.createServer((req, res) => {
 
   // Security: prevent path traversal
   const safePath = path.normalize(pathname).replace(/^(\.\.\/)+/, '');
-  let filePath = path.join(__dirname, 'public', safePath === '/' ? 'index.html' : safePath);
+  let filePath = path.join(ACTIVE_STATIC_ROOT, safePath === '/' ? 'index.html' : safePath);
 
   fs.stat(filePath, (err, stat) => {
     if (err || !stat.isFile()) {
       // Fallback to index.html for single-page behaviour
-      filePath = path.join(__dirname, 'public', 'index.html');
+      filePath = path.join(ACTIVE_STATIC_ROOT, 'index.html');
     }
     fs.readFile(filePath, (readErr, data) => {
       if (readErr) {
