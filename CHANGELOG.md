@@ -2,6 +2,21 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.0.2] — 2026-04-05
+
+### Added
+
+- Map cache health banner — warning shown when Athena Desktop cache is missing, empty, or the active world is unavailable
+- `useHealthCheck` hook — polls `/api/health` every 15 seconds for cache and bridge status
+- World picker dropdown in sidebar — browse cached maps offline for pre-mission planning
+- Auto-override to live game world — clears manual world selection as soon as live game world data arrives
+- Follow Active Player auto-disable — manual drag/zoom interaction disables follow mode
+
+### Changed
+
+- Sidebar map source controls simplified for Web2 usage
+- README and worklog updated to keep Web2 documentation isolated from Athena Remastered
+
 ## [0.0.1] — 2026-04-02
 
 First functional release. Full second-screen tactical map rendered in the browser using Bus's original Athena relay.

@@ -10,6 +10,16 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-05 — Repository Separation Cleanup (v0.0.2)
+- Corrected cross-repo mix-up: Web2-specific changes were removed from `AthenaRemastered` and restored into `Athena Web 2`.
+- Moved v0.0.2 UI updates into Web2 repo scope:
+  - map cache health banner
+  - health polling hook
+  - simplified sidebar/world picker flow
+  - follow-player auto-disable behavior
+- Updated Web2 manuals (`README.md`, `CHANGELOG.md`, `WORKLOG.md`) to reflect v0.0.2 ownership in this repository.
+- Added explicit repository-boundary Copilot instructions to reduce future cross-repo commits.
+
 ### 2026-04-01 — Pivot Validation
 - Confirmed BattleEye risk with custom extension path.
 - Validated PoC relay bridge approach in `Athena Web 2/poc`:

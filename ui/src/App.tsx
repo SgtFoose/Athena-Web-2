@@ -2,10 +2,11 @@ import { Component, useState, useRef, useCallback, useEffect, useMemo } from 're
 import type { ErrorInfo, ReactNode } from 'react'
 import { AthenaMap }   from './components/AthenaMap'
 import { Sidebar }     from './components/Sidebar'
-import { EventFeed }   from './components/EventFeed'
+import { MapCacheBanner } from './components/MapCacheBanner'
 import { useAthenHub } from './hooks/useAthenaHub'
 import { useStaticMap } from './hooks/useStaticMap'
 import { useAthenaLibrary } from './hooks/useAthenaLibrary'
+import { useHealthCheck } from './hooks/useHealthCheck'
 import { APP_VERSION } from './version'
 import './App.css'
 
@@ -75,7 +76,6 @@ function App() {
   const {
     connected,
     frame,
-    recentKills,
     recentFired,
     recentFiredImpacts,
     worldInfo,
@@ -86,9 +86,7 @@ function App() {
     elevations,
     serverSettings,
     exportStatus,
-    cacheMode,
-    applyCacheMode,
-    refreshMapCache,
+    selectWorld,
     requestWorldExport,
   } = useAthenHub()
 
@@ -97,7 +95,30 @@ function App() {
   const groups   = frame?.groups   ?? {}
   const lazes    = frame?.lazes    ?? []
   const liveWorld = frame?.world?.nameWorld ?? frame?.mission?.world ?? ''
-  const world     = liveWorld || worldInfo?.nameWorld || ''
+  // User-selected world for pre-planning; auto-cleared when live game sends a world
+  const [userSelectedWorld, setUserSelectedWorld] = useState('')
+  const world     = liveWorld || userSelectedWorld || worldInfo?.nameWorld || ''
+
+  // When the game starts sending a live world, clear any user selection so the game takes over
+  const prevLiveWorldRef = useRef('')
+  useEffect(() => {
+    if (liveWorld && liveWorld !== prevLiveWorldRef.current && userSelectedWorld) {
+      setUserSelectedWorld('')
+      // Switch bridge back to live-follow mode
+      selectWorld('')
+    }
+    prevLiveWorldRef.current = liveWorld
+  }, [liveWorld, userSelectedWorld, selectWorld])
+
+  // Handle user picking a cached world from the dropdown
+  const handleSelectWorld = useCallback(async (worldName: string) => {
+    setUserSelectedWorld(worldName)
+    if (worldName) {
+      await selectWorld(worldName)
+    } else {
+      await selectWorld('')
+    }
+  }, [selectWorld])
 
   // Load pre-computed Athena Desktop cache (contour lines + metadata) for the active world
   const { staticInfo, contours } = useStaticMap(world || null)
@@ -107,6 +128,16 @@ function App() {
 
   // Load Athena Desktop vehicle/location classification library
   const { vehicleMap, locationMap } = useAthenaLibrary()
+
+  // Health check ΓÇö detect missing map cache and show first-time instructions
+  const { health, error: healthError } = useHealthCheck(15_000)
+  const [cacheBannerDismissed, setCacheBannerDismissed] = useState(false)
+
+  // List of cached world names from the health endpoint (for world picker dropdown)
+  const cachedWorlds = useMemo(
+    () => (health?.mapCache?.worlds ?? []).filter(w => w.hasMapTxt).map(w => w.name),
+    [health],
+  )
 
   const [layers, setLayers] = useState<LayerVisibility>({
     contours:   true,
@@ -131,7 +162,7 @@ function App() {
   const toggleLayer = (key: keyof LayerVisibility) =>
     setLayers(prev => ({ ...prev, [key]: !prev[key] }))
 
-  // Map focus callback — allows sidebar to pan the map to a world coordinate
+  // Map focus callback ΓÇö allows sidebar to pan the map to a world coordinate
   const mapFocusRef = useRef<(posX: number, posY: number) => void>(() => {})
   const mapPanRef = useRef<(posX: number, posY: number) => void>(() => {})
   const lastFollowPosRef = useRef<{ x: number; y: number } | null>(null)
@@ -233,7 +264,7 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <span className="logo-text">⬡ ATHENA REMASTERED</span>
+          <span className="logo-text">Γ¼í ATHENA REMASTERED</span>
           <span className="header-right">
             <span className="version-label">v{APP_VERSION}</span>
             <a
@@ -242,7 +273,7 @@ function App() {
               target="_blank"
               rel="noreferrer"
               title="Support development"
-            >♥ Donate</a>
+            >ΓÖÑ Donate</a>
           </span>
         </div>
         <Sidebar
@@ -255,9 +286,10 @@ function App() {
           locationCount={locations.length}
           structureCount={structures.length}
           elevationCellCount={elevations?.cells.length ?? 0}
-          cacheMode={cacheMode}
-          onApplyCacheMode={applyCacheMode}
-          onRefreshMapCache={refreshMapCache}
+          cachedWorlds={cachedWorlds}
+          selectedWorld={userSelectedWorld}
+          liveWorld={liveWorld}
+          onSelectWorld={handleSelectWorld}
           layers={layers}
           onToggleLayer={toggleLayer}
           followActivePlayer={followActivePlayer}
@@ -273,7 +305,7 @@ function App() {
         />
       </aside>
       <main className="map-area">
-        {/* Welcome overlay — shown when no world has been loaded yet */}
+        {/* Welcome overlay ΓÇö shown when no world has been loaded yet */}
         {!worldInfo && (
           <div className="welcome-overlay">
             <img
@@ -282,13 +314,13 @@ function App() {
               alt="Athena Remastered"
             />
             <div className="welcome-banner">
-              <div className="welcome-title">⬡ ATHENA REMASTERED</div>
+              <div className="welcome-title">Γ¼í ATHENA REMASTERED</div>
               <div className="welcome-status">
                 {connected && exportStatus.phase !== 'idle'
-                  ? 'Loading world data…'
+                  ? 'Loading world dataΓÇª'
                   : connected
-                  ? 'Connected to server — waiting for game data…'
-                  : 'Connecting to server…'}
+                  ? 'Connected to server ΓÇö waiting for game dataΓÇª'
+                  : 'Connecting to serverΓÇª'}
               </div>
               {connected && exportStatus.phase !== 'idle' ? (
                 <div className="welcome-export-progress">
@@ -302,19 +334,28 @@ function App() {
                   ].map(g => (
                     <div key={g.label} className="welcome-export-row">
                       <span style={{ color: g.done ? '#2ecc71' : '#f0a500' }}>{g.label}</span>
-                      <span style={{ color: g.done ? '#2ecc71' : '#888' }}>{g.count}{g.done ? ' ✓' : '…'}</span>
+                      <span style={{ color: g.done ? '#2ecc71' : '#888' }}>{g.count}{g.done ? ' Γ£ô' : 'ΓÇª'}</span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="welcome-instructions">
-                  <p>1. Run <code>Server/AthenaRemastered.Server.exe</code></p>
-                  <p>2. Launch Arma 3 with the <strong>Athena Remastered</strong> mod enabled</p>
-                  <p>3. Start or join a mission — live data will appear automatically</p>
+                  <p>1. Launch <strong>AthenaWeb.exe</strong> (or <code>node server.js</code> in the bridge folder)</p>
+                  <p>2. Launch Arma 3 with the <strong>@Athena</strong> mod enabled</p>
+                  <p>3. Open <strong>Athena Desktop</strong> and connect ΓÇö the relay starts on port 28800</p>
+                  <p>4. Start or join a mission ΓÇö live data will appear automatically</p>
                 </div>
               )}
             </div>
           </div>
+        )}
+        {!cacheBannerDismissed && (
+          <MapCacheBanner
+            health={health}
+            healthError={healthError}
+            activeWorld={world}
+            onDismiss={() => setCacheBannerDismissed(true)}
+          />
         )}
         <MapErrorBoundary>
           <AthenaMap
@@ -340,43 +381,44 @@ function App() {
             renderMode={renderMode}
             onRegisterFocus={(fn) => { mapFocusRef.current = fn }}
             onRegisterPan={(fn) => { mapPanRef.current = fn }}
+            onUserInteraction={() => setFollowActivePlayer(false)}
           />
         </MapErrorBoundary>
         {exportStatus.phase !== 'idle' && (
           <div className="export-status-overlay">
             <div className="export-status-title">
-              {exportStatus.phase === 'cached' ? '● Loaded from cache'
-               : exportStatus.phase === 'complete' ? '● Export complete'
-               : '● Exporting world data…'}
+              {exportStatus.phase === 'cached' ? 'ΓùÅ Loaded from cache'
+               : exportStatus.phase === 'complete' ? 'ΓùÅ Export complete'
+               : 'ΓùÅ Exporting world dataΓÇª'}
             </div>
             <div className="export-status-row">
               <span className={exportStatus.roadsComplete ? 'done' : 'pending'}>
-                Roads: {exportStatus.roadCount}{exportStatus.roadsComplete ? ' ✓' : '…'}
+                Roads: {exportStatus.roadCount}{exportStatus.roadsComplete ? ' Γ£ô' : 'ΓÇª'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.treesComplete ? 'done' : 'pending'}>
-                Trees: {exportStatus.treeCount}{exportStatus.treesComplete ? ' ✓' : '…'}
+                Trees: {exportStatus.treeCount}{exportStatus.treesComplete ? ' Γ£ô' : 'ΓÇª'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.forestsComplete ? 'done' : 'pending'}>
-                Forests: {exportStatus.forestCount}{exportStatus.forestsComplete ? ' ✓' : '…'}
+                Forests: {exportStatus.forestCount}{exportStatus.forestsComplete ? ' Γ£ô' : 'ΓÇª'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.locationsComplete ? 'done' : 'pending'}>
-                Locations: {exportStatus.locationCount}{exportStatus.locationsComplete ? ' ✓' : '…'}
+                Locations: {exportStatus.locationCount}{exportStatus.locationsComplete ? ' Γ£ô' : 'ΓÇª'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.structuresComplete ? 'done' : 'pending'}>
-                Structures: {exportStatus.structureCount}{exportStatus.structuresComplete ? ' ✓' : '…'}
+                Structures: {exportStatus.structureCount}{exportStatus.structuresComplete ? ' Γ£ô' : 'ΓÇª'}
               </span>
             </div>
             <div className="export-status-row">
               <span className={exportStatus.elevationsComplete ? 'done' : 'pending'}>
-                Elevations: {exportStatus.elevationCount}{exportStatus.elevationsComplete ? ' ✓' : '…'}
+                Elevations: {exportStatus.elevationCount}{exportStatus.elevationsComplete ? ' Γ£ô' : 'ΓÇª'}
               </span>
             </div>
           </div>
@@ -384,7 +426,9 @@ function App() {
       </main>
       <aside className="event-panel">
         <div className="panel-header">EVENTS</div>
-        <EventFeed kills={recentKills} fired={recentFired} />
+        <div style={{ padding: '12px 8px', color: '#666', fontSize: 12, textAlign: 'center' }}>
+          <p style={{ margin: '0 0 8px', color: '#888' }}>Event tracking (kills &amp; shots) requires the Athena Remastered extension DLL and is not available in ClientOnly mode.</p>
+        </div>
       </aside>
     </div>
   )

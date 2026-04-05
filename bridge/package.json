@@ -1,11 +1,22 @@
 {
   "name": "athena-web-poc",
-  "version": "0.0.1-alpha",
+  "version": "0.0.2",
   "description": "Athena Arma3 relay web proof of concept",
   "main": "server.js",
+  "bin": "server.js",
   "scripts": {
     "start": "node server.js",
-    "probe": "node probe.js"
+    "probe": "node probe.js",
+    "build:ui": "cd ../ui && npm install && npm run build && xcopy /E /I /Y dist ..\\bridge\\wwwroot",
+    "build:exe": "npx @yao-pkg/pkg . --targets node22-win-x64 --output dist/AthenaWeb.exe --compress GZip",
+    "build:all": "npm run build:ui && npm run build:exe"
+  },
+  "pkg": {
+    "assets": [
+      "wwwroot/**/*",
+      "public/**/*"
+    ],
+    "outputPath": "dist"
   },
   "dependencies": {
     "ws": "^8.18.0"

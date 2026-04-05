@@ -1,6 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Global crisp rendering — flat military cartography, no anti-aliased softness */
+/* Global crisp rendering ΓÇö flat military cartography, no anti-aliased softness */
 svg { shape-rendering: crispEdges; }
 canvas { image-rendering: pixelated; }
 
@@ -146,6 +146,80 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, 
 .panel-header { background: #0d1117; padding: 14px 16px; border-bottom: 1px solid #21262d; font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #888; }
 .event-panel > div:last-child { flex: 1; overflow-y: auto; padding: 12px; }
 
+/* -- Map cache warning banner --------------------------------------------- */
+.map-cache-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px;
+  pointer-events: none;
+}
+.map-cache-banner-inner {
+  position: relative;
+  pointer-events: auto;
+  background: rgba(30, 20, 8, 0.95);
+  border: 1px solid #f0a500;
+  border-radius: 8px;
+  padding: 16px 24px;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+.map-cache-banner-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+}
+.map-cache-banner-close:hover {
+  color: #e6edf3;
+}
+.map-cache-banner-icon {
+  font-size: 22px;
+  margin-bottom: 6px;
+  color: #f0a500;
+}
+.map-cache-banner-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f0a500;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+.map-cache-banner-message {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #c9d1d9;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.map-cache-banner-footer {
+  margin-top: 12px;
+  font-size: 12px;
+}
+.map-cache-banner-footer a {
+  color: #58a6ff;
+  text-decoration: none;
+}
+.map-cache-banner-footer a:hover {
+  text-decoration: underline;
+}
+
 /* -- Location labels on map ----------------------------------------------- */
 .location-label {
   background: transparent !important;
@@ -155,7 +229,7 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, 
   color: #e0dcc8;
   font-family: 'Aptos', 'Aptos Display', 'Calibri', 'Segoe UI', system-ui, sans-serif;
   font-weight: 700;
-  /* Dark outline halo — military topo map style, readable on any background */
+  /* Dark outline halo ΓÇö military topo map style, readable on any background */
   text-shadow:
     -1px -1px 0 #000,
      1px -1px 0 #000,

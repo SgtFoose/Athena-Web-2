@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { GameFrame, Group, Unit, MapLocation, ServerSettings } from '../types/game';
 import type { LayerVisibility, RenderMode } from '../App';
 import { APP_VERSION } from '../version';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 function formatXY(posX: number, posY: number): string {
   return `X:${posX.toFixed(2)} Y:${posY.toFixed(2)}`;
@@ -19,7 +19,7 @@ function sideColor(side: string): string {
   }
 }
 
-// ── Styles ───────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Styles ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 const tabBarStyle: React.CSSProperties = {
   display: 'flex', gap: 0, background: '#0d0d18', borderBottom: '1px solid #222',
@@ -43,7 +43,7 @@ const sectionLabel: React.CSSProperties = {
   color: '#888', marginBottom: 8, fontWeight: 600, letterSpacing: '0.05em', fontSize: 11,
 };
 
-// ── Props ────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Props ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 interface Props {
   frame: GameFrame | null;
@@ -55,9 +55,10 @@ interface Props {
   locationCount: number;
   structureCount: number;
   elevationCellCount: number;
-  cacheMode: { mode: 'fresh' | 'stable'; worldOverride: string; activeWorld: string };
-  onApplyCacheMode: (mode: 'fresh' | 'stable', worldOverride: string) => Promise<boolean>;
-  onRefreshMapCache: () => Promise<void>;
+  cachedWorlds: string[];
+  selectedWorld: string;
+  liveWorld: string;
+  onSelectWorld: (worldName: string) => void;
   layers: LayerVisibility;
   onToggleLayer: (key: keyof LayerVisibility) => void;
   followActivePlayer: boolean;
@@ -76,12 +77,12 @@ type TopTab = 'MAP' | 'ORBAT';
 type MapSubTab = 'COMMON' | 'LOCATIONS';
 type OrbatSide = 'WEST' | 'EAST' | 'GUER' | 'CIV';
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 export function Sidebar({
   frame, connected, onRequestWorld,
   roadCount, treeCount, forestCellCount, locationCount, structureCount, elevationCellCount,
-  cacheMode, onApplyCacheMode, onRefreshMapCache,
+  cachedWorlds, selectedWorld, liveWorld, onSelectWorld,
   layers, onToggleLayer, followActivePlayer, activePlayerName, onToggleFollowActivePlayer, renderMode, onChangeRenderMode,
   serverSettings, locations, groups, units, onFocusPosition,
 }: Props) {
@@ -89,12 +90,12 @@ export function Sidebar({
   const [mapSub, setMapSub]       = useState<MapSubTab>('COMMON');
   const [orbatSide, setOrbatSide] = useState<OrbatSide>('WEST');
 
-  // ── Computed data ────────────────────────────────────────────────────────
+  // ΓöÇΓöÇ Computed data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
   const t = frame?.time;
   const timeStr = t
     ? `${t.year}/${String(t.month).padStart(2,'0')}/${String(t.day).padStart(2,'0')} ${String(t.hour).padStart(2,'0')}:${String(t.minute).padStart(2,'0')}`
-    : '—';
+    : 'ΓÇö';
 
   const unitCount  = frame ? Object.keys(frame.units).length : 0;
   const vehCount   = frame ? Object.keys(frame.vehicles).length : 0;
@@ -104,7 +105,7 @@ export function Sidebar({
   const sideKey = orbatSide.toLowerCase();
   const sideGroups = useMemo(() => {
     const unitList = Object.values(units);
-    // Map groupId → side from the group's leader unit
+    // Map groupId ΓåÆ side from the group's leader unit
     const groupSides = new Map<string, string>();
     for (const u of unitList) {
       if (u.id === u.leaderId || !groupSides.has(u.groupId)) {
@@ -120,7 +121,7 @@ export function Sidebar({
     [locations],
   );
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ΓöÇΓöÇ Render ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -144,7 +145,7 @@ export function Sidebar({
           </div>
         )}
 
-        <div style={{ color: '#ddd', fontSize: 13, marginBottom: 8 }}>🕐 {timeStr}</div>
+        <div style={{ color: '#ddd', fontSize: 13, marginBottom: 8 }}>≡ƒòÉ {timeStr}</div>
 
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, textAlign: 'center', marginBottom: 8 }}>
@@ -161,14 +162,14 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* ── Top-level tabs: MAP | ORBAT ──────────────────────────────────── */}
+      {/* ΓöÇΓöÇ Top-level tabs: MAP | ORBAT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       <div style={tabBarStyle}>
         {(['MAP', 'ORBAT'] as TopTab[]).map(tb => (
           <button key={tb} style={tabStyle(topTab === tb)} onClick={() => setTopTab(tb)}>{tb}</button>
         ))}
       </div>
 
-      {/* ── Scrollable body ─────────────────────────────────────────────── */}
+      {/* ΓöÇΓöÇ Scrollable body ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px 16px' }}>
         {topTab === 'MAP' && (
           <>
@@ -189,9 +190,10 @@ export function Sidebar({
               roadCount={roadCount} treeCount={treeCount} forestCellCount={forestCellCount}
               locationCount={locationCount} structureCount={structureCount}
               elevationCellCount={elevationCellCount}
-              cacheMode={cacheMode}
-              onApplyCacheMode={onApplyCacheMode}
-              onRefreshMapCache={onRefreshMapCache}
+              cachedWorlds={cachedWorlds}
+              selectedWorld={selectedWorld}
+              liveWorld={liveWorld}
+              onSelectWorld={onSelectWorld}
             />}
 
             {mapSub === 'LOCATIONS' && <LocationsPanel
@@ -240,7 +242,7 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Footer — version */}
+      {/* Footer ΓÇö version */}
       <div style={{ padding: '6px 16px', borderTop: '1px solid #222', color: '#444', fontSize: 10, textAlign: 'center' }}>
         v{APP_VERSION}
       </div>
@@ -248,13 +250,13 @@ export function Sidebar({
   );
 }
 
-// ── COMMON panel ─────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ COMMON panel ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 function CommonPanel({
   layers, onToggleLayer, followActivePlayer, activePlayerName, onToggleFollowActivePlayer, renderMode, onChangeRenderMode,
   onRequestWorld, connected,
   roadCount, treeCount, forestCellCount, locationCount, structureCount, elevationCellCount,
-  cacheMode, onApplyCacheMode, onRefreshMapCache,
+  cachedWorlds, selectedWorld, liveWorld, onSelectWorld,
 }: {
   layers: LayerVisibility; onToggleLayer: (key: keyof LayerVisibility) => void;
   followActivePlayer: boolean;
@@ -264,112 +266,53 @@ function CommonPanel({
   onRequestWorld: () => void; connected: boolean;
   roadCount: number; treeCount: number; forestCellCount: number; locationCount: number;
   structureCount: number; elevationCellCount: number;
-  cacheMode: { mode: 'fresh' | 'stable'; worldOverride: string; activeWorld: string };
-  onApplyCacheMode: (mode: 'fresh' | 'stable', worldOverride: string) => Promise<boolean>;
-  onRefreshMapCache: () => Promise<void>;
+  cachedWorlds: string[];
+  selectedWorld: string;
+  liveWorld: string;
+  onSelectWorld: (worldName: string) => void;
 }) {
-  const [cacheModeDraft, setCacheModeDraft] = useState<'fresh' | 'stable'>(cacheMode.mode);
-  const [worldDraft, setWorldDraft] = useState(cacheMode.worldOverride || '');
-  const [cacheBusy, setCacheBusy] = useState(false);
-
-  useEffect(() => {
-    setCacheModeDraft(cacheMode.mode);
-    setWorldDraft(cacheMode.worldOverride || '');
-  }, [cacheMode.mode, cacheMode.worldOverride]);
-
-  const handleApplyCacheMode = async () => {
-    setCacheBusy(true);
-    try {
-      await onApplyCacheMode(cacheModeDraft, worldDraft);
-    } finally {
-      setCacheBusy(false);
-    }
-  };
-
-  const handleRefreshCache = async () => {
-    setCacheBusy(true);
-    try {
-      await onRefreshMapCache();
-    } finally {
-      setCacheBusy(false);
-    }
-  };
+  const isLive = Boolean(liveWorld);
+  const displayWorld = liveWorld || selectedWorld || '';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {/* Map source cache mode */}
+      {/* World selector */}
       <div style={panelStyle}>
-        <div style={sectionLabel}>MAP SOURCE</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ color: '#888', fontSize: 11 }}>Active cache world</span>
-          <span style={{ color: '#2ecc71', fontSize: 11, fontWeight: 700 }}>
-            {cacheMode.activeWorld || '—'}
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-          <select
-            value={cacheModeDraft}
-            onChange={(e) => setCacheModeDraft(e.target.value === 'stable' ? 'stable' : 'fresh')}
-            style={{
-              flex: 1,
-              background: '#1e2e1e',
-              color: '#ddd',
-              border: '1px solid #333',
-              borderRadius: 4,
-              padding: '4px 6px',
-              fontSize: 12,
-            }}
-          >
-            <option value="fresh">fresh (live follow)</option>
-            <option value="stable">stable (stored map)</option>
-          </select>
-        </div>
-        <input
-          value={worldDraft}
-          onChange={(e) => setWorldDraft(e.target.value)}
-          placeholder="World override (e.g. Altis)"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            marginBottom: 6,
-            background: '#1e2e1e',
-            color: '#ddd',
-            border: '1px solid #333',
-            borderRadius: 4,
-            padding: '6px 8px',
-            fontSize: 12,
-          }}
-        />
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            onClick={handleApplyCacheMode}
-            disabled={cacheBusy}
-            style={{
-              flex: 1,
-              background: cacheBusy ? '#333' : '#2c5f2e',
-              color: cacheBusy ? '#777' : '#fff',
-              border: 'none',
-              borderRadius: 4,
-              padding: '6px 0',
-              fontSize: 12,
-              cursor: cacheBusy ? 'not-allowed' : 'pointer',
-            }}
-          >Apply</button>
-          <button
-            onClick={handleRefreshCache}
-            disabled={cacheBusy}
-            style={{
-              flex: 1,
-              background: '#1e2e1e',
-              color: '#ddd',
-              border: '1px solid #2ecc71',
-              borderRadius: 4,
-              padding: '6px 0',
-              fontSize: 12,
-              cursor: cacheBusy ? 'not-allowed' : 'pointer',
-            }}
-          >Refresh</button>
-        </div>
+        <div style={sectionLabel}>MAP</div>
+        {isLive ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+            <span style={{ color: '#888', fontSize: 11 }}>Live</span>
+            <span style={{ color: '#2ecc71', fontSize: 12, fontWeight: 700 }}>{displayWorld}</span>
+          </div>
+        ) : (
+          <>
+            <select
+              value={selectedWorld}
+              onChange={(e) => onSelectWorld(e.target.value)}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                background: '#1e2e1e',
+                color: '#ddd',
+                border: '1px solid #333',
+                borderRadius: 4,
+                padding: '5px 6px',
+                fontSize: 12,
+                marginBottom: 2,
+              }}
+            >
+              <option value="">ΓÇö select a map ΓÇö</option>
+              {cachedWorlds.map(w => (
+                <option key={w} value={w}>{w}</option>
+              ))}
+            </select>
+            {cachedWorlds.length === 0 && (
+              <div style={{ color: '#f0a500', fontSize: 10, lineHeight: 1.4, marginTop: 2 }}>
+                No cached maps found. Use Athena Desktop to export a map first.
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Map style */}
@@ -407,8 +350,6 @@ function CommonPanel({
           { key: 'locations',  label: 'Locations' },
           { key: 'groups',     label: 'Groups' },
           { key: 'waypoints',  label: 'Waypoints' },
-          { key: 'lazes',      label: 'Active Lazes' },
-          { key: 'projectiles',label: 'Projectile Tracking' },
           { key: 'vehicles',   label: 'Vehicles' },
           { key: 'units',      label: 'Units' },
         ] as { key: keyof LayerVisibility; label: string }[]).map(({ key, label }) => (
@@ -467,7 +408,7 @@ function CommonPanel({
           <div key={g.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
             <span style={{ color: '#aaa' }}>{g.label}</span>
             <span style={{ color: g.value > 0 ? '#2ecc71' : '#555' }}>
-              {g.value > 0 ? `${g.value.toLocaleString()} ${g.unit}` : '—'}
+              {g.value > 0 ? `${g.value.toLocaleString()} ${g.unit}` : 'ΓÇö'}
             </span>
           </div>
         ))}
@@ -476,7 +417,7 @@ function CommonPanel({
   );
 }
 
-// ── LOCATIONS panel ──────────────────────────────────────────────────────────
+// ΓöÇΓöÇ LOCATIONS panel ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 function LocationsPanel({
   locations, onFocusPosition,
@@ -510,7 +451,7 @@ function LocationsPanel({
   );
 }
 
-// ── ORBAT panel ──────────────────────────────────────────────────────────────
+// ΓöÇΓöÇ ORBAT panel ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 function OrbatPanel({
   side, groups, units, onFocusPosition, serverSettings,
@@ -552,7 +493,7 @@ function OrbatPanel({
 
         return (
           <div key={g.id} style={{ background: '#1e1e2e', borderRadius: 4, borderLeft: `3px solid ${color}` }}>
-            {/* Group header — click to focus */}
+            {/* Group header ΓÇö click to focus */}
             <button
               onClick={() => onFocusPosition(posX, posY)}
               style={{
@@ -563,7 +504,7 @@ function OrbatPanel({
             >
               <span style={{ color, fontWeight: 700, fontSize: 12 }}>{g.name || g.id}</span>
               <span style={{ color: '#555', fontSize: 10, fontFamily: 'monospace' }}>
-                {formatXY(posX, posY)} · {groupUnits.length}
+                {formatXY(posX, posY)} ┬╖ {groupUnits.length}
               </span>
             </button>
             {/* Unit list */}

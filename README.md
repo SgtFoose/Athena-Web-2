@@ -2,9 +2,9 @@
 
 > Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-**Version: v0.0.1**
+**Version: v0.0.2**
 
-![Athena Web 2 v0.0.1 — Tanoa](Images/Athena%20Web%202%20v0.0.1.png)
+![Athena Web 2 v0.0.2 — Tanoa](Images/Athena%20Web%202%20v0.0.1.png)
 
 ## Latest Video
 
@@ -14,7 +14,14 @@
 
 Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This is v0.0.1 — the first functional release. It works today for live sessions.
+This is v0.0.2 — the current active Web2 release line. It includes map cache health warnings, offline world browsing, and improved map-follow UX for live sessions.
+
+### v0.0.2 highlights
+
+- **Map cache health banner** warns when Athena Desktop map cache is missing, empty, or doesn't include the active world
+- **World picker** lets you browse cached worlds offline for mission planning
+- **Live-world auto override** clears manual world selection when live Arma data arrives
+- **Follow Active Player auto-disable** turns off follow mode when you manually pan or zoom
 
 ## FEATURES
 
