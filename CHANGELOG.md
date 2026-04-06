@@ -2,6 +2,18 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.0.3] — 2026-04-06
+
+### Changed
+
+- Shoreline geometry rendering now simplifies sea-level contour stair-steps into cleaner diagonal segments (instead of rounded wobble) for closer parity with Athena Desktop coastlines
+- Tree marker styling now renders with a dark outer ring and green center, with zoom-aware sizing so trees do not appear unnaturally tiny when zooming in
+
+### Notes
+
+- This release focuses on map rendering parity only (shoreline + tree symbols)
+- Shot origin, ballistic tracking, and active laze telemetry remain intentionally deferred for BattleEye-safe Web2 compatibility
+
 ## [0.0.2] — 2026-04-05
 
 ### Added

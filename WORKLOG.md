@@ -10,6 +10,30 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-06 — Release Blocker Carried Forward (Tracked)
+- Runway alignment regression is resolved and accepted.
+- Remaining known blocker is still open:
+  - vegetation/hedge orientation mismatch at `X:6874.88 Y:7381.98` (Tanoa cache)
+- Action for release:
+  - ship `v0.0.3` with blocker documented
+  - keep this coordinate pinned in backlog until model-specific orientation mapping is corrected.
+
+### 2026-04-06 — v0.0.3 Shoreline + Tree Symbol Parity Pass
+- Focused this release on two desktop-parity rendering gaps:
+  - shoreline looked too blocky/stair-stepped compared to original Athena Desktop
+  - individual trees lacked the dark outer ring seen in desktop rendering
+- Updated `ui/src/components/AthenaMap.tsx`:
+  - replaced curve-style smoothing with line simplification on Z=0 shoreline paths to preserve cleaner diagonal coastline segments
+  - applied same shoreline simplification to Z=0 land-fill polygon rings for stroke/fill alignment
+  - updated tree canvas draw path to render dark outer ring + green center fill
+  - made tree ring radius zoom-aware from world-metre scale so tree symbols retain expected visual weight when zooming in
+- Updated release metadata for Web2 `v0.0.3`:
+  - `ui/src/version.ts`
+  - `README.md`
+  - `CHANGELOG.md`
+- Release intent:
+  - prepare `v0.0.3` for visual review and parity sign-off before final publish/push.
+
 ### 2026-04-05 — v0.0.2 Shoreline Fill + Release Packaging
 - Fixed shoreline rendering artifacts where land/ocean showed block overlap at coast borders.
 - Updated land fill priority in UI to prefer vector Z=0 coastline polygons before raster fallback.
@@ -522,12 +546,130 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Road segment stitching is per-object local; optional future step is endpoint dedup/merge for long polylines to reduce draw calls.
 - Relay map export delivery not yet confirmed working through bridge (relay acknowledges but does not deliver chunks).
 
-## Next Tasks
-1. Runtime export data serving via REST (for custom maps without Athena Desktop cache)
-2. Runtime maprow parser fix for `{y, z}` JSON format
-3. Wall/structure rotation audit
-4. Filter trees outside land boundary
-5. Mobile UI polish
+## Web2 Parity Backlog (Bus Feature/Changelog Driven)
+
+Goal: close the gap between Web2 and original Athena Desktop behavior while staying compatible with Bus's original relay/mod path.
+
+Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstruction, and active laze telemetry. These depend on extra runtime telemetry paths and are intentionally out of scope for Web2 parity work to avoid BattleEye-risky extension changes.
+
+### Low Effort (S)
+- [ ] Add optional connection diagnostics panel in UI (relay connected, frame age, active world, export phase/counters).
+- [ ] Add ORBAT player/AI differentiation styling parity (italicize player-controlled entries).
+- [ ] Add icon shadow parity toggle for unit/group markers (Desktop-like readability option).
+- [ ] Add side-by-side world naming in selector and status areas (`nameDisplay` + internal world name where available).
+- [ ] Add feature flag and UI label for multi-instance usage guidance (confirm same relay can feed multiple browser clients).
+
+### Medium Effort (M)
+- [ ] Add custom anchors (create/edit/delete) from coordinate input and map click.
+- [ ] Add quick "Locate" workflow parity for locations and anchors (focus map + optional highlight pulse).
+- [ ] Add tracking lines from active player to selected unit/group/anchor with live bearing and distance readout.
+- [ ] Add session save/load for operator overlays (anchors, local drawings, selected layer/profile state).
+- [ ] Add reconnect-safe map drawing layer (personal ink) persisted locally per world.
+- [ ] Add manual relay pipe-name guidance and bridge UX support for alternate pipe deployments (documentation + runtime status visibility).
+
+### High Effort (L)
+- [ ] Add shared overlays over bridge WebSocket (anchors + ink sync across connected Web2 clients on same relay).
+- [ ] Add session recording/playback for Web2 timeline review (record frame snapshots + UI playback controls).
+- [ ] Add robust map/session playback mode isolation so playback cannot conflict with live relay mode.
+- [ ] Add full export/import package parity for mission planning artifacts (portable JSON bundle).
+
+### ACS/Community Features (Lower Priority)
+- [ ] Design ACS-like collaboration mode for Web2 (outside-Arma planning sessions) with room model.
+- [ ] Add room access controls (passworded rooms), explicit disconnect flow, and connection status notifications.
+- [ ] Add presence/session list improvements with user display names and active world context.
+- [ ] Add optional internet-safe deployment profile for remote collaboration (auth, rate limits, persistence boundaries).
+
+## Next Tasks (Immediate)
+1. Connection diagnostics panel (S)
+2. ORBAT player/AI styling parity (S)
+3. Anchors + Locate workflow (M)
+4. Tracking lines + bearing/distance (M)
+5. Session save/load for overlays (M)
+
+## Archived Source Notes (Bohemia Forum Thread)
+
+Thread: Athena - An ARMA 2nd Screen Application
+
+Live URL has intermittent availability, but content is recoverable via Wayback snapshots.
+
+Verified archive captures:
+- https://web.archive.org/web/20240503100332/https://forums.bohemia.net/forums/topic/171846-athena-an-arma-2nd-screen-application/
+- https://web.archive.org/web/20240227191949/https://forums.bohemia.net/forums/topic/171846-athena-an-arma-2nd-screen-application/
+- https://web.archive.org/web/20190719161758/https://forums.bohemia.net/forums/topic/171846-athena-an-arma-2nd-screen-application/
+- https://web.archive.org/web/*/https://forums.bohemia.net/forums/topic/171846-athena-an-arma-2nd-screen-application/
+
+Key feature statements extracted from archived thread (used for Web2 parity planning):
+- Multiple Athena app instances supported from same game feed.
+- Automatic map import for vanilla and custom worlds.
+- Shaded height-map style views.
+- Private and shared ink/map drawing workflows.
+- ORBAT updates based on role/equipment changes (example: MG/AT role changes).
+- Location list with locate action.
+- Custom anchor creation from coordinates/grid references.
+- Tracking lines from own unit to unit/group/anchor with bearing and distance.
+- Session record and playback capability.
+- ACS collaboration scenarios (mission planning/training outside live gameplay).
+
+Web2 compatibility interpretation notes:
+- Core map, ORBAT, locations, anchors, tracking lines, and local record/playback are feasible in Web2 scope.
+- ACS collaboration remains lower-priority and should be phased after core desktop-parity tasks.
+- Shot origin, ballistic tracking, and active laze telemetry remain deferred to avoid BattleEye-risky extension changes.
+
+## Web2 Parity Matrix (Against Bus Thread Features)
+
+Status key: Done | Partial | Planned | Deferred
+
+1. Multi-instance second-screen usage
+- Status: Done
+- Notes: Web2 bridge supports multiple browser clients against one relay feed.
+
+2. Automatic map import support (vanilla and custom)
+- Status: Partial
+- Notes: Export trigger and cache hydration exist; runtime-only fallback for maps without completed desktop cache remains a gap.
+
+3. Shaded height-map views
+- Status: Done
+- Notes: Ground and Pilot map modes are implemented.
+
+4. Private map drawing (ink)
+- Status: Planned
+- Notes: Local reconnect-safe drawing layer and persistence are in backlog.
+
+5. Shared map drawing (ink sync)
+- Status: Planned
+- Notes: WebSocket-shared overlays planned; not implemented yet.
+
+6. ORBAT real-time role/equipment representation
+- Status: Partial
+- Notes: ORBAT and weapon fields are present; role-label parity updates still planned.
+
+7. Location list with Locate action
+- Status: Done
+- Notes: Locations tab supports focus/locate behavior.
+
+8. Custom anchors from coordinates/grid
+- Status: Planned
+- Notes: Anchor create/edit/delete flow is queued in medium-effort backlog.
+
+9. Tracking lines + bearing + distance (unit/group/anchor)
+- Status: Planned
+- Notes: Follow-active-player exists; explicit line/bearing/distance UI not yet implemented.
+
+10. Session save/load (planning artifacts)
+- Status: Planned
+- Notes: Overlay/session save-load is queued in medium/high backlog.
+
+11. Session recording and playback
+- Status: Planned
+- Notes: Recording/playback mode and live-mode isolation are queued in high backlog.
+
+12. ACS collaboration for planning/training outside Arma
+- Status: Planned
+- Notes: Explicitly lower priority than core desktop parity.
+
+13. Shooting origin, ballistic reconstruction, active laze telemetry
+- Status: Deferred
+- Notes: Deferred intentionally to preserve original-mod compatibility and avoid BattleEye-risky extension changes.
 
 ## Quick Run Commands
 ```powershell

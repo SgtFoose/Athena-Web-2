@@ -2,7 +2,7 @@
 
 > Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-**Version: v0.0.2**
+**Version: v0.0.3**
 
 ![Athena Web 2 v0.0.2 — Tanoa](Images/Athena%20Web%202%20v0.0.1.png)
 
@@ -14,7 +14,20 @@
 
 Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This is v0.0.2 — the current active Web2 release line. It includes map cache health warnings, offline world browsing, and improved map-follow UX for live sessions.
+This is v0.0.3 — the current active Web2 release line. It sharpens map rendering parity with Athena Desktop by smoothing shoreline geometry and improving individual tree symbol styling.
+
+### v0.0.3 highlights
+
+- **Smoother shoreline geometry** reduces blocky horizontal/vertical coastline stair-steps and restores cleaner angled shorelines
+- **Ringed tree symbols** render with a dark outer ring and green center for closer desktop visual parity
+- **Map cache health banner** warns when Athena Desktop map cache is missing, empty, or doesn't include the active world
+- **World picker** lets you browse cached worlds offline for mission planning
+- **Live-world auto override** clears manual world selection when live Arma data arrives
+- **Follow Active Player auto-disable** turns off follow mode when you manually pan or zoom
+
+### Known issue (v0.0.3)
+
+- **Vegetation orientation mismatch remains under investigation** for a hedge/bush object around `X:6874.88 Y:7381.98` on Tanoa cache data.
 
 ### v0.0.2 highlights
 
@@ -47,8 +60,8 @@ This is v0.0.2 — the current active Web2 release line. It includes map cache h
 
 Use this when you want a one-file launcher with no dev setup.
 
-1. Download `AthenaWeb.exe` from this repository's release artifacts
-2. Run `AthenaWeb.exe`
+1. Download `AthenaWeb-0.0.3.exe` from this repository's release artifacts
+2. Run `AthenaWeb-0.0.3.exe`
 3. Open `http://localhost:3000`
 4. Start Arma 3 with the original Athena mod running (relay path)
 

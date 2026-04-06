@@ -24,12 +24,16 @@ function sideColor(side: string): string {
 //  Road styling 
 
 function roadStyle(type: string, foot: boolean): { color: string; weight: number } | null {
-  if (foot) return null;  // skip footpaths
+  if (foot) return { color: '#8B6B4A', weight: 1.6 }; // hiking/foot tracks
   // Bus exact road colors: MapHelper.cs PopulateRoads
   // Our Arma type strings map to Bus's RoadType enum:
   //   '' / 'road'  Highway (main paved), 'main road'  Concrete,
   //   'track'  Dirt, 'hide'  airport surfaces (Concrete)
-  switch (type.toLowerCase()) {
+  const t = type.toLowerCase().trim();
+  if (t.includes('track') || t.includes('trail') || t.includes('dirt')) {
+    return { color: '#8B6B4A', weight: 2.6 };
+  }
+  switch (t) {
     case '':           return { color: '#F4A460', weight: 7.0  };  // Highway  SandyBrown
     case 'road':       return { color: '#F4A460', weight: 7.0  };  // Highway  SandyBrown
     case 'main road':  return { color: '#D3D3D3', weight: 5.0  };  // Concrete  LightGray
@@ -45,14 +49,18 @@ function rotatedRoadRect(road: Road, scale: number): [number, number][] {
   // Fall back to midpoint of beg/end for old cached data lacking posX/posY.
   const cx = (road.posX ? road.posX : (road.beg1X + road.end2X) / 2) * scale;
   const cy = (road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2) * scale;
-  // Pad each tile by 1m so adjacent 2020 tiles overlap slightly, hiding
-  // sub-pixel gaps from floating-point position/rotation precision.
-  const pad = 1;
+  // Airport tiles should align tightly; avoid overlap that causes stacked seams.
+  const isHide = road.type.toLowerCase() === 'hide';
+  const pad = isHide ? 0.15 : 1;
   const halfWidth = ((road.width + pad) / 2) * scale;
   const halfLength = ((road.length + pad) / 2) * scale;
-  const angle = (road.dir * Math.PI) / 180;
+  // Quantize airport orientation to reduce tiny per-tile jitter.
+  const dirDeg = isHide ? Math.round(road.dir * 2) / 2 : road.dir;
+  const angle = (dirDeg * Math.PI) / 180;
   const sin = Math.sin(angle);
   const cos = Math.cos(angle);
+
+  const snap = (v: number) => Math.round(v * 10000) / 10000;
 
   const corners: [number, number][] = [
     [-halfWidth, -halfLength],
@@ -60,19 +68,25 @@ function rotatedRoadRect(road: Road, scale: number): [number, number][] {
     [halfWidth, halfLength],
     [-halfWidth, halfLength],
   ].map(([dx, dy]) => [
-    cy + dx * sin + dy * cos,
-    cx + dx * cos - dy * sin,
+    // Match structure transform so rectangle orientation is consistent across layers.
+    snap(cy + (-dx * sin) + (dy * cos)),
+    snap(cx + (dx * cos) + (dy * sin)),
   ]);
 
   return corners;
 }
 
-function rotatedStructureRect(s: MapStructure, scale: number): [number, number][] {
+function rotatedStructureRect(
+  s: MapStructure,
+  scale: number,
+  dirOffsetDeg = 0,
+  swapAxes = false,
+): [number, number][] {
   const cx = s.posX * scale;
   const cy = s.posY * scale;
-  const halfWidth = (s.width / 2) * scale;
-  const halfLength = (s.length / 2) * scale;
-  const angle = (s.dir * Math.PI) / 180;
+  const halfWidth = ((swapAxes ? s.length : s.width) / 2) * scale;
+  const halfLength = ((swapAxes ? s.width : s.length) / 2) * scale;
+  const angle = ((s.dir + dirOffsetDeg) * Math.PI) / 180;
   const sin = Math.sin(angle);
   const cos = Math.cos(angle);
 
@@ -105,6 +119,26 @@ function isPowerPoleLike(s: MapStructure): boolean {
   return /(pole|post|pylon|mast)/.test(sig) && /(powerline|power_line|power|electric|utility|cable|wire)/.test(sig);
 }
 
+function isVegetationLike(s: MapStructure): boolean {
+  const sig = `${s.type} ${s.model}`.toLowerCase();
+  return /(bush|shrub|smalltree|small_tree|scrub|brush|hedge|briar)/.test(sig);
+}
+
+function structureOrientationPolicy(s: MapStructure): { dirOffsetDeg: number; swapAxes: boolean } {
+  const sig = `${s.type} ${s.model}`.toLowerCase();
+
+  // Hedge strips behave more like fence segments in Athena cache data.
+  if (/(hedge|briar)/.test(sig)) {
+    return { dirOffsetDeg: 90, swapAxes: false };
+  }
+
+  if (isVegetationLike(s)) {
+    return { dirOffsetDeg: 0, swapAxes: true };
+  }
+
+  return { dirOffsetDeg: 0, swapAxes: false };
+}
+
 const MAP_MIN_ZOOM = 3;
 const MAP_MAX_ZOOM = 10.5;
 const DISPLAY_MIN_SCALE = 0.1;
@@ -113,6 +147,115 @@ const DISPLAY_MAX_SCALE = 3.0;
 function zoomToDisplayScale(zoom: number): number {
   const t = Math.max(0, Math.min(1, (zoom - MAP_MIN_ZOOM) / (MAP_MAX_ZOOM - MAP_MIN_ZOOM)));
   return DISPLAY_MIN_SCALE + t * (DISPLAY_MAX_SCALE - DISPLAY_MIN_SCALE);
+}
+
+function pointLineDistance(p: [number, number], a: [number, number], b: [number, number]): number {
+  const ax = a[0];
+  const ay = a[1];
+  const bx = b[0];
+  const by = b[1];
+  const px = p[0];
+  const py = p[1];
+
+  const dx = bx - ax;
+  const dy = by - ay;
+  if (dx === 0 && dy === 0) return Math.hypot(px - ax, py - ay);
+
+  const t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+  const cx = ax + t * dx;
+  const cy = ay + t * dy;
+  return Math.hypot(px - cx, py - cy);
+}
+
+function simplifyPolylineRdp(points: [number, number][], epsilon: number): [number, number][] {
+  if (points.length < 3 || epsilon <= 0) return points;
+
+  let maxDist = -1;
+  let index = -1;
+  const start = points[0];
+  const end = points[points.length - 1];
+
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const d = pointLineDistance(points[i], start, end);
+    if (d > maxDist) {
+      maxDist = d;
+      index = i;
+    }
+  }
+
+  if (maxDist <= epsilon || index <= 0) {
+    return [start, end];
+  }
+
+  const left = simplifyPolylineRdp(points.slice(0, index + 1), epsilon);
+  const right = simplifyPolylineRdp(points.slice(index), epsilon);
+  return left.slice(0, -1).concat(right);
+}
+
+function simplifyClosedRing(points: [number, number][], epsilon: number): [number, number][] {
+  if (points.length < 4) return points;
+  // Treat ring as open polyline for simplification, then close it back.
+  const open = points.slice();
+  const simplifiedOpen = simplifyPolylineRdp(open, epsilon);
+  if (simplifiedOpen.length < 3) return points;
+  return simplifiedOpen;
+}
+
+function normalizeAngleDeg(deg: number): number {
+  let out = deg % 360;
+  if (out < 0) out += 360;
+  return out;
+}
+
+function angularDiffDeg(a: number, b: number): number {
+  const da = normalizeAngleDeg(a);
+  const db = normalizeAngleDeg(b);
+  const d = Math.abs(da - db);
+  return d > 180 ? 360 - d : d;
+}
+
+function straightenPolylineSegments(
+  points: [number, number][],
+  toleranceDeg = 10,
+  minSegmentLen = 0.01,
+): [number, number][] {
+  if (points.length < 3) return points;
+
+  const out: [number, number][] = [points[0]];
+  for (let i = 1; i < points.length; i += 1) {
+    const prev = out[out.length - 1];
+    const cur = points[i];
+    const dLat = cur[0] - prev[0];
+    const dLng = cur[1] - prev[1];
+    const segLen = Math.hypot(dLat, dLng);
+    if (segLen < minSegmentLen) continue;
+
+    const angleDeg = normalizeAngleDeg((Math.atan2(dLat, dLng) * 180) / Math.PI);
+    const snappedDeg = normalizeAngleDeg(Math.round(angleDeg / 45) * 45);
+    const shouldSnap = angularDiffDeg(angleDeg, snappedDeg) <= toleranceDeg;
+
+    let nextPoint: [number, number] = cur;
+    if (shouldSnap) {
+      const rad = (snappedDeg * Math.PI) / 180;
+      nextPoint = [
+        prev[0] + Math.sin(rad) * segLen,
+        prev[1] + Math.cos(rad) * segLen,
+      ];
+    }
+
+    if (nextPoint[0] !== prev[0] || nextPoint[1] !== prev[1]) {
+      out.push(nextPoint);
+    }
+  }
+
+  if (out.length < 2) return points;
+  const srcLast = points[points.length - 1];
+  const outLast = out[out.length - 1];
+  if (outLast[0] !== srcLast[0] || outLast[1] !== srcLast[1]) {
+    out.push(srcLast);
+  }
+
+  return out;
 }
 
 interface TreeRecord {
@@ -170,9 +313,13 @@ class TreeGridLayer extends L.GridLayer {
     const gyMin = Math.max(0, Math.floor(wMinY / cellW));
     const gyMax = Math.min(gridSize - 1, Math.floor(wMaxY / cellW));
 
-    // Bus exact: EllipseGeometry radius 2.02.0 (fixed size)
-    const radius = 2.0;
-    ctx.fillStyle = 'rgba(34, 139, 34, 1)';  // Forest green, solid fill
+    // Desktop trees are 2m radius in world space. Convert that to pixel radius
+    // per zoom level so tree size scales naturally while zooming.
+    const pxPerMapUnit = Math.abs(
+      map.project([0, 1], coords.z).x - map.project([0, 0], coords.z).x,
+    );
+    const outerRadius = Math.max(1.8, 2.0 * scale * pxPerMapUnit);
+    const innerRadius = Math.max(1.0, outerRadius * 0.68);
 
     for (let gy = gyMin; gy <= gyMax; gy++) {
       for (let gx = gxMin; gx <= gxMax; gx++) {
@@ -191,8 +338,14 @@ class TreeGridLayer extends L.GridLayer {
           const px = point.x - nw.x;
           const py = point.y - nw.y;
 
+          ctx.fillStyle = '#0f2410';
           ctx.beginPath();
-          ctx.arc(px, py, radius, 0, Math.PI * 2);
+          ctx.arc(px, py, outerRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = 'rgba(34, 139, 34, 1)';
+          ctx.beginPath();
+          ctx.arc(px, py, innerRadius, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -1718,7 +1871,9 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
               // [lat=Y, lng=X] in normalised 0..100 map space
               pts.push([flat[i + 1] * scale, flat[i] * scale]);
             }
-            return pts;
+            // Simplify + angle regularization for cleaner coastline segments.
+            const simplified = simplifyClosedRing(pts as [number, number][], 0.015);
+            return straightenPolylineSegments(simplified, 9, 0.015) as L.LatLngExpression[];
           })
           .filter(r => r.length >= 3);
 
@@ -1730,8 +1885,8 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
             stroke:      true,
             color:       '#FFFFF0',
             weight:      2,
-            lineJoin:    'round',
-            lineCap:     'round',
+            lineJoin:    'miter',
+            lineCap:     'butt',
             fillColor:   '#FFFFF0',
             fillOpacity: 1,
             fillRule:    'evenodd',
@@ -1944,7 +2099,15 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
         topoCtx.strokeStyle = '#BC8F8F';   // RosyBrown
       }
       topoCtx.lineWidth = 0.75;
+      topoCtx.lineJoin = 'miter';
+      topoCtx.lineCap = 'butt';
       topoCtx.beginPath();
+
+      const edgeT = (a: number, b: number): number => {
+        const denom = b - a;
+        if (!Number.isFinite(denom) || Math.abs(denom) < 1e-9) return 0.5;
+        return clamp((z - a) / denom, 0, 1);
+      };
 
       // Standard 16-case marching squares lookup.
       // Bit ordering: tl=8, tr=4, br=2, bl=1.
@@ -1961,27 +2124,37 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           const ci = ((vTL >= z ? 8 : 0) | (vTR >= z ? 4 : 0)
                     | (vBR >= z ? 2 : 0) | (vBL >= z ? 1 : 0));
 
+          const tTop = edgeT(vTL, vTR);
+          const tRight = edgeT(vTR, vBR);
+          const tBottom = edgeT(vBL, vBR);
+          const tLeft = edgeT(vTL, vBL);
+
+          const top: [number, number] = [c2 + tTop, r];
+          const right: [number, number] = [c2 + 1, r + tRight];
+          const bottom: [number, number] = [c2 + tBottom, r + 1];
+          const left: [number, number] = [c2, r + tLeft];
+
           // Each case draws 0-2 line segments between edge midpoints.
-          // Using moveTo+lineTo batched inside a single beginPath for performance.
+          // Interpolated edge points reduce blocky stair-steps and preserve diagonals.
           switch (ci) {
             case  1: case 14:  // left  bottom
-              topoCtx.moveTo(c2 + 0.5, r + 1);  topoCtx.lineTo(c2,       r + 0.5); break;
+              topoCtx.moveTo(bottom[0], bottom[1]); topoCtx.lineTo(left[0], left[1]); break;
             case  2: case 13:  // bottom  right
-              topoCtx.moveTo(c2 + 0.5, r + 1);  topoCtx.lineTo(c2 + 1,   r + 0.5); break;
+              topoCtx.moveTo(bottom[0], bottom[1]); topoCtx.lineTo(right[0], right[1]); break;
             case  3: case 12:  // left  right
-              topoCtx.moveTo(c2,       r + 0.5); topoCtx.lineTo(c2 + 1,   r + 0.5); break;
+              topoCtx.moveTo(left[0], left[1]); topoCtx.lineTo(right[0], right[1]); break;
             case  4: case 11:  // top  right
-              topoCtx.moveTo(c2 + 0.5, r);       topoCtx.lineTo(c2 + 1,   r + 0.5); break;
+              topoCtx.moveTo(top[0], top[1]); topoCtx.lineTo(right[0], right[1]); break;
             case  5:           // saddle: (tl+br above, tr+bl below)
-              topoCtx.moveTo(c2,       r + 0.5); topoCtx.lineTo(c2 + 0.5, r);
-              topoCtx.moveTo(c2 + 0.5, r + 1);   topoCtx.lineTo(c2 + 1,   r + 0.5); break;
+              topoCtx.moveTo(left[0], left[1]); topoCtx.lineTo(top[0], top[1]);
+              topoCtx.moveTo(bottom[0], bottom[1]); topoCtx.lineTo(right[0], right[1]); break;
             case  6: case  9:  // top  bottom
-              topoCtx.moveTo(c2 + 0.5, r);       topoCtx.lineTo(c2 + 0.5, r + 1);   break;
+              topoCtx.moveTo(top[0], top[1]); topoCtx.lineTo(bottom[0], bottom[1]); break;
             case  7: case  8:  // top  left
-              topoCtx.moveTo(c2 + 0.5, r);       topoCtx.lineTo(c2,       r + 0.5); break;
+              topoCtx.moveTo(top[0], top[1]); topoCtx.lineTo(left[0], left[1]); break;
             case 10:           // saddle: (tl+br above, tr+bl below)
-              topoCtx.moveTo(c2,       r + 0.5); topoCtx.lineTo(c2 + 0.5, r + 1);
-              topoCtx.moveTo(c2 + 0.5, r);       topoCtx.lineTo(c2 + 1,   r + 0.5); break;
+              topoCtx.moveTo(left[0], left[1]); topoCtx.lineTo(bottom[0], bottom[1]);
+              topoCtx.moveTo(top[0], top[1]); topoCtx.lineTo(right[0], right[1]); break;
             // 0, 15: no crossings
           }
         }
@@ -2064,7 +2237,9 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           const pts: [number, number][] = [];
           for (let i = 0; i + 1 < flat.length; i += 2)
             pts.push([flat[i + 1] * scale, flat[i] * scale]); // [lat=Y, lng=X]
-          return pts;
+          if (cl.z === 0) return pts;
+          const simplified = simplifyPolylineRdp(pts, 0.006);
+          return straightenPolylineSegments(simplified, 10, 0.012);
         })
         .filter(p => p.length >= 2);
       if (latlngs.length === 0) return;
@@ -2072,13 +2247,16 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       // Sea-level coastline gets a dedicated pane in 2D mode so it stays visible
       // above forests and land fill, with a crisp outer + inner stroke.
       if (cl.z === 0) {
+        const coastLatLngs = latlngs
+          .map(line => straightenPolylineSegments(simplifyClosedRing(line, 0.015), 9, 0.015))
+          .filter(line => line.length >= 2);
         // Bus exact: Z=0 coastline = MediumBlue, stroke 0.75
-        L.polyline(latlngs, {
+        L.polyline(coastLatLngs, {
           color:       '#0000CD',
           weight:      0.75,
           opacity:     1,
-          lineJoin:    'round',
-          lineCap:     'round',
+          lineJoin:    'miter',
+          lineCap:     'butt',
           interactive: false,
           pane:        'athena-coast',
         }).addTo(coastLayerRef.current);
@@ -2188,9 +2366,9 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       L.polygon(latlngs, {
         fillColor:   '#D3D3D3',
         fillOpacity: 1,
-        color:       '#a5adb5',
-        weight:      0.45,
-        stroke:      true,
+        color:       '#D3D3D3',
+        weight:      0,
+        stroke:      false,
         opacity:     1,
         interactive: false,
         pane:        'athena-road',
@@ -2317,8 +2495,8 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const end = Math.min(idx + CHUNK, structures.length);
       for (; idx < end; idx++) {
         const s = structures[idx];
-      if (s.posX === 0 && s.posY === 0) return;
-      if (s.width <= 0 || s.length <= 0) return;
+      if (s.posX === 0 && s.posY === 0) continue;
+      if (s.width <= 0 || s.length <= 0) continue;
 
       const minDim = Math.min(s.width, s.length);
       const maxDim = Math.max(s.width, s.length);
@@ -2326,7 +2504,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const area = s.width * s.length;
 
       // Skip tiny artifacts/noise.
-      if (area < 0.8) return;
+      if (area < 0.8) continue;
 
       // Restrict line rendering to truly linear assets to avoid pole/prop overshoot.
       const isLinearByShape = minDim < 0.8 && aspect >= 8.0 && maxDim >= 2.5;
@@ -2368,10 +2546,11 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
             renderer: canvas,
           }
         ).addTo(structureLayerRef.current);
-        return;
+        continue;
       }
 
-      const corners = rotatedStructureRect(s, scale);
+      const orientation = structureOrientationPolicy(s);
+      const corners = rotatedStructureRect(s, scale, orientation.dirOffsetDeg, orientation.swapAxes);
       const isBuilding = area >= 40;
       L.polygon(corners, {
         color: '#5b6b7d',
