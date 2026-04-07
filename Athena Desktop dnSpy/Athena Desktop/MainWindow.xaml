@@ -1,0 +1,2189 @@
+<Window
+	x:Class="Athena.App.W7.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Local="clr-namespace:Athena.App.W7" xmlns:UI="clr-namespace:Athena.Tools;assembly=Athena.Tools"
+	Name="MainWindow"
+	Title="Athena Desktop"
+	Height="768"
+	Width="1234"
+	MinHeight="768"
+	MinWidth="1024"
+	Cursor="Arrow"
+	Icon="Assets/Athena.ico">
+	<!--Unknown connection ID: 2-->
+	<Grid
+		Name="Main"
+		Background="#FF000000">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition />
+			<ColumnDefinition
+				Width="Auto" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition
+				Height="20" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<!--Unknown connection ID: 3-->
+		<Menu
+			Name="menuMain"
+			Grid.ColumnSpan="2"
+			IsMainMenu="True"
+			Height="20"
+			VerticalAlignment="Top"
+			Panel.ZIndex="10">
+			<MenuItem
+				Header="File">
+				<MenuItem
+					Header="Open Frame"
+					Click="_Lambda$__R1250-2" />
+				<MenuItem
+					Header="Save Frame"
+					Click="_Lambda$__R1250-3" />
+				<Separator />
+				<MenuItem
+					Header="Open Recording"
+					Click="_Lambda$__R1250-4" />
+				<Separator />
+				<MenuItem
+					Header="Connection Status"
+					Click="_Lambda$__R1250-5" />
+				<Separator />
+				<MenuItem
+					Header="Settings"
+					Click="_Lambda$__R1250-6" />
+				<Separator />
+				<MenuItem
+					Header="Exit"
+					Click="_Lambda$__R1250-7" />
+			</MenuItem>
+			<MenuItem
+				Header="Controls">
+				<MenuItem
+					Name="MenuShowFlyoutRight"
+					Header="Show Flyout"
+					IsCheckable="True"
+					IsChecked="True"
+					Click="_Lambda$__R1250-8" />
+				<Separator />
+				<MenuItem
+					Header="Hot Keys"
+					Click="_Lambda$__R1250-9" />
+				<Separator />
+				<MenuItem
+					Name="MenuTrackPlayer"
+					Header="_Track Player"
+					IsCheckable="True"
+					IsChecked="True"
+					Click="ToggleTrack_Click" />
+				<Separator />
+				<MenuItem
+					Header="Play">
+					<MenuItem
+						Name="MenuPlayStart"
+						Header="_Start"
+						Click="_Lambda$__R1250-10" />
+					<MenuItem
+						Name="MenuPlayStop"
+						Header="_Stop"
+						IsEnabled="False"
+						Click="_Lambda$__R1250-11" />
+				</MenuItem>
+				<MenuItem
+					Header="_Recording">
+					<MenuItem
+						Name="MenuRecordingStart"
+						Header="_Start"
+						Click="_Lambda$__R1250-12" />
+					<MenuItem
+						Name="MenuRecordingStop"
+						Header="_Stop"
+						IsEnabled="False"
+						Click="_Lambda$__R1250-13" />
+				</MenuItem>
+				<Separator />
+				<!--Unknown connection ID: 17-->
+				<MenuItem
+					Name="menuMap"
+					Header="_View Map" />
+				<MenuItem
+					Header="Render Mode">
+					<MenuItem
+						Header="Elevations"
+						Tag="1"
+						Click="SwitchRenderMode" />
+					<MenuItem
+						Header="Height Map (Color)"
+						Tag="2"
+						Click="SwitchRenderMode" />
+					<MenuItem
+						Header="Height Map (Gray)"
+						Tag="3"
+						Click="SwitchRenderMode" />
+				</MenuItem>
+				<MenuItem
+					Header="_Clear Map"
+					Click="_Lambda$__R1250-14" />
+				<MenuItem
+					Header="Zoom _In"
+					Click="_Lambda$__R1250-15" />
+				<MenuItem
+					Header="Zoom _Out"
+					Click="_Lambda$__R1250-16" />
+			</MenuItem>
+			<MenuItem
+				Header="_Help">
+				<MenuItem
+					Header="About"
+					Click="_Lambda$__R1250-17" />
+				<MenuItem
+					Header="Visit BIS _Forum Thread"
+					Click="_Lambda$__R1250-18" />
+				<MenuItem
+					Header="Visit Athena _Website"
+					Click="_Lambda$__R1250-19" />
+			</MenuItem>
+		</Menu>
+		<Grid
+			Row="1">
+			<!--Unknown connection ID: 27-->
+			<ScrollViewer
+				Name="MapScroll"
+				HorizontalScrollBarVisibility="Visible"
+				VerticalScrollBarVisibility="Visible"
+				CanContentScroll="True">
+				<!--Unknown connection ID: 28-->
+				<UI:VirtualCanvas
+					Name="MapVC"
+					Height="Auto"
+					Width="Auto" />
+			</ScrollViewer>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition
+						Width="20" />
+					<ColumnDefinition
+						Width="*" />
+					<ColumnDefinition
+						Width="*" />
+					<ColumnDefinition
+						Width="*" />
+					<ColumnDefinition
+						Width="20" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition
+						Height="20" />
+					<RowDefinition />
+					<RowDefinition
+						Height="50" />
+					<RowDefinition
+						Height="20" />
+				</Grid.RowDefinitions>
+				<!--Unknown connection ID: 29-->
+				<Image
+					Name="imgBackground"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Source="Assets\Background.png"
+					Stretch="Fill"
+					Panel.ZIndex="-1" />
+				<!--Unknown connection ID: 30-->
+				<Image
+					Name="imgBackgroundLogo"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Source="Assets\BackgroundLogo.png"
+					Width="300" />
+				<!--Unknown connection ID: 31-->
+				<Border
+					Name="brdWait"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Background="#FFD3D3D3"
+					BorderBrush="#FF808080"
+					BorderThickness="1"
+					Height="190"
+					Width="450"
+					Visibility="Collapsed">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition
+								Height="20" />
+							<RowDefinition />
+							<RowDefinition
+								Height="20" />
+						</Grid.RowDefinitions>
+						<!--Unknown connection ID: 32-->
+						<TextBlock
+							Name="txtWait"
+							Grid.Row="0"
+							Text="ATHENA IS BUSY WORKING"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							FontFamily="Centry Gothic"
+							FontSize="12"
+							FontWeight="Bold" />
+						<Image
+							Grid.Row="1"
+							Source="Assets\Welcome_600_200.png"
+							Stretch="UniformToFill" />
+						<TextBlock
+							Grid.Row="2"
+							Text="Please wait..."
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							FontFamily="Centry Gothic"
+							FontSize="12"
+							FontWeight="SemiBold" />
+					</Grid>
+				</Border>
+				<!--Unknown connection ID: 33-->
+				<Border
+					Name="brdMessage"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Background="#FFD3D3D3"
+					BorderBrush="#FF808080"
+					BorderThickness="1"
+					Height="160"
+					Width="450"
+					Visibility="Collapsed">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition
+								Height="35" />
+							<RowDefinition />
+							<RowDefinition
+								Height="35" />
+						</Grid.RowDefinitions>
+						<!--Unknown connection ID: 34-->
+						<TextBlock
+							Name="txtMessageTitle"
+							Grid.Row="0"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							FontFamily="Centry Gothic"
+							FontSize="12"
+							FontWeight="Bold" />
+						<StackPanel
+							Grid.Row="1"
+							Background="#FFFFFFFF">
+							<!--Unknown connection ID: 35-->
+							<TextBlock
+								Name="txtMessageValue"
+								TextWrapping="Wrap"
+								Padding="5,5,5,5" />
+						</StackPanel>
+						<StackPanel
+							Grid.Row="2"
+							Orientation="Horizontal"
+							HorizontalAlignment="Right">
+							<Button
+								Content="OK"
+								Width="75"
+								Margin="5,5,5,5"
+								Click="HandleMessageHide_Click" />
+						</StackPanel>
+					</Grid>
+				</Border>
+				<!--Unknown connection ID: 37-->
+				<Border
+					Name="brdMapMissing"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Background="#FFD3D3D3"
+					BorderBrush="#FF808080"
+					BorderThickness="1"
+					Height="280"
+					Width="450"
+					Visibility="Collapsed">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition
+								Height="35" />
+							<RowDefinition />
+							<RowDefinition
+								Height="35" />
+						</Grid.RowDefinitions>
+						<TextBlock
+							Grid.Row="0"
+							Text="YOU HAVE NOT YET IMPORTED THE CURRENT MAP"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							FontFamily="Centry Gothic"
+							FontSize="12"
+							FontWeight="Bold" />
+						<ScrollViewer
+							Grid.Row="1"
+							Background="#FFFFFFFF">
+							<StackPanel
+								Margin="5,5,5,5">
+								<TextBlock
+									Text="The current mission is set on a map that is not in your Athena library. With your permission, Athena will attempt to import the map automatically however the process will take several minutes and ARMA performance may suffer noticeably. Several scripts will be run that extract the required world data. These scripts will take longer to execute depending on the size and complexity of the world and that of other mission and mod scripts. Officially, we recommend performing the import during a singleplayer editor launched session with only the Athena mod active however it is completely at your discretion. Keep in mind that scripts in ARMA only run while a mission is running. If ARMA 'pauses' during a singleplayer mission, the export will also pause. If you 'die' in a mission and the mission restarts, the import will fail. This prompt will remain until you either choose to import the map or a mission is launched that takes place on an map in your library. Would you like to proceed?"
+									TextWrapping="Wrap"
+									Margin="0,5,0,0" />
+							</StackPanel>
+						</ScrollViewer>
+						<StackPanel
+							Grid.Row="2"
+							Orientation="Horizontal"
+							HorizontalAlignment="Right"
+							Margin="5,5,5,5">
+							<Button
+								Content="Proceed"
+								Width="75"
+								Click="_Lambda$__R1250-20" />
+						</StackPanel>
+					</Grid>
+				</Border>
+				<!--Unknown connection ID: 39-->
+				<Border
+					Name="brdMapImport"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Background="#FFD3D3D3"
+					BorderBrush="#FF808080"
+					BorderThickness="1"
+					Height="230"
+					Width="450"
+					Visibility="Collapsed">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition
+								Height="35" />
+							<RowDefinition />
+							<RowDefinition
+								Height="35" />
+						</Grid.RowDefinitions>
+						<TextBlock
+							Grid.Row="0"
+							Text="Map Import Progress"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							FontFamily="Centry Gothic"
+							FontSize="12"
+							FontWeight="Bold" />
+						<!--Unknown connection ID: 40-->
+						<ScrollViewer
+							Name="scrollImport"
+							Grid.Row="1"
+							HorizontalScrollBarVisibility="Disabled"
+							VerticalScrollBarVisibility="Visible"
+							Background="#FFFFFFFF"
+							Width="450">
+							<!--Unknown connection ID: 41-->
+							<StackPanel
+								Name="txtMapImportProgress"
+								Grid.Row="1"
+								Margin="5,5,5,5">
+								<TextBlock
+									Text="Waiting for ARMA to begin sending data..." />
+								<!--Unknown connection ID: 42-->
+								<TextBlock
+									Name="txtMapImportProgressReceivingMapStart"
+									Text="Receiving map index"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 43-->
+								<TextBlock
+									Name="txtMapImportProgressReceivingRows"
+									Text="Receiving world mesh"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 44-->
+								<TextBlock
+									Name="txtMapImportProgressReceivingTrees"
+									Text="Receiving trees"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 45-->
+								<TextBlock
+									Name="txtMapImportProgressReceivingLocations"
+									Text="Receiving locations"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 46-->
+								<TextBlock
+									Name="txtMapImportProgressReceivingObjects"
+									Text="Receiving objects and structures"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 47-->
+								<TextBlock
+									Name="txtMapImportProgressReceivingRoads"
+									Text="Receiving roads"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 48-->
+								<TextBlock
+									Name="txtMapImportProgressReceivingMapEnd"
+									Text="Receiving export complete message. Processing data..."
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 49-->
+								<TextBlock
+									Name="txtMapImportProgressProcessRows"
+									Text="Processing world mesh and tracing contours"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 50-->
+								<TextBlock
+									Name="txtMapImportProgressProcessTrees"
+									Text="Processing tree data and creating forests"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 51-->
+								<TextBlock
+									Name="txtMapImportProgressProcessLocations"
+									Text="Processing location data"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 52-->
+								<TextBlock
+									Name="txtMapImportProgressProcessObjects"
+									Text="Processing structure data"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 53-->
+								<TextBlock
+									Name="txtMapImportProgressProcessRoads"
+									Text="Processing road segments and creating road sections"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 54-->
+								<TextBlock
+									Name="txtMapImportProgressCleanup"
+									Text="Removing temporary objects and files"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 55-->
+								<TextBlock
+									Name="txtMapImportProgressComplete"
+									Text="Import complete"
+									Visibility="Collapsed" />
+								<!--Unknown connection ID: 56-->
+								<TextBlock
+									Name="txtMapImportProgressFail"
+									Text=""
+									Visibility="Collapsed"
+									TextWrapping="Wrap" />
+							</StackPanel>
+						</ScrollViewer>
+						<StackPanel
+							Grid.Row="2"
+							Orientation="Horizontal"
+							HorizontalAlignment="Right"
+							Margin="5,5,5,5">
+							<Button
+								Name="btnMapImportProgressCancel"
+								Content="Cancel"
+								Width="75"
+								Click="_Lambda$__R1250-21" />
+						</StackPanel>
+					</Grid>
+				</Border>
+				<!--Unknown connection ID: 58-->
+				<Border
+					Name="brdMapSwitch"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Background="#FFD3D3D3"
+					BorderBrush="#FF808080"
+					BorderThickness="1"
+					Height="260"
+					Width="450"
+					Visibility="Collapsed">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition
+								Height="35" />
+							<RowDefinition />
+							<RowDefinition
+								Height="35" />
+						</Grid.RowDefinitions>
+						<TextBlock
+							Grid.Row="0"
+							Text="YOU ARE SWITCHING THE MAP FOR YOUR ROOMS"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							FontFamily="Centry Gothic"
+							FontSize="12"
+							FontWeight="Bold" />
+						<StackPanel
+							Grid.Row="1"
+							Background="#FFFFFFFF">
+							<TextBlock
+								Text="You are the owner of one or more rooms on the Athena Community Server. As a room owner, you determine what map the room pariticpants should be viewing. If you switch the map, all of the ink from this room will be lost upon switching. Would you like to proceed?"
+								TextWrapping="Wrap"
+								Padding="5,5,5,5" />
+							<!--Unknown connection ID: 59-->
+							<TextBox
+								Name="txtMapSwitch_Map"
+								Visibility="Collapsed" />
+						</StackPanel>
+						<StackPanel
+							Grid.Row="2"
+							Orientation="Horizontal"
+							HorizontalAlignment="Right"
+							Margin="5,5,5,5">
+							<Button
+								Content="Proceed"
+								Width="75"
+								Margin="0,0,5,0"
+								Click="HandleACSMapSwitch_Proceed" />
+							<Button
+								Content="Cancel"
+								Width="75"
+								Click="HandleACSMapSwitch_Cancel" />
+						</StackPanel>
+					</Grid>
+				</Border>
+				<!--Unknown connection ID: 62-->
+				<Border
+					Name="brdRoomCreate"
+					Grid.Column="0"
+					Grid.Row="0"
+					Grid.ColumnSpan="5"
+					Grid.RowSpan="4"
+					Background="#FFD3D3D3"
+					BorderBrush="#FF808080"
+					BorderThickness="1"
+					Height="200"
+					Width="450"
+					Visibility="Collapsed">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition
+								Height="35" />
+							<RowDefinition />
+							<RowDefinition
+								Height="35" />
+						</Grid.RowDefinitions>
+						<TextBlock
+							Grid.Row="0"
+							Text="CREATE NEW ROOM"
+							VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							FontFamily="Centry Gothic"
+							FontSize="12"
+							FontWeight="Bold" />
+						<Grid
+							Row="1"
+							Background="#FFFFFFFF">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition
+									Width="Auto" />
+								<ColumnDefinition />
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+							</Grid.RowDefinitions>
+							<TextBlock
+								Grid.Row="0"
+								Grid.Column="0"
+								Margin="5,0,5,0"
+								VerticalAlignment="Center"
+								Text="Name:" />
+							<TextBlock
+								Grid.Row="1"
+								Grid.Column="0"
+								Margin="5,0,5,0"
+								VerticalAlignment="Center"
+								Text="Action:" />
+							<TextBlock
+								Grid.Row="2"
+								Grid.Column="0"
+								Margin="5,0,5,0"
+								VerticalAlignment="Center"
+								Text="Security:" />
+							<TextBlock
+								Grid.Row="3"
+								Grid.Column="0"
+								Margin="5,0,5,0"
+								VerticalAlignment="Center"
+								Text="Side Requirement:" />
+							<!--Unknown connection ID: 63-->
+							<TextBox
+								Name="txtACSRoomCreate_Name"
+								Grid.Row="0"
+								Grid.Column="1"
+								Margin="5,5,5,5" />
+							<!--Unknown connection ID: 64-->
+							<ComboBox
+								Name="cmbACSRoomCreate_Action"
+								Grid.Row="1"
+								Grid.Column="1"
+								Margin="5,5,5,5"
+								IsEnabled="False">
+								<ComboBoxItem
+									Content="None"
+									Tag="1" />
+								<ComboBoxItem
+									Content="Active Mission"
+									Tag="3" />
+								<ComboBoxItem
+									Content="After Action Review"
+									Tag="4" />
+								<ComboBoxItem
+									Content="World Drawing"
+									Tag="2"
+									IsSelected="True" />
+							</ComboBox>
+							<!--Unknown connection ID: 65-->
+							<ComboBox
+								Name="cmbACSRoomCreate_Security"
+								Grid.Row="2"
+								Grid.Column="1"
+								Margin="5,5,5,5"
+								IsEnabled="False">
+								<ComboBoxItem
+									Content="Open"
+									Tag="1"
+									IsSelected="True" />
+								<ComboBoxItem
+									Content="Invite"
+									Tag="2" />
+							</ComboBox>
+							<!--Unknown connection ID: 66-->
+							<ComboBox
+								Name="cmbACSRoomCreate_SideRequirement"
+								Grid.Row="3"
+								Grid.Column="1"
+								Margin="5,5,5,5"
+								IsEnabled="False">
+								<ComboBoxItem
+									Content="ALL"
+									Tag="5"
+									IsSelected="True" />
+								<ComboBoxItem
+									Content="WEST"
+									Tag="1" />
+								<ComboBoxItem
+									Content="EAST"
+									Tag="2" />
+								<ComboBoxItem
+									Content="INDEPENDENT"
+									Tag="4" />
+								<ComboBoxItem
+									Content="CIVILIAN"
+									Tag="3" />
+							</ComboBox>
+						</Grid>
+						<StackPanel
+							Grid.Row="2"
+							Orientation="Horizontal"
+							HorizontalAlignment="Right"
+							Margin="5,5,5,5">
+							<Button
+								Content="Create"
+								Width="75"
+								Margin="0,0,5,0"
+								Click="HandleACSRoomCreateForm_Create" />
+							<Button
+								Content="Cancel"
+								Width="75"
+								Click="HandleACSRoomCreateForm_Cancel" />
+						</StackPanel>
+					</Grid>
+				</Border>
+				<Grid
+					Column="1"
+					Row="1"
+					HorizontalAlignment="Left"
+					VerticalAlignment="Top"
+					MaxWidth="210"
+					Height="Auto">
+					<Grid.RowDefinitions>
+						<RowDefinition
+							Height="Auto" />
+						<RowDefinition
+							Height="Auto" />
+						<RowDefinition
+							Height="Auto" />
+						<RowDefinition
+							Height="Auto" />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition />
+					</Grid.ColumnDefinitions>
+					<!--Unknown connection ID: 69-->
+					<TextBlock
+						Name="lblActiveLayerName"
+						Grid.Row="0"
+						Foreground="#FF6A6969"
+						FontSize="16"
+						Text="Active: Personal Canvas"
+						Padding="2,2,2,2" />
+					<Grid
+						Row="1">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+							<ColumnDefinition />
+							<ColumnDefinition />
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Button
+							Name="btnInkModeDraw"
+							Margin="2,2,2,2"
+							Tag="0"
+							Click="ChangeInkMode">
+							<TextBlock
+								Text="DRAW" />
+						</Button>
+						<Button
+							Name="btnInkModeLight"
+							Margin="2,2,2,2"
+							Grid.Column="1"
+							Tag="3"
+							Click="ChangeInkMode">
+							<TextBlock
+								Text="LIGHT" />
+						</Button>
+						<Button
+							Name="btnInkModeErase"
+							Margin="2,2,2,2"
+							Grid.Column="2"
+							Tag="1"
+							Click="ChangeInkMode">
+							<TextBlock
+								Text="ERASE" />
+						</Button>
+						<Button
+							Name="btnInkModeSelect"
+							Margin="2,2,2,2"
+							Grid.Column="3"
+							Tag="2"
+							Click="ChangeInkMode">
+							<TextBlock
+								Text="SELECT" />
+						</Button>
+					</Grid>
+					<Grid
+						Row="2"
+						Margin="2,0,2,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition
+								Width="Auto" />
+							<ColumnDefinition
+								Width="Auto" />
+							<ColumnDefinition
+								Width="Auto" />
+							<ColumnDefinition
+								Width="Auto" />
+							<ColumnDefinition
+								Width="Auto" />
+							<ColumnDefinition
+								Width="Auto" />
+							<ColumnDefinition
+								Width="Auto" />
+						</Grid.ColumnDefinitions>
+						<Button
+							Height="25"
+							Width="25"
+							BorderThickness="1"
+							BorderBrush="#FF808080"
+							Padding="0"
+							Tag="0"
+							Background="{x:Null}"
+							Click="ChangeInkColor">
+							<Border
+								BorderBrush="#FFFFFFFF"
+								BorderThickness="1">
+								<Rectangle
+									Fill="#FF000000"
+									Height="25"
+									Width="25" />
+							</Border>
+						</Button>
+						<Button
+							Grid.Column="1"
+							Height="25"
+							Width="25"
+							Margin="5,0,0,0"
+							BorderThickness="1"
+							BorderBrush="#FF808080"
+							Padding="0"
+							Tag="3"
+							Background="{x:Null}"
+							Click="ChangeInkColor">
+							<Border
+								BorderBrush="#FFFFFFFF"
+								BorderThickness="1">
+								<Rectangle
+									Fill="#FF0000FF"
+									Height="25"
+									Width="25" />
+							</Border>
+						</Button>
+						<Button
+							Grid.Column="2"
+							Height="25"
+							Width="25"
+							Margin="5,0,0,0"
+							BorderThickness="1"
+							BorderBrush="#FF808080"
+							Padding="0"
+							Tag="1"
+							Background="{x:Null}"
+							Click="ChangeInkColor">
+							<Border
+								BorderBrush="#FFFFFFFF"
+								BorderThickness="1">
+								<Rectangle
+									Fill="#FFFF0000"
+									Height="25"
+									Width="25" />
+							</Border>
+						</Button>
+						<Button
+							Grid.Column="3"
+							Height="25"
+							Width="25"
+							Margin="5,0,0,0"
+							BorderThickness="1"
+							BorderBrush="#FF808080"
+							Padding="0"
+							Tag="4"
+							Background="{x:Null}"
+							Click="ChangeInkColor">
+							<Border
+								BorderBrush="#FFFFFFFF"
+								BorderThickness="1">
+								<Rectangle
+									Fill="#FF008000"
+									Height="25"
+									Width="25" />
+							</Border>
+						</Button>
+						<Button
+							Grid.Column="4"
+							Height="25"
+							Width="25"
+							Margin="5,0,0,0"
+							BorderThickness="1"
+							BorderBrush="#FF808080"
+							Padding="0"
+							Tag="6"
+							Background="{x:Null}"
+							Click="ChangeInkColor">
+							<Border
+								BorderBrush="#FFFFFFFF"
+								BorderThickness="1">
+								<Rectangle
+									Fill="#FF800080"
+									Height="25"
+									Width="25" />
+							</Border>
+						</Button>
+						<Button
+							Grid.Column="5"
+							Height="25"
+							Width="25"
+							Margin="5,0,0,0"
+							BorderThickness="1"
+							BorderBrush="#FF808080"
+							Padding="0"
+							Tag="5"
+							Background="{x:Null}"
+							Click="ChangeInkColor">
+							<Border
+								BorderBrush="#FFFFFFFF"
+								BorderThickness="1">
+								<Rectangle
+									Fill="#FFFFA500"
+									Height="25"
+									Width="25" />
+							</Border>
+						</Button>
+						<Button
+							Grid.Column="6"
+							Height="25"
+							Width="25"
+							Margin="5,0,0,0"
+							BorderThickness="1"
+							BorderBrush="#FF808080"
+							Padding="0"
+							Tag="2"
+							Background="{x:Null}"
+							Click="ChangeInkColor">
+							<Border
+								BorderBrush="#FFFFFFFF"
+								BorderThickness="1">
+								<Rectangle
+									Fill="#FFFFFF00"
+									Height="25"
+									Width="25" />
+							</Border>
+						</Button>
+					</Grid>
+					<Grid
+						Row="3"
+						Margin="2,2,2,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<Slider
+							Name="InkThickness"
+							Grid.Column="1"
+							Minimum="6"
+							Maximum="40"
+							TickFrequency="2"
+							Value="20"
+							TickPlacement="BottomRight"
+							IsSnapToTickEnabled="True"
+							ValueChanged="ChangeInkSize" />
+					</Grid>
+				</Grid>
+				<StackPanel
+					Grid.Column="1"
+					Grid.Row="1"
+					VerticalAlignment="Bottom"
+					IsHitTestVisible="False">
+					<!--Unknown connection ID: 82-->
+					<TextBlock
+						Name="MissionTime"
+						Text=""
+						Foreground="#FF6A6969"
+						FontSize="16"
+						Height="25" />
+					<!--Unknown connection ID: 83-->
+					<TextBlock
+						Name="DebugDataReceived"
+						Text=""
+						Foreground="#FF6A6969"
+						FontSize="16"
+						Height="25" />
+					<StackPanel
+						Orientation="Horizontal">
+						<TextBlock
+							Text="Anchor:"
+							Foreground="#FF6A6969"
+							FontSize="16"
+							Height="25"
+							Margin="0,0,5,0" />
+						<!--Unknown connection ID: 84-->
+						<TextBlock
+							Name="lblTrackingAnchor"
+							Text=""
+							Foreground="#FF6A6969"
+							FontSize="16"
+							Height="25" />
+					</StackPanel>
+					<StackPanel
+						Orientation="Horizontal">
+						<TextBlock
+							Text="Group:"
+							Foreground="#FF6A6969"
+							FontSize="16"
+							Height="25"
+							Margin="0,0,5,0" />
+						<!--Unknown connection ID: 85-->
+						<TextBlock
+							Name="lblTrackingGroup"
+							Text=""
+							Foreground="#FF6A6969"
+							FontSize="16"
+							Height="25" />
+					</StackPanel>
+					<StackPanel
+						Orientation="Horizontal">
+						<TextBlock
+							Text="Unit:"
+							Foreground="#FF6A6969"
+							FontSize="16"
+							Height="25"
+							Margin="0,0,5,0" />
+						<!--Unknown connection ID: 86-->
+						<TextBlock
+							Name="lblTrackingUnit"
+							Text=""
+							Foreground="#FF6A6969"
+							FontSize="16"
+							Height="25" />
+					</StackPanel>
+				</StackPanel>
+				<StackPanel
+					Grid.Column="3"
+					Grid.Row="1"
+					VerticalAlignment="Center"
+					Margin="0,0,20,0">
+					<!--Unknown connection ID: 87-->
+					<TextBlock
+						Name="DebugZoomLevel"
+						HorizontalAlignment="Right"
+						TextAlignment="Center"
+						Text=""
+						Foreground="#FF6A6969"
+						FontSize="16"
+						Width="30"
+						Height="25" />
+					<Slider
+						Name="slideZoom"
+						HorizontalAlignment="Right"
+						Orientation="Vertical"
+						Height="300"
+						TickPlacement="Both"
+						Maximum="3"
+						Minimum="0.1"
+						LargeChange="0.5"
+						TickFrequency="0.1"
+						Value="1"
+						Background="#3F000000"
+						ValueChanged="slideZoom_ValueChanged" />
+				</StackPanel>
+				<Grid
+					Column="1"
+					Row="2"
+					HorizontalAlignment="Left"
+					VerticalAlignment="Center">
+					<Grid.RowDefinitions>
+						<RowDefinition />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition />
+					</Grid.ColumnDefinitions>
+					<StackPanel
+						Grid.Row="0"
+						Grid.Column="0"
+						Orientation="Horizontal"
+						Background="#FF000000">
+						<TextBlock
+							Text="Following:"
+							FontSize="16"
+							Margin="5,5,0,5"
+							Foreground="#FF6A6969" />
+						<!--Unknown connection ID: 89-->
+						<ComboBox
+							Name="UnitList"
+							Height="22"
+							Width="125"
+							Margin="5,5,0,5">
+							<ItemsControl.Items>
+								<ComboBoxItem
+									Content="Player"
+									Tag="special_player"
+									IsSelected="True" />
+							</ItemsControl.Items>
+						</ComboBox>
+						<!--Unknown connection ID: 90-->
+						<TextBlock
+							Name="UnitGridPos"
+							Text=""
+							Foreground="#FF6A6969"
+							FontSize="16"
+							Margin="5,5,5,5" />
+					</StackPanel>
+				</Grid>
+				<Grid
+					Column="0"
+					Row="2"
+					ColumnSpan="5"
+					HorizontalAlignment="Center"
+					VerticalAlignment="Center">
+					<Grid.RowDefinitions>
+						<RowDefinition
+							Height="32" />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition />
+					</Grid.ColumnDefinitions>
+					<StackPanel
+						Grid.Row="0"
+						Grid.Column="0"
+						Orientation="Horizontal">
+						<!--Unknown connection ID: 91-->
+						<Button
+							Name="Mode_Online_Button"
+							Content="START"
+							IsEnabled="True"
+							Width="75"
+							Margin="5,5,5,5" />
+						<!--Unknown connection ID: 92-->
+						<Button
+							Name="Mode_Online_Follow"
+							Content="UNFOLLOW"
+							IsEnabled="True"
+							Width="75"
+							Margin="5,5,5,5" />
+						<!--Unknown connection ID: 93-->
+						<Button
+							Name="Mode_Offline_Button"
+							Content="STOP"
+							IsEnabled="False"
+							Width="75"
+							Margin="5,5,5,5" />
+					</StackPanel>
+				</Grid>
+				<StackPanel
+					Grid.Column="3"
+					Grid.ColumnSpan="1"
+					Grid.Row="1"
+					VerticalAlignment="Bottom"
+					IsHitTestVisible="False"
+					HorizontalAlignment="Right">
+					<!--Unknown connection ID: 94-->
+					<TextBlock
+						Name="PlaybackTotalFrames"
+						Text=""
+						Foreground="#FF6A6969"
+						FontSize="16"
+						Height="25"
+						HorizontalAlignment="Right" />
+					<!--Unknown connection ID: 95-->
+					<TextBlock
+						Name="PlaybackCurrentFrame"
+						Text=""
+						Foreground="#FF6A6969"
+						FontSize="16"
+						Height="25"
+						HorizontalAlignment="Right" />
+					<!--Unknown connection ID: 96-->
+					<TextBlock
+						Name="PlaybackSpeed"
+						Text=""
+						Foreground="#FF6A6969"
+						FontSize="16"
+						Height="25"
+						HorizontalAlignment="Right" />
+				</StackPanel>
+				<Grid
+					Column="3"
+					Row="2"
+					HorizontalAlignment="Right"
+					VerticalAlignment="Center">
+					<Grid.RowDefinitions>
+						<RowDefinition
+							Height="32" />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition />
+					</Grid.ColumnDefinitions>
+					<StackPanel
+						Grid.Row="0"
+						Grid.Column="0"
+						Orientation="Vertical"
+						Background="#FF000000">
+						<!--Unknown connection ID: 97-->
+						<StackPanel
+							Name="Playback_Recording"
+							Orientation="Horizontal"
+							Background="#FF000000">
+							<!--Unknown connection ID: 98-->
+							<Button
+								Name="Mode_Record_Start"
+								Content="RECORD"
+								IsEnabled="True"
+								Width="75"
+								Margin="5,5,0,5" />
+							<!--Unknown connection ID: 99-->
+							<Button
+								Name="Mode_Record_Stop"
+								Content="STOP"
+								IsEnabled="False"
+								Width="75"
+								Margin="5,5,5,5" />
+						</StackPanel>
+						<!--Unknown connection ID: 100-->
+						<StackPanel
+							Name="Playback_Play"
+							Orientation="Horizontal"
+							Background="#FF000000"
+							Visibility="Collapsed">
+							<!--Unknown connection ID: 101-->
+							<Button
+								Name="FrameFirst"
+								Content="|&lt;"
+								Width="25"
+								Margin="5,5,0,5"
+								IsEnabled="False" />
+							<!--Unknown connection ID: 102-->
+							<Button
+								Name="FramePrev"
+								Content="&lt;"
+								Width="25"
+								Margin="5,5,0,5"
+								IsEnabled="False" />
+							<!--Unknown connection ID: 103-->
+							<TextBox
+								Name="Frame_Current"
+								Text="1"
+								Foreground="#FF6A6969"
+								FontSize="12"
+								MinWidth="50"
+								TextAlignment="Center"
+								VerticalAlignment="Center"
+								Padding="2,2,2,2"
+								Margin="5,5,0,5"
+								Background="#FFFFFFFF"
+								IsEnabled="False" />
+							<!--Unknown connection ID: 104-->
+							<Button
+								Name="FrameNext"
+								Content="&gt;"
+								Width="25"
+								Margin="5,5,0,5"
+								IsEnabled="False" />
+							<!--Unknown connection ID: 105-->
+							<Button
+								Name="FrameLast"
+								Content="&gt;|"
+								Width="25"
+								Margin="5,5,0,5"
+								IsEnabled="False" />
+							<!--Unknown connection ID: 106-->
+							<Button
+								Name="SpeedSlow"
+								Content="-"
+								Width="25"
+								Margin="5,5,0,5" />
+							<!--Unknown connection ID: 107-->
+							<Button
+								Name="SpeedFast"
+								Content="+"
+								Width="25"
+								Margin="5,5,0,5" />
+							<Button
+								Name="Frame_Exit"
+								Content="EXIT"
+								Width="50"
+								Margin="5,5,5,5"
+								Click="_Lambda$__R1250-22" />
+						</StackPanel>
+					</StackPanel>
+				</Grid>
+			</Grid>
+		</Grid>
+		<Grid
+			Row="1"
+			Column="1"
+			Background="#FFFFFFFF">
+			<!--Unknown connection ID: 109-->
+			<TabControl
+				Name="FlyoutRight"
+				Width="280">
+				<TabItem
+					Selector.IsSelected="True">
+					<HeaderedContentControl.Header>
+						<TextBlock
+							FontWeight="SemiBold"
+							FontSize="12">MAP</TextBlock>
+					</HeaderedContentControl.Header>
+					<TabControl
+						Margin="5,5,5,0">
+						<TabItem>
+							<HeaderedContentControl.Header>
+								<TextBlock
+									FontWeight="SemiBold"
+									FontSize="12">COMMON</TextBlock>
+							</HeaderedContentControl.Header>
+							<ScrollViewer
+								HorizontalScrollBarVisibility="Hidden"
+								VerticalScrollBarVisibility="Auto"
+								CanContentScroll="True">
+								<!--Unknown connection ID: 110-->
+								<StackPanel
+									Name="LayerPanel"
+									Margin="5">
+									<FrameworkElement.Resources>
+										<ResourceDictionary>
+											<Style
+												TargetType="{x:Type CheckBox}"
+												x:Key="{x:Type CheckBox}">
+												<Setter
+													Property="Margin"
+													Value="5" />
+											</Style>
+										</ResourceDictionary>
+									</FrameworkElement.Resources>
+									<TextBlock
+										Text="Render Mode"
+										FontWeight="Bold" />
+									<StackPanel
+										Orientation="Horizontal">
+										<FrameworkElement.Resources>
+											<ResourceDictionary>
+												<Style
+													TargetType="{x:Type Button}"
+													x:Key="{x:Type Button}">
+													<Setter
+														Property="Margin"
+														Value="5" />
+												</Style>
+											</ResourceDictionary>
+										</FrameworkElement.Resources>
+										<Button
+											Height="50"
+											Width="50"
+											Tag="1"
+											Click="SwitchRenderMode">
+											<Image
+												Source="Assets\rme.png" />
+										</Button>
+										<Button
+											Height="50"
+											Width="50"
+											Tag="2"
+											Click="SwitchRenderMode">
+											<Image
+												Source="Assets\rmc.png" />
+										</Button>
+										<Button
+											Height="50"
+											Width="50"
+											Tag="3"
+											Click="SwitchRenderMode">
+											<Image
+												Source="Assets\rmg.png" />
+										</Button>
+									</StackPanel>
+									<StackPanel
+										Margin="0,10,0,0">
+										<TextBlock
+											Text="Map Layers"
+											FontWeight="Bold" />
+										<TextBlock
+											Text="Checkboxes toggle visibility." />
+										<CheckBox
+											IsChecked="True"
+											IsEnabled="False"
+											Content="Map" />
+										<CheckBox
+											Name="chkLayer0"
+											IsChecked="True"
+											Content="Locations"
+											Tag="0"
+											Unchecked="HandleLayerToggle"
+											Checked="HandleLayerToggle" />
+										<CheckBox
+											Name="chkLayer6"
+											IsChecked="True"
+											Content="Anchors"
+											Tag="6"
+											Unchecked="HandleLayerToggle"
+											Checked="HandleLayerToggle" />
+										<CheckBox
+											Name="chkLayer1"
+											IsChecked="True"
+											Content="Grid"
+											Tag="1"
+											Unchecked="HandleLayerToggle"
+											Checked="HandleLayerToggle" />
+										<CheckBox
+											Name="chkLayer3"
+											IsChecked="True"
+											Content="Markers"
+											Tag="3"
+											Unchecked="HandleLayerToggle"
+											Checked="HandleLayerToggle" />
+										<CheckBox
+											Name="chkLayer7"
+											IsChecked="True"
+											Content="Vehicles"
+											Tag="7"
+											Unchecked="HandleLayerToggle"
+											Checked="HandleLayerToggle" />
+										<CheckBox
+											Name="chkLayer4"
+											IsChecked="True"
+											Content="Units"
+											Tag="4"
+											Unchecked="HandleLayerToggle"
+											Checked="HandleLayerToggle" />
+										<CheckBox
+											Name="chkLayer5"
+											IsChecked="True"
+											Content="Groups"
+											Tag="5"
+											Unchecked="HandleLayerToggle"
+											Checked="HandleLayerToggle" />
+									</StackPanel>
+									<StackPanel
+										Margin="0,10,0,0">
+										<TextBlock
+											Text="Ink Layers"
+											FontWeight="Bold" />
+										<TextBlock
+											Text="Click or Tap name to Activate." />
+										<ScrollViewer
+											HorizontalScrollBarVisibility="Hidden"
+											VerticalScrollBarVisibility="Auto"
+											Margin="0,5,0,0">
+											<!--Unknown connection ID: 121-->
+											<StackPanel
+												Name="pnlInkLayers">
+												<!--Unknown connection ID: 122-->
+												<StackPanel
+													Name="pnlLayer2"
+													Orientation="Horizontal"
+													Background="#FF708090">
+													<CheckBox
+														Name="chkLayer2"
+														IsChecked="True"
+														Tag="2"
+														Unchecked="HandleLayerToggle"
+														Checked="HandleLayerToggle" />
+													<Button
+														Margin="0"
+														Padding="0"
+														BorderThickness="0"
+														Tag="2"
+														Background="{x:Null}"
+														Click="SetActivateInkLayer">
+														<!--Unknown connection ID: 125-->
+														<TextBlock
+															Name="txtLayer2"
+															VerticalAlignment="Center"
+															Text="Personal Canvas"
+															Foreground="#FFFFFFFF"
+															FontWeight="SemiBold"
+															FontSize="14" />
+													</Button>
+												</StackPanel>
+											</StackPanel>
+										</ScrollViewer>
+									</StackPanel>
+								</StackPanel>
+							</ScrollViewer>
+						</TabItem>
+						<!--Unknown connection ID: 126-->
+						<TabItem
+							Name="tabMap">
+							<HeaderedContentControl.Header>
+								<TextBlock
+									FontWeight="SemiBold"
+									FontSize="12"
+									Foreground="#FF000000">LOCATIONS</TextBlock>
+							</HeaderedContentControl.Header>
+							<!--Unknown connection ID: 127-->
+							<ScrollViewer
+								Name="scrollMap"
+								HorizontalScrollBarVisibility="Hidden"
+								CanContentScroll="True">
+								<!--Unknown connection ID: 128-->
+								<StackPanel
+									Name="pnlMap"
+									Margin="5,5,5,5">
+									<!--Unknown connection ID: 129-->
+									<StackPanel
+										Name="pnlLocationOptions"
+										Orientation="Horizontal"
+										HorizontalAlignment="Left"
+										Visibility="Collapsed">
+										<Button
+											Name="btnLocationLocate"
+											VerticalAlignment="Center"
+											Width="50"
+											Click="_Lambda$__R1250-23">Locate</Button>
+									</StackPanel>
+								</StackPanel>
+							</ScrollViewer>
+						</TabItem>
+						<!--Unknown connection ID: 131-->
+						<TabItem
+							Name="tabAnchor">
+							<HeaderedContentControl.Header>
+								<TextBlock
+									FontWeight="SemiBold"
+									FontSize="12"
+									Foreground="#FF000000">ANCHORS</TextBlock>
+							</HeaderedContentControl.Header>
+							<Grid>
+								<Grid.RowDefinitions>
+									<RowDefinition />
+									<RowDefinition
+										Height="20" />
+									<RowDefinition
+										Height="Auto" />
+								</Grid.RowDefinitions>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition />
+								</Grid.ColumnDefinitions>
+								<StackPanel
+									Grid.Row="0"
+									Grid.Column="0">
+									<!--Unknown connection ID: 132-->
+									<ScrollViewer
+										Name="scrollAnchor"
+										HorizontalScrollBarVisibility="Hidden"
+										CanContentScroll="True">
+										<!--Unknown connection ID: 133-->
+										<StackPanel
+											Name="pnlAnchor"
+											Margin="5,5,5,5">
+											<!--Unknown connection ID: 134-->
+											<StackPanel
+												Name="pnlAnchorOptions"
+												Orientation="Horizontal"
+												HorizontalAlignment="Left"
+												Visibility="Collapsed">
+												<Button
+													Name="btnAnchorLocate"
+													VerticalAlignment="Center"
+													Width="50"
+													Margin="0,0,5,0"
+													Click="_Lambda$__R1250-24">Locate</Button>
+												<Button
+													Name="btnAnchorTrack"
+													VerticalAlignment="Center"
+													Width="50"
+													Margin="0,0,5,0"
+													Click="_Lambda$__R1250-25">Track</Button>
+												<Button
+													Name="btnAnchorRemove"
+													VerticalAlignment="Center"
+													Width="50"
+													Click="_Lambda$__R1250-26">Remove</Button>
+											</StackPanel>
+										</StackPanel>
+									</ScrollViewer>
+								</StackPanel>
+								<Separator
+									Grid.Row="1"
+									Grid.Column="0"
+									VerticalAlignment="Center" />
+								<Grid
+									Row="2"
+									Column="0">
+									<Grid.RowDefinitions>
+										<RowDefinition />
+										<RowDefinition />
+										<RowDefinition />
+										<RowDefinition />
+										<RowDefinition />
+									</Grid.RowDefinitions>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition
+											Width="Auto" />
+										<ColumnDefinition />
+									</Grid.ColumnDefinitions>
+									<!--Unknown connection ID: 138-->
+									<TextBlock
+										Name="lblAnchorName"
+										Grid.Row="0"
+										Grid.Column="0"
+										Text="Name:"
+										Margin="5,5,10,5"
+										VerticalAlignment="Center"
+										HorizontalAlignment="Left" />
+									<!--Unknown connection ID: 139-->
+									<TextBlock
+										Name="lblAnchorGrid"
+										Grid.Row="1"
+										Grid.Column="0"
+										Text="Grid (xxxyyy):"
+										Margin="5,5,10,5"
+										VerticalAlignment="Center"
+										HorizontalAlignment="Left" />
+									<!--Unknown connection ID: 140-->
+									<TextBlock
+										Name="lblAnchorPosX"
+										Grid.Row="2"
+										Grid.Column="0"
+										Text="Pos X:"
+										Margin="5,5,10,5"
+										VerticalAlignment="Center"
+										HorizontalAlignment="Left" />
+									<!--Unknown connection ID: 141-->
+									<TextBlock
+										Name="lblAnchorPosY"
+										Grid.Row="3"
+										Grid.Column="0"
+										Text="Pos Y:"
+										Margin="5,5,10,5"
+										VerticalAlignment="Center"
+										HorizontalAlignment="Left" />
+									<!--Unknown connection ID: 142-->
+									<TextBox
+										Name="txtAnchorName"
+										Grid.Row="0"
+										Grid.Column="1"
+										Margin="5,5,5,5"
+										Height="20"
+										VerticalContentAlignment="Center" />
+									<StackPanel
+										Grid.Row="1"
+										Grid.Column="1"
+										Orientation="Horizontal">
+										<!--Unknown connection ID: 143-->
+										<TextBox
+											Name="txtAnchorGrid"
+											Margin="5,5,5,5"
+											Height="20"
+											MaxLength="6"
+											Width="50"
+											HorizontalAlignment="Left"
+											VerticalContentAlignment="Center" />
+										<TextBlock
+											Text="[ will center on grid ]"
+											VerticalAlignment="Center" />
+									</StackPanel>
+									<StackPanel
+										Grid.Row="2"
+										Grid.Column="1"
+										Orientation="Horizontal">
+										<!--Unknown connection ID: 144-->
+										<TextBox
+											Name="txtAnchorPosX"
+											Margin="5,5,5,5"
+											Height="20"
+											MaxLength="6"
+											Width="50"
+											HorizontalAlignment="Left"
+											VerticalContentAlignment="Center" />
+										<TextBlock
+											Text="[ will ignore grid ]"
+											VerticalAlignment="Center" />
+									</StackPanel>
+									<StackPanel
+										Grid.Row="3"
+										Grid.Column="1"
+										Orientation="Horizontal">
+										<!--Unknown connection ID: 145-->
+										<TextBox
+											Name="txtAnchorPosY"
+											Margin="5,5,5,5"
+											Height="20"
+											MaxLength="6"
+											Width="50"
+											HorizontalAlignment="Left"
+											VerticalContentAlignment="Center" />
+										<TextBlock
+											Text="[ will ignore grid ]"
+											VerticalAlignment="Center" />
+									</StackPanel>
+									<StackPanel
+										Grid.Row="4"
+										Grid.Column="1">
+										<Button
+											Name="btnORBATAnchorGet"
+											Content="Use Map"
+											HorizontalAlignment="Left"
+											Margin="5,5,5,5"
+											Height="20"
+											Width="75"
+											Click="_Lambda$__R1250-27" />
+										<StackPanel
+											Orientation="Horizontal">
+											<Button
+												Name="btnORBATAnchroSave"
+												Content="Add"
+												HorizontalAlignment="Left"
+												Margin="5,5,5,5"
+												Height="20"
+												Width="75"
+												Click="_Lambda$__R1250-28" />
+											<!--Unknown connection ID: 148-->
+											<CheckBox
+												Name="chkPermanent"
+												Content="Permanent"
+												HorizontalAlignment="Left"
+												VerticalAlignment="Center"
+												VerticalContentAlignment="Center"
+												Margin="5,5,10,5" />
+										</StackPanel>
+									</StackPanel>
+								</Grid>
+							</Grid>
+						</TabItem>
+					</TabControl>
+				</TabItem>
+				<TabItem>
+					<HeaderedContentControl.Header>
+						<TextBlock
+							FontWeight="SemiBold"
+							FontSize="12">ORBAT</TextBlock>
+					</HeaderedContentControl.Header>
+					<Grid
+						Margin="5,5,5,0">
+						<Grid.RowDefinitions>
+							<RowDefinition />
+							<RowDefinition
+								Height="30" />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition />
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<!--Unknown connection ID: 149-->
+						<TabControl
+							Name="tabOrbat"
+							Grid.Row="0"
+							Grid.ColumnSpan="2">
+							<!--Unknown connection ID: 150-->
+							<TabItem
+								Name="tabOrbatWest">
+								<HeaderedContentControl.Header>
+									<TextBlock
+										FontWeight="Bold"
+										FontSize="12"
+										Foreground="#FF0000FF">WEST</TextBlock>
+								</HeaderedContentControl.Header>
+								<Border
+									BorderBrush="#FF808080"
+									BorderThickness="1">
+									<!--Unknown connection ID: 151-->
+									<ScrollViewer
+										Name="scrollWest"
+										VerticalScrollBarVisibility="Hidden"
+										HorizontalScrollBarVisibility="Hidden"
+										CanContentScroll="True">
+										<!--Unknown connection ID: 152-->
+										<StackPanel
+											Name="pnlWest"
+											Margin="5,5,5,5">
+											<!--Unknown connection ID: 153-->
+											<StackPanel
+												Name="pnlUnitOptions"
+												Orientation="Horizontal"
+												HorizontalAlignment="Left"
+												Visibility="Collapsed">
+												<Button
+													Name="btnFollow"
+													VerticalAlignment="Center"
+													Width="50"
+													Margin="0,0,5,0"
+													Click="_Lambda$__R1250-29">Follow</Button>
+												<Button
+													Name="btnTrack"
+													VerticalAlignment="Center"
+													Width="50"
+													Margin="0,0,5,0"
+													Click="_Lambda$__R1250-30">Track</Button>
+												<Button
+													Name="btnLocate"
+													VerticalAlignment="Center"
+													Width="50"
+													Click="_Lambda$__R1250-31">Locate</Button>
+											</StackPanel>
+										</StackPanel>
+									</ScrollViewer>
+								</Border>
+							</TabItem>
+							<!--Unknown connection ID: 157-->
+							<TabItem
+								Name="tabOrbatEast">
+								<HeaderedContentControl.Header>
+									<TextBlock
+										FontWeight="Bold"
+										FontSize="12"
+										Foreground="#FFFF0000">EAST</TextBlock>
+								</HeaderedContentControl.Header>
+								<Border
+									BorderBrush="#FF808080"
+									BorderThickness="1">
+									<!--Unknown connection ID: 158-->
+									<ScrollViewer
+										Name="scrollEast"
+										VerticalScrollBarVisibility="Hidden"
+										HorizontalScrollBarVisibility="Hidden"
+										CanContentScroll="True">
+										<!--Unknown connection ID: 159-->
+										<StackPanel
+											Name="pnlEast"
+											Margin="5,5,5,5" />
+									</ScrollViewer>
+								</Border>
+							</TabItem>
+							<!--Unknown connection ID: 160-->
+							<TabItem
+								Name="tabOrbatGuer">
+								<HeaderedContentControl.Header>
+									<TextBlock
+										FontWeight="Bold"
+										FontSize="12"
+										Foreground="#FF008000">GUER</TextBlock>
+								</HeaderedContentControl.Header>
+								<Border
+									BorderBrush="#FF808080"
+									BorderThickness="1">
+									<!--Unknown connection ID: 161-->
+									<ScrollViewer
+										Name="scrollGuer"
+										VerticalScrollBarVisibility="Hidden"
+										HorizontalScrollBarVisibility="Hidden"
+										CanContentScroll="True">
+										<!--Unknown connection ID: 162-->
+										<StackPanel
+											Name="pnlGuer"
+											Margin="5,5,5,5" />
+									</ScrollViewer>
+								</Border>
+							</TabItem>
+							<!--Unknown connection ID: 163-->
+							<TabItem
+								Name="tabOrbatCiv">
+								<HeaderedContentControl.Header>
+									<TextBlock
+										FontWeight="Bold"
+										FontSize="12"
+										Foreground="#FF800080">CIV</TextBlock>
+								</HeaderedContentControl.Header>
+								<Border
+									BorderBrush="#FF808080"
+									BorderThickness="1">
+									<!--Unknown connection ID: 164-->
+									<ScrollViewer
+										Name="scrollCiv"
+										VerticalScrollBarVisibility="Hidden"
+										HorizontalScrollBarVisibility="Hidden"
+										CanContentScroll="True">
+										<!--Unknown connection ID: 165-->
+										<StackPanel
+											Name="pnlCiv"
+											Margin="5,5,5,5" />
+									</ScrollViewer>
+								</Border>
+							</TabItem>
+						</TabControl>
+						<Button
+							Name="btnMapPagePrev"
+							Grid.Row="1"
+							Grid.Column="0"
+							Click="_Lambda$__R1250-32">▲</Button>
+						<Button
+							Name="btnMapPageNext"
+							Grid.Row="1"
+							Grid.Column="1"
+							Click="_Lambda$__R1250-33">▼</Button>
+					</Grid>
+				</TabItem>
+				<TabItem>
+					<HeaderedContentControl.Header>
+						<TextBlock
+							FontWeight="SemiBold"
+							FontSize="12">COMMUNITY</TextBlock>
+					</HeaderedContentControl.Header>
+					<!--Unknown connection ID: 168-->
+					<Grid
+						Name="FlyoutACS"
+						Margin="5,5,5,0">
+						<!--Unknown connection ID: 169-->
+						<Grid
+							Name="FlyoutACS_Connect"
+							Visibility="Visible">
+							<Grid.RowDefinitions>
+								<RowDefinition
+									Height="20" />
+								<RowDefinition
+									Height="24" />
+								<RowDefinition
+									Height="20" />
+								<RowDefinition
+									Height="24" />
+								<RowDefinition
+									Height="20" />
+								<RowDefinition
+									Height="24" />
+								<RowDefinition
+									Height="24" />
+								<RowDefinition />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition />
+								<ColumnDefinition
+									Width="75" />
+							</Grid.ColumnDefinitions>
+							<TextBlock
+								Text="Callsign:"
+								Margin="2,2,2,2"
+								VerticalAlignment="Bottom" />
+							<!--Unknown connection ID: 170-->
+							<TextBox
+								Name="txtACSCallsign"
+								Grid.Row="1"
+								Grid.ColumnSpan="2"
+								Margin="2,2,2,2" />
+							<TextBlock
+								Text="Address:"
+								Grid.Row="2"
+								Margin="2,2,2,2"
+								VerticalAlignment="Bottom" />
+							<TextBlock
+								Text="Port:"
+								Grid.Row="2"
+								Grid.Column="2"
+								Margin="2,2,2,2"
+								VerticalAlignment="Bottom" />
+							<!--Unknown connection ID: 171-->
+							<TextBox
+								Name="txtACSServerAddress"
+								Grid.Row="3"
+								Margin="2,2,2,2" />
+							<!--Unknown connection ID: 172-->
+							<TextBox
+								Name="txtACSServerPort"
+								Grid.Row="3"
+								Grid.Column="1"
+								Margin="2,2,2,2" />
+							<TextBlock
+								Text="Server Password:"
+								Grid.Row="4"
+								Margin="2,2,2,2"
+								VerticalAlignment="Bottom" />
+							<!--Unknown connection ID: 173-->
+							<PasswordBox
+								Name="txtACSPassword"
+								Grid.Row="5"
+								Grid.ColumnSpan="2"
+								Margin="2,2,2,2" />
+							<!--Unknown connection ID: 174-->
+							<TextBlock
+								Name="txtACSConnectStatus"
+								Grid.Row="6"
+								Margin="2,2,2,2"
+								VerticalAlignment="Bottom"
+								TextWrapping="Wrap" />
+							<Button
+								Name="ACSConnectButton"
+								Grid.Row="6"
+								Grid.Column="1"
+								Margin="2,2,2,2"
+								Click="_Lambda$__R1250-34">
+								<TextBlock
+									Text="Connect" />
+							</Button>
+							<Border
+								Grid.Row="7"
+								Grid.ColumnSpan="2"
+								BorderThickness="1,1,1,1"
+								BorderBrush="#FF808080"
+								Margin="0,10,0,0">
+								<ScrollViewer
+									Grid.Row="5"
+									Grid.ColumnSpan="2">
+									<StackPanel
+										Margin="2,2,5,2">
+										<TextBlock
+											FontWeight="Bold">What is a community server?</TextBlock>
+										<TextBlock
+											TextWrapping="Wrap">An Athena Community Server (ACS) allows users to share ink in real time. Setting up a server is easy. It's just small program and a port forward entry in your firewall(s) but it gives your community an amazing tool that helps to foster better coordination and communication.</TextBlock>
+										<TextBlock
+											TextWrapping="Wrap"
+											Margin="0,10,0,0">When users connect to a community server, they can create 'Rooms'. When you're in a room, you can see the ink that 'active' users in your room draw. You can join multiple rooms and 'monitor' the ink that is drawn in them but you can only ever be 'active' in a single room and the participants in that room are the ones with whom your ink will be shared.</TextBlock>
+										<TextBlock
+											TextWrapping="Wrap"
+											Margin="0,10,0,0">That presents your community with a powerful coordination tool. And because it runs as a separate server, it's available even when you're not playing ARMA. Having this experience outside of ARMA is great for collaborting on mission designs, discussing mission plans and execution strategies or for training purposes in Tactical Decision Training or 'What If' type scenarios.</TextBlock>
+										<TextBlock
+											TextWrapping="Wrap"
+											Margin="0,10,0,0">When you're in game, various departments and groups within your structure can have their own rooms in which they are 'active' in but which other players monitor. A Platoon lead can devise a strategy that Squad leads 'monitor' and so on and so on down the chain of command. This kind of flexibility comes in handy especially for JTAC scenarios in which a community member has to coordinate with various other elements.</TextBlock>
+										<TextBlock
+											TextWrapping="Wrap"
+											Margin="0,10,0,0">If your community can benefit from an ACS and you would like more information, please visit the AthenaMod.com website.</TextBlock>
+									</StackPanel>
+								</ScrollViewer>
+							</Border>
+						</Grid>
+						<!--Unknown connection ID: 176-->
+						<Grid
+							Name="FlyoutACS_Connected"
+							Visibility="Collapsed">
+							<Grid.RowDefinitions>
+								<RowDefinition />
+								<RowDefinition
+									Height="24" />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition />
+								<ColumnDefinition
+									Width="75" />
+							</Grid.ColumnDefinitions>
+							<TabControl
+								Grid.ColumnSpan="2">
+								<TabItem>
+									<HeaderedContentControl.Header>
+										<TextBlock
+											FontWeight="SemiBold"
+											FontSize="12">ROOMS</TextBlock>
+									</HeaderedContentControl.Header>
+									<Grid>
+										<Grid.RowDefinitions>
+											<RowDefinition
+												Height="150" />
+											<RowDefinition />
+										</Grid.RowDefinitions>
+										<Grid>
+											<Grid.RowDefinitions>
+												<RowDefinition
+													Height="20" />
+												<RowDefinition />
+											</Grid.RowDefinitions>
+											<TextBlock
+												Text="Active Sessions"
+												FontWeight="Bold"
+												VerticalAlignment="Bottom" />
+											<Border
+												BorderThickness="1,1,1,1"
+												BorderBrush="#FF808080"
+												Grid.Row="1">
+												<ScrollViewer
+													CanContentScroll="True">
+													<!--Unknown connection ID: 177-->
+													<StackPanel
+														Name="pnlSessions"
+														Margin="5,0,5,0" />
+												</ScrollViewer>
+											</Border>
+										</Grid>
+										<Grid
+											Row="1">
+											<Grid.RowDefinitions>
+												<RowDefinition
+													Height="24" />
+												<RowDefinition />
+											</Grid.RowDefinitions>
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition />
+												<ColumnDefinition
+													Width="75" />
+											</Grid.ColumnDefinitions>
+											<TextBlock
+												Text="Rooms"
+												FontWeight="Bold"
+												VerticalAlignment="Bottom" />
+											<Button
+												Grid.Column="1"
+												Margin="2,2,2,2"
+												Click="_Lambda$__R1250-35">
+												<TextBlock
+													Text="Create" />
+											</Button>
+											<Border
+												Grid.Row="1"
+												Grid.ColumnSpan="2"
+												BorderThickness="1,1,1,1"
+												BorderBrush="#FF808080">
+												<ScrollViewer>
+													<!--Unknown connection ID: 179-->
+													<StackPanel
+														Name="pnlRooms" />
+												</ScrollViewer>
+											</Border>
+										</Grid>
+									</Grid>
+								</TabItem>
+								<TabItem>
+									<HeaderedContentControl.Header>
+										<TextBlock
+											FontWeight="SemiBold"
+											FontSize="12">MAPS</TextBlock>
+									</HeaderedContentControl.Header>
+									<Grid>
+										<Grid.RowDefinitions>
+											<RowDefinition
+												Height="20" />
+											<RowDefinition
+												Height="48" />
+											<RowDefinition
+												Height="20" />
+											<RowDefinition />
+										</Grid.RowDefinitions>
+										<TextBlock
+											FontWeight="Bold"
+											VerticalAlignment="Bottom">Publish Map</TextBlock>
+										<Grid
+											Height="Auto"
+											Row="1">
+											<Grid.RowDefinitions>
+												<RowDefinition
+													Height="30" />
+												<RowDefinition
+													Height="24" />
+											</Grid.RowDefinitions>
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition />
+												<ColumnDefinition
+													Width="75" />
+											</Grid.ColumnDefinitions>
+											<!--Unknown connection ID: 180-->
+											<ComboBox
+												Name="ddlACSMapList"
+												Margin="2,2,2,2"
+												VerticalAlignment="Center" />
+											<Button
+												Name="btnACSMapPublish"
+												Margin="2,2,2,2"
+												Grid.Column="1"
+												Content="Publish"
+												Height="22"
+												Click="HandleACSMapPublish" />
+											<!--Unknown connection ID: 182-->
+											<TextBlock
+												Name="lblACSMapPublish"
+												Margin="2,2,2,2"
+												Grid.Row="1"
+												TextWrapping="Wrap" />
+										</Grid>
+										<TextBlock
+											Grid.Row="2"
+											FontWeight="Bold"
+											VerticalAlignment="Bottom">Download Maps</TextBlock>
+										<Border
+											Grid.Row="3"
+											BorderThickness="1,1,1,1"
+											BorderBrush="#FF808080">
+											<Grid>
+												<ScrollViewer>
+													<!--Unknown connection ID: 183-->
+													<StackPanel
+														Name="pnlACSMaps"
+														Margin="5,5,5,0">
+														<StackPanel
+															Visibility="Collapsed">
+															<Grid
+																Height="24">
+																<TextBlock
+																	Text="World 1"
+																	VerticalAlignment="Center" />
+																<Button
+																	Content="GET"
+																	Width="50"
+																	HorizontalAlignment="Right"
+																	Margin="2,2,5,2" />
+															</Grid>
+															<TextBlock
+																Text="Status" />
+														</StackPanel>
+													</StackPanel>
+												</ScrollViewer>
+											</Grid>
+										</Border>
+									</Grid>
+								</TabItem>
+							</TabControl>
+							<Button
+								Name="ACSDisconnectButton"
+								Grid.Row="1"
+								Grid.Column="1"
+								Margin="2,2,2,2"
+								Click="_Lambda$__R1250-36">
+								<TextBlock
+									Text="Disconnect" />
+							</Button>
+						</Grid>
+					</Grid>
+				</TabItem>
+			</TabControl>
+		</Grid>
+	</Grid>
+</Window>

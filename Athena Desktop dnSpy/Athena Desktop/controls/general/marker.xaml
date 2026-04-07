@@ -1,0 +1,62 @@
+<UserControl
+	x:Class="Athena.App.W7.Marker" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	IsHitTestVisible="False" xmlns:w7="clr-namespace:Athena.App.W7">
+	<!--Unknown connection ID: 1-->
+	<Grid
+		Name="MarkerGrid">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition
+				Width="Auto" />
+			<ColumnDefinition
+				Width="*" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition
+				Height="Auto" />
+		</Grid.RowDefinitions>
+		<!--Unknown connection ID: 2-->
+		<Grid
+			Name="IconHolder"
+			VerticalAlignment="Top">
+			<!--Unknown connection ID: 3-->
+			<Image
+				Name="Icon"
+				VerticalAlignment="Center"
+				HorizontalAlignment="Center"
+				SnapsToDevicePixels="False">
+				<FrameworkElement.LayoutTransform>
+					<!--Unknown connection ID: 4-->
+					<TransformGroup
+						x:Name="IconTG">
+						<!--Unknown connection ID: 5-->
+						<RotateTransform
+							x:Name="IconRotate" />
+						<!--Unknown connection ID: 6-->
+						<ScaleTransform
+							x:Name="IconScale" />
+					</TransformGroup>
+				</FrameworkElement.LayoutTransform>
+			</Image>
+		</Grid>
+		<!--Unknown connection ID: 7-->
+		<TextBlock
+			Name="IconText"
+			Grid.Column="1"
+			Foreground="#FF000000"
+			Background="#00FFFFFF"
+			VerticalAlignment="Center"
+			Margin="2,0,0,0"
+			TextWrapping="Wrap"
+			Text=""
+			FontFamily="Arial"
+			FontSize="32"
+			FontWeight="Bold"
+			Visibility="Collapsed">
+			<FrameworkElement.LayoutTransform>
+				<!--Unknown connection ID: 8-->
+				<ScaleTransform
+					x:Name="IconTextScale" />
+			</FrameworkElement.LayoutTransform>
+		</TextBlock>
+	</Grid>
+</UserControl>

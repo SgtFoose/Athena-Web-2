@@ -77,6 +77,7 @@ let recentRelayCommands = [];
 let recentOutboundRelayCommands = [];
 let recentRawRelayMessages = [];
 let frameDebugState = createEmptyFrameDebugState();
+let lastLiveFrameAt = 0;
 
 /** @type {Set<WebSocket>} */
 const wsClients = new Set();
@@ -1214,10 +1215,11 @@ function startRelayFramePoll() {
  *   }
  */
 function handleFrame(frame) {
+  lastLiveFrameAt = Date.now();
   // Mission-level metadata
   if (frame.MissionGUID) gameState.missionGuid = frame.MissionGUID;
   if (frame.Mission) {
-    gameState.map         = frame.Mission.map         || gameState.map;
+    gameState.map         = String(frame.Mission.map || '').trim();
     gameState.missionName = frame.Mission.name        || gameState.missionName;
     gameState.profile     = frame.Mission.profile     || gameState.profile;
   }
@@ -1255,9 +1257,10 @@ function handleFrame(frame) {
 }
 
 function buildClientState() {
+  const liveFrameFresh = lastLiveFrameAt > 0 && (Date.now() - lastLiveFrameAt) <= 8000;
   return {
     connected  : relayConnected,
-    map        : gameState.map || detectActiveWorld() || '',
+    map        : liveFrameFresh ? (gameState.map || '') : '',
     missionGuid: gameState.missionGuid,
     missionName: gameState.missionName,
     profile    : gameState.profile,
@@ -1304,6 +1307,7 @@ function connectToRelay() {
     relaySocket    = null;
     relayConnected = false;
     relayStringBuf = '';
+    lastLiveFrameAt = 0;
     gameState      = createEmptyState();
     mapImportState = createEmptyMapImportState();
     mapImportData = createEmptyMapImportData();

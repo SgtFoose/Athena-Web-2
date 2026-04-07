@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Athena Desktop", "Athena Desktop\Athena Desktop.csproj", "{9A0B1595-DE3D-4F6A-88B0-BABA685D994E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A0B1595-DE3D-4F6A-88B0-BABA685D994E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A0B1595-DE3D-4F6A-88B0-BABA685D994E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A0B1595-DE3D-4F6A-88B0-BABA685D994E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A0B1595-DE3D-4F6A-88B0-BABA685D994E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

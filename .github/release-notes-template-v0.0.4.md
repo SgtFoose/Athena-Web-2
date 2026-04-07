@@ -33,6 +33,14 @@ Unblock-File -Path .\AthenaWeb-0.0.4.exe
 - Built-in UI bundle
 - Built-in map cache health checks
 
+## v0.0.4 Stability Highlights
+
+- Fixed stale/cross-world overlay carry-over during map switching
+- Fixed Arma Editor idle stale-map lock by expiring inactive live map state
+- Restored vehicle and plane icon category resolution (question-mark fallback fix)
+- Corrected dirt path vs runway hide-tile styling split
+- Added disconnected/unknown-world fallback screen until map selection
+
 ## Notes
 
 - SmartScreen prompts can appear for unsigned/new binaries downloaded from the internet.

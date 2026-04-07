@@ -79,6 +79,7 @@ function App() {
     recentFired,
     recentFiredImpacts,
     worldInfo,
+    geometryWorld,
     roads,
     forests,
     locations,
@@ -101,7 +102,10 @@ function App() {
     : ''
   // User-selected world for pre-planning; auto-cleared when live game sends a world
   const [userSelectedWorld, setUserSelectedWorld] = useState('')
-  const world     = liveWorld || userSelectedWorld || worldInfo?.nameWorld || ''
+  const world     = liveWorld || userSelectedWorld || ''
+  const hasActiveWorld = world.length > 0
+  const hasMatchingGeometry = hasActiveWorld && geometryWorld.toLowerCase() === world.toLowerCase()
+  const activeWorldInfo = worldInfo?.nameWorld === world ? worldInfo : null
 
   // When live telemetry starts, clear any UI-selected or bridge-stable world override.
   const prevLiveWorldRef = useRef('')
@@ -137,7 +141,16 @@ function App() {
   const { staticInfo, contours } = useStaticMap(world || null)
 
   // worldSize: prefer live SignalR data, fall back to static Athena Desktop cache, then default
-  const worldSize = frame?.world?.size ?? worldInfo?.size ?? staticInfo?.worldSize ?? 10240
+  const worldSize = hasActiveWorld
+    ? (frame?.world?.size ?? activeWorldInfo?.size ?? staticInfo?.worldSize ?? 10240)
+    : 10240
+
+  const mapRoads = hasMatchingGeometry ? roads : []
+  const mapForests = hasMatchingGeometry ? forests : null
+  const mapLocations = hasMatchingGeometry ? locations : []
+  const mapStructures = hasMatchingGeometry ? structures : []
+  const mapElevations = hasMatchingGeometry ? elevations : null
+  const mapContours = hasActiveWorld ? contours : []
 
   // Load Athena Desktop vehicle/location classification library
   const { vehicleMap, locationMap } = useAthenaLibrary()
@@ -324,7 +337,7 @@ function App() {
       </aside>
       <main className="map-area">
         {/* Welcome overlay shown when no world has been loaded yet */}
-        {!worldInfo && (
+        {!hasActiveWorld && (
           <div className="welcome-overlay">
             <img
               className="welcome-bg"
@@ -386,12 +399,12 @@ function App() {
             firedImpacts={recentFiredImpacts}
             worldSize={worldSize}
             world={world}
-            roads={roads}
-            forests={forests}
-            locations={locations}
-            structures={structures}
-            elevations={elevations}
-            contours={contours}
+            roads={mapRoads}
+            forests={mapForests}
+            locations={mapLocations}
+            structures={mapStructures}
+            elevations={mapElevations}
+            contours={mapContours}
             vehicleMap={vehicleMap}
             locationMap={locationMap}
             layers={layers}

@@ -1,0 +1,531 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9A0B1595-DE3D-4F6A-88B0-BABA685D994E}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Athena.App.W7</RootNamespace>
+    <AssemblyName>Athena Desktop</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60DC8134-EBA5-43B8-BCC9-BB4BC16C2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ApplicationIcon>Athena Desktop.ico</ApplicationIcon>
+    <StartupObject>Athena.App.W7.Application</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Athena.HDLib.WPFHotkey">
+      <HintPath>..\..\..\Athena Web 2\@Athena - An Arma 2nd Screen Application\app\Athena.HDLib.WPFHotkey.dll</HintPath>
+    </Reference>
+    <Reference Include="Athena.JSON">
+      <HintPath>..\..\..\Athena Web 2\@Athena - An Arma 2nd Screen Application\app\Athena.JSON.dll</HintPath>
+    </Reference>
+    <Reference Include="Athena.Objects.v2">
+      <HintPath>..\..\..\Athena Web 2\@Athena - An Arma 2nd Screen Application\app\Athena.Objects.v2.dll</HintPath>
+    </Reference>
+    <Reference Include="Athena.Tools">
+      <HintPath>..\..\..\Athena Web 2\@Athena - An Arma 2nd Screen Application\app\Athena.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\Athena Web 2\@Athena - An Arma 2nd Screen Application\app\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ACSHelper.cs" />
+    <Compile Include="ACSMapControl.cs" />
+    <Compile Include="ACSRoomControl.cs" />
+    <Compile Include="ACSRoomLayerControl.cs" />
+    <Compile Include="ACSRoomParticipantControl.cs" />
+    <Compile Include="ActiveTool.cs" />
+    <Compile Include="anchor.cs" />
+    <Compile Include="Application.xaml.cs">
+      <DependentUpon>Application.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AthenaHotKey.cs" />
+    <Compile Include="Common.cs" />
+    <Compile Include="DictionaryOfGroupItem.cs" />
+    <Compile Include="DictionaryOfInkItem.cs" />
+    <Compile Include="DictionaryOfMarkerItem.cs" />
+    <Compile Include="DictionaryOfUnitItem.cs" />
+    <Compile Include="DictionaryOfVehicleItem.cs" />
+    <Compile Include="ElevationCells.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="FrameSetChild.cs" />
+    <Compile Include="FramesSet.cs" />
+    <Compile Include="frmAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmAbout.Designer.cs">
+      <DependentUpon>frmAbout.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmLoad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLoad.Designer.cs">
+      <DependentUpon>frmLoad.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmLoadRecording.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLoadRecording.Designer.cs">
+      <DependentUpon>frmLoadRecording.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmSave.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSave.Designer.cs">
+      <DependentUpon>frmSave.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSettings.Designer.cs">
+      <DependentUpon>frmSettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmStatus.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmStatus.Designer.cs">
+      <DependentUpon>frmStatus.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Group.cs" />
+    <Compile Include="HotKeys.xaml.cs">
+      <DependentUpon>HotKeys.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Map.cs" />
+    <Compile Include="MapDictionaryItem.cs" />
+    <Compile Include="MapHelper.cs" />
+    <Compile Include="MapRoadTool.cs" />
+    <Compile Include="Marker.cs" />
+    <Compile Include="MarkerToolIcon.cs" />
+    <Compile Include="MySettings.Designer.cs">
+      <DependentUpon>MySettings.settings</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="My\MyProject.cs" />
+    <Compile Include="My\MySettingsProperty.cs" />
+    <Compile Include="My\MyWpfExtension.cs" />
+    <Compile Include="My\Resources\Resources.cs" />
+    <Compile Include="Note.cs" />
+    <Compile Include="PathNode.cs" />
+    <Compile Include="Player.cs" />
+    <Compile Include="PlayerDictionaryItem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Room.cs" />
+    <Compile Include="RoomDictionaryItem.cs" />
+    <Compile Include="RoomParticipant.cs" />
+    <Compile Include="RoomParticipantDictionaryItem.cs" />
+    <Compile Include="RoomPermission.cs" />
+    <Compile Include="RoomPermissionDictionaryItem.cs" />
+    <Compile Include="Session.cs" />
+    <Compile Include="SessionDictionaryItem.cs" />
+    <Compile Include="Stroke.cs" />
+    <Compile Include="Unit.cs" />
+    <Compile Include="VB$AnonymousDelegate_0.cs" />
+    <Compile Include="Vehicle.cs" />
+    <Compile Include="XamlGeneratedNamespace\GeneratedInternalTypeHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="frmAbout.resources" />
+    <EmbeddedResource Include="frmLoad.resources" />
+    <EmbeddedResource Include="frmLoadRecording.resources" />
+    <EmbeddedResource Include="frmSave.resources" />
+    <EmbeddedResource Include="frmSettings.resources" />
+    <EmbeddedResource Include="frmStatus.resources" />
+    <EmbeddedResource Include="Resources.resources" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MySettings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>MySettings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="Application.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="controls\general\anchor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="controls\general\group.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="controls\general\marker.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="controls\general\unit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="controls\general\vehicle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="controls\tools\markertoolicon.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="controls\tools\note.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="HotKeys.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="assets\athena.ico" />
+    <Resource Include="assets\background.png" />
+    <Resource Include="assets\backgroundlogo.png" />
+    <Resource Include="assets\map\groupicons\badge_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_rotate_0_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_rotate_1_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_rotate_2_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_rotate_3_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_rotate_4_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_rotate_5_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_rotate_6_gs.png" />
+    <Resource Include="assets\map\groupicons\badge_simple.png" />
+    <Resource Include="assets\map\groupicons\icon_default.png" />
+    <Resource Include="assets\map\groupicons\icon_selected.png" />
+    <Resource Include="assets\map\groupicons\selector_selectable.png" />
+    <Resource Include="assets\map\groupicons\selector_selected.png" />
+    <Resource Include="assets\map\groupicons\selector_selectedenemy.png" />
+    <Resource Include="assets\map\groupicons\selector_selectedfriendly.png" />
+    <Resource Include="assets\map\groupicons\selector_selectedmission.png" />
+    <Resource Include="assets\map\groupicons\waypoint.png" />
+    <Resource Include="assets\map\locationtypes\bordercrossing.png" />
+    <Resource Include="assets\map\locationtypes\hill.png" />
+    <Resource Include="assets\map\locationtypes\rockarea.png" />
+    <Resource Include="assets\map\locationtypes\vegetationbroadleaf.png" />
+    <Resource Include="assets\map\locationtypes\vegetationfir.png" />
+    <Resource Include="assets\map\locationtypes\vegetationpalm.png" />
+    <Resource Include="assets\map\locationtypes\vegetationvineyard.png" />
+    <Resource Include="assets\map\locationtypes\viewpoint.png" />
+    <Resource Include="assets\map\mapcontrol\bunker.png" />
+    <Resource Include="assets\map\mapcontrol\bush.png" />
+    <Resource Include="assets\map\mapcontrol\busstop.png" />
+    <Resource Include="assets\map\mapcontrol\chapel.png" />
+    <Resource Include="assets\map\mapcontrol\church.png" />
+    <Resource Include="assets\map\mapcontrol\custommark.png" />
+    <Resource Include="assets\map\mapcontrol\fortress.png" />
+    <Resource Include="assets\map\mapcontrol\fountain.png" />
+    <Resource Include="assets\map\mapcontrol\fuelstation.png" />
+    <Resource Include="assets\map\mapcontrol\hospital.png" />
+    <Resource Include="assets\map\mapcontrol\lighthouse.png" />
+    <Resource Include="assets\map\mapcontrol\power.png" />
+    <Resource Include="assets\map\mapcontrol\powersolar.png" />
+    <Resource Include="assets\map\mapcontrol\powerwave.png" />
+    <Resource Include="assets\map\mapcontrol\powerwind.png" />
+    <Resource Include="assets\map\mapcontrol\quay.png" />
+    <Resource Include="assets\map\mapcontrol\rock.png" />
+    <Resource Include="assets\map\mapcontrol\ruin.png" />
+    <Resource Include="assets\map\mapcontrol\shipwreck.png" />
+    <Resource Include="assets\map\mapcontrol\smalltree.png" />
+    <Resource Include="assets\map\mapcontrol\stack.png" />
+    <Resource Include="assets\map\mapcontrol\taskicon.png" />
+    <Resource Include="assets\map\mapcontrol\taskiconcanceled.png" />
+    <Resource Include="assets\map\mapcontrol\taskiconcreated.png" />
+    <Resource Include="assets\map\mapcontrol\taskicondone.png" />
+    <Resource Include="assets\map\mapcontrol\taskiconfailed.png" />
+    <Resource Include="assets\map\mapcontrol\tourism.png" />
+    <Resource Include="assets\map\mapcontrol\transmitter.png" />
+    <Resource Include="assets\map\mapcontrol\tree.png" />
+    <Resource Include="assets\map\mapcontrol\viewtower.png" />
+    <Resource Include="assets\map\mapcontrol\watertower.png" />
+    <Resource Include="assets\map\mapcontrol\waypoint.png" />
+    <Resource Include="assets\map\mapcontrol\waypointcompleted.png" />
+    <Resource Include="assets\map\mapcontrol\waypointeditor.png" />
+    <Resource Include="assets\map\markerbrushes\bdiagonal.png" />
+    <Resource Include="assets\map\markerbrushes\cross.png" />
+    <Resource Include="assets\map\markerbrushes\diaggrid.png" />
+    <Resource Include="assets\map\markerbrushes\fdiagonal.png" />
+    <Resource Include="assets\map\markerbrushes\grid.png" />
+    <Resource Include="assets\map\markerbrushes\horizontal.png" />
+    <Resource Include="assets\map\markerbrushes\vertical.png" />
+    <Resource Include="assets\map\markers\flags\aaf.png" />
+    <Resource Include="assets\map\markers\flags\altis.png" />
+    <Resource Include="assets\map\markers\flags\altiscolonial.png" />
+    <Resource Include="assets\map\markers\flags\belgium.png" />
+    <Resource Include="assets\map\markers\flags\canada.png" />
+    <Resource Include="assets\map\markers\flags\catalonia.png" />
+    <Resource Include="assets\map\markers\flags\croatia.png" />
+    <Resource Include="assets\map\markers\flags\csat.png" />
+    <Resource Include="assets\map\markers\flags\czechrepublic.png" />
+    <Resource Include="assets\map\markers\flags\denmark.png" />
+    <Resource Include="assets\map\markers\flags\eu.png" />
+    <Resource Include="assets\map\markers\flags\fia.png" />
+    <Resource Include="assets\map\markers\flags\flag.png" />
+    <Resource Include="assets\map\markers\flags\france.png" />
+    <Resource Include="assets\map\markers\flags\georgia.png" />
+    <Resource Include="assets\map\markers\flags\germany.png" />
+    <Resource Include="assets\map\markers\flags\greece.png" />
+    <Resource Include="assets\map\markers\flags\hungary.png" />
+    <Resource Include="assets\map\markers\flags\iceland.png" />
+    <Resource Include="assets\map\markers\flags\italy.png" />
+    <Resource Include="assets\map\markers\flags\luxembourg.png" />
+    <Resource Include="assets\map\markers\flags\nato.png" />
+    <Resource Include="assets\map\markers\flags\netherlands.png" />
+    <Resource Include="assets\map\markers\flags\norway.png" />
+    <Resource Include="assets\map\markers\flags\poland.png" />
+    <Resource Include="assets\map\markers\flags\portugal.png" />
+    <Resource Include="assets\map\markers\flags\slovakia.png" />
+    <Resource Include="assets\map\markers\flags\slovenia.png" />
+    <Resource Include="assets\map\markers\flags\spain.png" />
+    <Resource Include="assets\map\markers\flags\uk.png" />
+    <Resource Include="assets\map\markers\flags\un.png" />
+    <Resource Include="assets\map\markers\flags\usa.png" />
+    <Resource Include="assets\map\markers\flags\viper.png" />
+    <Resource Include="assets\map\markers\handdrawn\ambush.png" />
+    <Resource Include="assets\map\markers\handdrawn\arrow.png" />
+    <Resource Include="assets\map\markers\handdrawn\destroy.png" />
+    <Resource Include="assets\map\markers\handdrawn\dot.png" />
+    <Resource Include="assets\map\markers\handdrawn\end.png" />
+    <Resource Include="assets\map\markers\handdrawn\flag.png" />
+    <Resource Include="assets\map\markers\handdrawn\join.png" />
+    <Resource Include="assets\map\markers\handdrawn\objective.png" />
+    <Resource Include="assets\map\markers\handdrawn\pickup.png" />
+    <Resource Include="assets\map\markers\handdrawn\start.png" />
+    <Resource Include="assets\map\markers\handdrawn\unknown.png" />
+    <Resource Include="assets\map\markers\handdrawn\warning.png" />
+    <Resource Include="assets\map\markers\military\ambush.png" />
+    <Resource Include="assets\map\markers\military\arrow.png" />
+    <Resource Include="assets\map\markers\military\arrow2.png" />
+    <Resource Include="assets\map\markers\military\box.png" />
+    <Resource Include="assets\map\markers\military\circle.png" />
+    <Resource Include="assets\map\markers\military\destroy.png" />
+    <Resource Include="assets\map\markers\military\dot.png" />
+    <Resource Include="assets\map\markers\military\end.png" />
+    <Resource Include="assets\map\markers\military\flag.png" />
+    <Resource Include="assets\map\markers\military\join.png" />
+    <Resource Include="assets\map\markers\military\marker.png" />
+    <Resource Include="assets\map\markers\military\objective.png" />
+    <Resource Include="assets\map\markers\military\pickup.png" />
+    <Resource Include="assets\map\markers\military\start.png" />
+    <Resource Include="assets\map\markers\military\triangle.png" />
+    <Resource Include="assets\map\markers\military\unknown.png" />
+    <Resource Include="assets\map\markers\military\warning.png" />
+    <Resource Include="assets\map\markers\nato\b_air.png" />
+    <Resource Include="assets\map\markers\nato\b_armor.png" />
+    <Resource Include="assets\map\markers\nato\b_art.png" />
+    <Resource Include="assets\map\markers\nato\b_hq.png" />
+    <Resource Include="assets\map\markers\nato\b_inf.png" />
+    <Resource Include="assets\map\markers\nato\b_installation.png" />
+    <Resource Include="assets\map\markers\nato\b_maint.png" />
+    <Resource Include="assets\map\markers\nato\b_mech_inf.png" />
+    <Resource Include="assets\map\markers\nato\b_med.png" />
+    <Resource Include="assets\map\markers\nato\b_mortar.png" />
+    <Resource Include="assets\map\markers\nato\b_motor_inf.png" />
+    <Resource Include="assets\map\markers\nato\b_naval.png" />
+    <Resource Include="assets\map\markers\nato\b_plane.png" />
+    <Resource Include="assets\map\markers\nato\b_recon.png" />
+    <Resource Include="assets\map\markers\nato\b_service.png" />
+    <Resource Include="assets\map\markers\nato\b_support.png" />
+    <Resource Include="assets\map\markers\nato\b_uav.png" />
+    <Resource Include="assets\map\markers\nato\b_unknown.png" />
+    <Resource Include="assets\map\markers\nato\c_air.png" />
+    <Resource Include="assets\map\markers\nato\c_car.png" />
+    <Resource Include="assets\map\markers\nato\c_plane.png" />
+    <Resource Include="assets\map\markers\nato\c_ship.png" />
+    <Resource Include="assets\map\markers\nato\c_unknown.png" />
+    <Resource Include="assets\map\markers\nato\group_0.png" />
+    <Resource Include="assets\map\markers\nato\group_1.png" />
+    <Resource Include="assets\map\markers\nato\group_10.png" />
+    <Resource Include="assets\map\markers\nato\group_11.png" />
+    <Resource Include="assets\map\markers\nato\group_2.png" />
+    <Resource Include="assets\map\markers\nato\group_3.png" />
+    <Resource Include="assets\map\markers\nato\group_4.png" />
+    <Resource Include="assets\map\markers\nato\group_5.png" />
+    <Resource Include="assets\map\markers\nato\group_6.png" />
+    <Resource Include="assets\map\markers\nato\group_7.png" />
+    <Resource Include="assets\map\markers\nato\group_8.png" />
+    <Resource Include="assets\map\markers\nato\group_9.png" />
+    <Resource Include="assets\map\markers\nato\n_air.png" />
+    <Resource Include="assets\map\markers\nato\n_armor.png" />
+    <Resource Include="assets\map\markers\nato\n_art.png" />
+    <Resource Include="assets\map\markers\nato\n_hq.png" />
+    <Resource Include="assets\map\markers\nato\n_inf.png" />
+    <Resource Include="assets\map\markers\nato\n_installation.png" />
+    <Resource Include="assets\map\markers\nato\n_maint.png" />
+    <Resource Include="assets\map\markers\nato\n_mech_inf.png" />
+    <Resource Include="assets\map\markers\nato\n_med.png" />
+    <Resource Include="assets\map\markers\nato\n_mortar.png" />
+    <Resource Include="assets\map\markers\nato\n_motor_inf.png" />
+    <Resource Include="assets\map\markers\nato\n_naval.png" />
+    <Resource Include="assets\map\markers\nato\n_plane.png" />
+    <Resource Include="assets\map\markers\nato\n_recon.png" />
+    <Resource Include="assets\map\markers\nato\n_service.png" />
+    <Resource Include="assets\map\markers\nato\n_support.png" />
+    <Resource Include="assets\map\markers\nato\n_uav.png" />
+    <Resource Include="assets\map\markers\nato\n_unknown.png" />
+    <Resource Include="assets\map\markers\nato\o_air.png" />
+    <Resource Include="assets\map\markers\nato\o_armor.png" />
+    <Resource Include="assets\map\markers\nato\o_art.png" />
+    <Resource Include="assets\map\markers\nato\o_hq.png" />
+    <Resource Include="assets\map\markers\nato\o_inf.png" />
+    <Resource Include="assets\map\markers\nato\o_installation.png" />
+    <Resource Include="assets\map\markers\nato\o_maint.png" />
+    <Resource Include="assets\map\markers\nato\o_mech_inf.png" />
+    <Resource Include="assets\map\markers\nato\o_med.png" />
+    <Resource Include="assets\map\markers\nato\o_mortar.png" />
+    <Resource Include="assets\map\markers\nato\o_motor_inf.png" />
+    <Resource Include="assets\map\markers\nato\o_naval.png" />
+    <Resource Include="assets\map\markers\nato\o_plane.png" />
+    <Resource Include="assets\map\markers\nato\o_recon.png" />
+    <Resource Include="assets\map\markers\nato\o_service.png" />
+    <Resource Include="assets\map\markers\nato\o_support.png" />
+    <Resource Include="assets\map\markers\nato\o_uav.png" />
+    <Resource Include="assets\map\markers\nato\o_unknown.png" />
+    <Resource Include="assets\map\markers\nato\respawn_air.png" />
+    <Resource Include="assets\map\markers\nato\respawn_armor.png" />
+    <Resource Include="assets\map\markers\nato\respawn_background.png" />
+    <Resource Include="assets\map\markers\nato\respawn_backgroundhover.png" />
+    <Resource Include="assets\map\markers\nato\respawn_dead.png" />
+    <Resource Include="assets\map\markers\nato\respawn_disabled.png" />
+    <Resource Include="assets\map\markers\nato\respawn_enemy.png" />
+    <Resource Include="assets\map\markers\nato\respawn_inf.png" />
+    <Resource Include="assets\map\markers\nato\respawn_motor.png" />
+    <Resource Include="assets\map\markers\nato\respawn_naval.png" />
+    <Resource Include="assets\map\markers\nato\respawn_para.png" />
+    <Resource Include="assets\map\markers\nato\u_installation.png" />
+    <Resource Include="assets\map\markers\system\empty.png" />
+    <Resource Include="assets\map\respawn\icon_autorespawn.png" />
+    <Resource Include="assets\map\respawn\icon_dead.png" />
+    <Resource Include="assets\map\respawn\icon_enemy.png" />
+    <Resource Include="assets\map\respawn\icon_limit.png" />
+    <Resource Include="assets\map\respawn\respawn_background.png" />
+    <Resource Include="assets\map\respawn\respawn_backgroundhover.png" />
+    <Resource Include="assets\map\respawn\respawn_dead.png" />
+    <Resource Include="assets\map\respawn\respawn_disabled.png" />
+    <Resource Include="assets\map\respawn\respawn_enemy.png" />
+    <Resource Include="assets\map\vehicleicons\iconanimal.png" />
+    <Resource Include="assets\map\vehicleicons\iconapc.png" />
+    <Resource Include="assets\map\vehicleicons\iconbackpack.png" />
+    <Resource Include="assets\map\vehicleicons\iconcar.png" />
+    <Resource Include="assets\map\vehicleicons\iconcrate.png" />
+    <Resource Include="assets\map\vehicleicons\iconcrateammo.png" />
+    <Resource Include="assets\map\vehicleicons\iconcrategrenades.png" />
+    <Resource Include="assets\map\vehicleicons\iconcratelarge.png" />
+    <Resource Include="assets\map\vehicleicons\iconcratelong.png" />
+    <Resource Include="assets\map\vehicleicons\iconcrateord.png" />
+    <Resource Include="assets\map\vehicleicons\iconcratesupp.png" />
+    <Resource Include="assets\map\vehicleicons\iconcrateveh.png" />
+    <Resource Include="assets\map\vehicleicons\iconcratewpns.png" />
+    <Resource Include="assets\map\vehicleicons\iconexplosiveap.png" />
+    <Resource Include="assets\map\vehicleicons\iconexplosiveapdirectional.png" />
+    <Resource Include="assets\map\vehicleicons\iconexplosiveat.png" />
+    <Resource Include="assets\map\vehicleicons\iconexplosivegp.png" />
+    <Resource Include="assets\map\vehicleicons\iconexplosivegpdirectional.png" />
+    <Resource Include="assets\map\vehicleicons\iconexplosiveuw.png" />
+    <Resource Include="assets\map\vehicleicons\iconhelicopter.png" />
+    <Resource Include="assets\map\vehicleicons\iconlogic.png" />
+    <Resource Include="assets\map\vehicleicons\iconman.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanat.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanengineer.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanexplosive.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanleader.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanmedic.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanmg.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanofficer.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanrecon.png" />
+    <Resource Include="assets\map\vehicleicons\iconmanvirtual.png" />
+    <Resource Include="assets\map\vehicleicons\iconmotorcycle.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_10x1.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_1x1.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_1x10.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_1x2.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_1x3.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_1x4.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_1x5.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_1x7.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_2x1.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_2x3.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_2x5.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_3x1.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_3x2.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_4x1.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_4x5.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_5x1.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_5x2.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_5x4.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_7x1.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_circle.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_elipse_h.png" />
+    <Resource Include="assets\map\vehicleicons\iconobject_elipse_v.png" />
+    <Resource Include="assets\map\vehicleicons\iconparachute.png" />
+    <Resource Include="assets\map\vehicleicons\iconplane.png" />
+    <Resource Include="assets\map\vehicleicons\iconship.png" />
+    <Resource Include="assets\map\vehicleicons\iconsound.png" />
+    <Resource Include="assets\map\vehicleicons\iconstaticaa.png" />
+    <Resource Include="assets\map\vehicleicons\iconstaticcannon.png" />
+    <Resource Include="assets\map\vehicleicons\iconstaticmg.png" />
+    <Resource Include="assets\map\vehicleicons\iconstaticmgnest.png" />
+    <Resource Include="assets\map\vehicleicons\iconstaticmortar.png" />
+    <Resource Include="assets\map\vehicleicons\iconstaticsearchlight.png" />
+    <Resource Include="assets\map\vehicleicons\icontank.png" />
+    <Resource Include="assets\map\vehicleicons\icontruck.png" />
+    <Resource Include="assets\map\vehicleicons\iconvehicle.png" />
+    <Resource Include="assets\map\vehicleicons\iconvirtual.png" />
+    <Resource Include="assets\map\vehicleicons\pictureexplosive.png" />
+    <Resource Include="assets\map\vehicleicons\pictureheal.png" />
+    <Resource Include="assets\map\vehicleicons\picturelogic.png" />
+    <Resource Include="assets\map\vehicleicons\picturepapercar.png" />
+    <Resource Include="assets\map\vehicleicons\pictureparachute.png" />
+    <Resource Include="assets\map\vehicleicons\picturerepair.png" />
+    <Resource Include="assets\rmc.png" />
+    <Resource Include="assets\rme.png" />
+    <Resource Include="assets\rmg.png" />
+    <Resource Include="assets\welcome_600_200.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,18 @@
+[
+  {
+    "name": "AthenaWeb-0.0.4.exe",
+    "path": "bridge/dist/AthenaWeb-0.0.4.exe",
+    "sha": "2079711fde297f3b0530168f026a3a319bd024b8",
+    "size": 61975349,
+    "url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.4.exe?ref=main",
+    "html_url": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.4.exe",
+    "git_url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/2079711fde297f3b0530168f026a3a319bd024b8",
+    "download_url": "https://raw.githubusercontent.com/SgtFoose/Athena-Web-2/main/bridge/dist/AthenaWeb-0.0.4.exe",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.4.exe?ref=main",
+      "git": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/2079711fde297f3b0530168f026a3a319bd024b8",
+      "html": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.4.exe"
+    }
+  }
+]

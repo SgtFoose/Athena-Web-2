@@ -2,7 +2,7 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
-## [0.0.4] — 2026-04-06
+## [0.0.4] — 2026-04-07
 
 ### Changed
 
@@ -12,14 +12,18 @@ All notable changes to Athena Web 2 will be documented in this file.
 ### Fixed
 
 - Fixed stale map overlay carry-over during live world swaps by clearing old geometry immediately and ignoring stale hydration responses
+- Fixed cross-world static overlay contamination by gating rendered geometry to the currently active world only
 - Fixed offline cached-world selection so map picker remains available when the game/relay is not connected
+- Fixed bridge-connected editor-idle state where stale live map values blocked map switching by expiring live map state after frame inactivity
+- Fixed disconnected/unknown-world startup behavior to show the Athena welcome/fallback screen until a world is selected or received
 - Fixed false cache-warning banner cases where the active world was already available in local cache
 - Fixed vehicle toggle behavior where zoom auto-switch logic could override user selection and hide vehicles unexpectedly
 - Fixed mounted-entity visibility gap: when relay vehicle coordinates are zero, vehicle markers now fall back to occupant positions and mounted units remain visible if their vehicle has no valid position
 - Fixed contour rendering parity drift by replacing angle-regularized contour simplification with Athena Desktop-style world-scaled trimming behavior
-- Fixed vehicle icon fallback issue where all vehicles rendered as question-mark symbols by hardening relay class extraction and class/category mapping lookup
+- Fixed vehicle icon fallback issue where all vehicles rendered as question-mark symbols by hardening relay class extraction and class/category mapping lookup (including numeric `class` payload edge cases)
 - Fixed dirt/gravel track appearance where `hide` road tiles were rendered as concrete grey instead of brown path styling
 - Fixed fragmented dirt path rendering where hide-tile centerline stubs appeared detached and north-facing by stitching path-like hide tiles into connected brown polylines
+- Fixed runway/apron color regression by classifying square hide tiles as concrete surfaces while keeping elongated hide tiles as dirt-path styling
 - Fixed hedge/bush strip orientation mismatch by removing forced +90 degree hedge rotation offset
 
 ### Added

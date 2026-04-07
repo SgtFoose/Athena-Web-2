@@ -1,0 +1,41 @@
+<UserControl
+	x:Class="Athena.App.W7.Note" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	Width="Auto" xmlns:w7="clr-namespace:Athena.App.W7">
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition
+				Width="21" />
+			<ColumnDefinition
+				Width="Auto" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<Ellipse
+			Stroke="#FF000000"
+			Grid.Column="0"
+			Grid.Row="0"
+			Width="10"
+			Height="10"
+			VerticalAlignment="Center"
+			HorizontalAlignment="Center"
+			Fill="#FF000000" />
+		<!--Unknown connection ID: 1-->
+		<TextBox
+			Name="txtEntry"
+			Grid.Column="1"
+			Grid.Row="0"
+			Height="24"
+			TextWrapping="Wrap"
+			Text=""
+			VerticalAlignment="Top"
+			HorizontalAlignment="Right"
+			Width="Auto"
+			Margin="0,3,0,0"
+			VerticalContentAlignment="Center"
+			FontWeight="Bold"
+			FontSize="10"
+			MinWidth="100"
+			IsTabStop="False" />
+	</Grid>
+</UserControl>

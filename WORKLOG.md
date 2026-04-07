@@ -10,6 +10,26 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-07 - v0.0.4 Final World-Swap Guard + Release Sync
+- Added bridge live-frame freshness timeout behavior so live map state expires when relay is connected but telemetry is stale (for example Arma Editor idle):
+  - `bridge/server.js` now tracks `lastLiveFrameAt`
+  - `/api/game/state` map value is blanked after inactivity window to avoid stale live-world lock-in
+- Added strict world/geometry render guard in UI so static layers render only when hydrated geometry world matches active world:
+  - prevents cross-map contamination during rapid world handoff (for example Tanoa geometry persisting over Malden)
+- Added no-world fallback behavior in app shell:
+  - Athena welcome/static screen shows when there is no active world (disconnected or unknown)
+  - world source uses live world or explicit offline selection only
+- Refined hide-road styling split:
+  - long/thin hide tiles remain brown dirt paths
+  - square hide tiles (runway/apron surfaces) remain concrete-gray
+- Hardened plane icon resolution for noisy relay payloads:
+  - improved class token extraction and fuzzy lookup
+  - expanded plane heuristics for common classname patterns
+- Synced release documentation for this final v0.0.4 stabilization pass:
+  - `README.md` highlights updated
+  - `CHANGELOG.md` fixed-item list updated
+  - release package context prepared for commit/push
+
 ### 2026-04-07 — v0.0.4 Dirt Path Continuity Finalization
 - Confirmed hedge/bush orientation is now correct in user validation.
 - Investigated remaining dirt-path issue where brown segments rendered as detached stubs (often north-facing) due to unreliable per-tile heading in many `hide` road records.

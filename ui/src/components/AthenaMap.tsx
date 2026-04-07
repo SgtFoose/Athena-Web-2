@@ -84,19 +84,20 @@ function rotatedRoadRect(road: Road, scale: number): [number, number][] {
   return corners;
 }
 
-function hideSurfaceStyle(road: Road): { fillColor: string; lineColor: string } {
-  const maxDim = Math.max(Number(road.width) || 0, Number(road.length) || 0);
-  // Keep medium/small hide tiles brown so dirt tracks don't render as concrete.
-  // Only very large hide surfaces (runways/aprons) should be concrete gray.
-  if (maxDim <= 45) {
-    return { fillColor: '#8B6B4A', lineColor: '#8B6B4A' };
-  }
+function hideSurfaceStyle(_road: Road): { fillColor: string; lineColor: string } {
+  // Non-path hide tiles are airport/apron surfaces and should stay concrete-gray.
   return { fillColor: '#D3D3D3', lineColor: '#D3D3D3' };
 }
 
 function isPathLikeHideTile(road: Road): boolean {
-  const maxDim = Math.max(Number(road.width) || 0, Number(road.length) || 0);
-  return maxDim <= 40;
+  const width = Number(road.width) || 0;
+  const length = Number(road.length) || 0;
+  const maxDim = Math.max(width, length);
+  const minDim = Math.max(0.001, Math.min(width, length));
+  const aspect = maxDim / minDim;
+
+  // Dirt-path hide exports are long/thin strips; runway/apron tiles are usually square.
+  return maxDim <= 40 && aspect >= 3;
 }
 
 function hidePathPoint(road: Road, scale: number): [number, number] {
@@ -1090,6 +1091,36 @@ function groupLabel(group: Group): string {
   return (group.name || 'GROUP').trim();
 }
 
+function lookupVehicleCategoryFromMap(rawClass: string, vehicleMap: Map<string, string>): string {
+  const cls = (rawClass || '').trim();
+  if (!cls) return '';
+
+  const lower = cls.toLowerCase();
+  const direct = vehicleMap.get(cls) || vehicleMap.get(lower);
+  if (direct) return direct;
+
+  const normalized = lower.replace(/[\s\-\/]+/g, '_').replace(/_+/g, '_');
+  const normalizedMapped = vehicleMap.get(normalized);
+  if (normalizedMapped) return normalizedMapped;
+
+  // Relay can include mixed payload text; extract Arma-like class tokens and test each.
+  const tokenMatches = cls.match(/[A-Za-z0-9]+(?:_[A-Za-z0-9]+)+/g) || [];
+  for (const token of tokenMatches) {
+    const t = token.toLowerCase();
+    const mapped = vehicleMap.get(token) || vehicleMap.get(t);
+    if (mapped) return mapped;
+  }
+
+  // Last resort: substring match against known class keys for noisy display-name payloads.
+  for (const [key, value] of vehicleMap.entries()) {
+    if (!key || key !== key.toLowerCase()) continue;
+    if (key.length < 8) continue;
+    if (normalized.includes(key)) return value;
+  }
+
+  return '';
+}
+
 function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, string>): string {
   const cls = (vehicleClass || '').trim();
   const text = cls.toLowerCase();
@@ -1097,10 +1128,10 @@ function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, st
   // Parachutes must never inherit helicopter mapping from the vehicle library.
   if (text.includes('parachute') || text.includes('chute')) return 'Parachutes';
 
-  const mapped = vehicleMap.get(cls) || vehicleMap.get(text);
+  const mapped = lookupVehicleCategoryFromMap(cls, vehicleMap);
   if (mapped) return mapped;
   // High-confidence Arma naming fallbacks for cases where class libraries are unavailable.
-  if (/(wipeout|blackfish|neophron|buzzard|shikra|gryphon|to201|a149|falcon)/.test(text)) return 'Planes';
+  if (/(wipeout|blackfish|neophron|buzzard|shikra|gryphon|to201|a149|falcon|black\s*wasp|caesar\s*btt|a[-_ ]?10|f[-_ ]?\d{2}|mig[-_ ]?\d{2}|su[-_ ]?\d{2})/.test(text)) return 'Planes';
   if (/(blackfoot|ghosthawk|mohawk|huron|orca|pawnee|taru|hellcat|ka60|ka62)/.test(text)) return 'Helicopters';
   if (/(cheetah|tigris|praetorian|sam|aaa)/.test(text)) return 'AAs';
   if (/(scorcher|sochor|sandstorm|mrls|mortar)/.test(text)) return 'Artillery';

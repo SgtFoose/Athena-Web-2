@@ -23,11 +23,15 @@ This is v0.0.4 — the current active Web2 release line. It focuses on world/cac
 ### v0.0.4 highlights
 
 - **World swap cache safety** clears stale geometry on world changes and prevents old async responses from repainting the wrong map overlays
+- **Strict world/geometry matching** only renders static layers when hydrated geometry world equals active world, preventing Tanoa-on-Malden style cross-overlay contamination
+- **Stale live-world timeout** automatically expires bridge live-world map state after inactivity so Arma Editor idle no longer locks map source selection
+- **No-world fallback screen** shows Athena static welcome image while disconnected/unknown until a live or offline map is selected
 - **Offline cached map selection** works while disconnected so pre-mission planning can switch between any cached worlds
 - **Vehicle toggle reliability** no longer gets overridden by zoom-threshold auto-switch behavior
-- **Vehicle icon mapping restored** relay class/category resolution now maps to Bus icon assets so vehicles no longer render as fallback question-mark symbols
+- **Vehicle icon mapping restored** relay class/category resolution now maps to Bus icon assets so vehicles no longer render as fallback question-mark symbols, including payloads where numeric `class` fields previously masked real classname values
 - **Dirt track parity** dirt/gravel path tiles now render in brown gravel tones instead of runway/concrete grey
 - **Dirt path continuity pass** path-like hide tiles are now stitched into connected brown polylines so paths read as continuous lines instead of detached north-facing stubs
+- **Runway/path hide split** airport/apron hide tiles remain concrete-gray while long/thin hide strips render as dirt paths
 - **Hedge orientation correction** hedge strips now use cache heading directly (no forced +90 rotation)
 - **Groups default OFF** to reduce initial map clutter and match requested startup behavior
 - **Cache warning accuracy** avoids false "No cached data" banners when the active world is already present in local cache

@@ -1,0 +1,32 @@
+<UserControl
+	x:Class="Athena.App.W7.Vehicle" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="clr-namespace:Athena.App.W7">
+	<!--Unknown connection ID: 1-->
+	<Grid
+		Name="VehicleGrid">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition
+				Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<!--Unknown connection ID: 2-->
+		<local:Marker
+			Name="Icon"
+			ShowText="False" />
+		<!--Unknown connection ID: 3-->
+		<TextBlock
+			Name="CrewText"
+			Grid.Row="1"
+			Foreground="#FF000000"
+			Background="#00FFFFFF"
+			VerticalAlignment="Top"
+			HorizontalAlignment="Center"
+			TextWrapping="Wrap"
+			Text=""
+			FontFamily="Arial"
+			FontSize="8"
+			FontWeight="Bold" />
+	</Grid>
+</UserControl>

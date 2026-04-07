@@ -237,6 +237,7 @@ export function useAthenHub() {
   const [connected, setConnected] = useState(false);
   const [frame, setFrame] = useState<GameFrame | null>(null);
   const [worldInfo, setWorldInfo] = useState<WorldInfo | null>(null);
+  const [geometryWorld, setGeometryWorld] = useState('');
   const [roads, setRoads] = useState<Road[]>([]);
   const [forests, setForests] = useState<ForestsData | null>(null);
   const [locations, setLocations] = useState<MapLocation[]>([]);
@@ -269,6 +270,7 @@ export function useAthenHub() {
   const [shorelineRefreshToken, setShorelineRefreshToken] = useState(0);
 
   const clearMapGeometry = useCallback(() => {
+    setGeometryWorld('');
     setRoads([]);
     setForests(null);
     setLocations([]);
@@ -338,7 +340,12 @@ export function useAthenHub() {
       // Ignore stale responses when a newer hydration request has started.
       if (requestSeq !== hydrateRequestSeqRef.current) return;
 
-      if (wi) setWorldInfo(wi);
+      if (wi) {
+        setWorldInfo(wi);
+        setGeometryWorld(String(wi.nameWorld || '').trim());
+      } else {
+        setGeometryWorld('');
+      }
       setRoads(Array.isArray(r) ? r : []);
       setForests(f);
       setLocations(Array.isArray(l) ? l : []);
@@ -381,6 +388,10 @@ export function useAthenHub() {
   const selectWorld = useCallback(async (worldName: string) => {
     const name = (worldName || '').trim();
     const mode = name ? 'stable' : 'fresh';
+    // Clear previously rendered static geometry immediately so LayerManager
+    // cannot latch old-world roads/structures while the new world is loading.
+    clearMapGeometry();
+    setShorelineRefreshToken((prev) => prev + 1);
     try {
       const res = await fetch(`${API_BASE}/api/game/cachemode`, {
         method: 'POST',
@@ -393,7 +404,7 @@ export function useAthenHub() {
     } catch {
       return false;
     }
-  }, [hydrateGeometry]);
+  }, [clearMapGeometry, hydrateGeometry]);
 
   useEffect(() => {
     let cancelled = false;
@@ -527,6 +538,7 @@ export function useAthenHub() {
     recentFired,
     recentFiredImpacts,
     worldInfo,
+    geometryWorld,
     roads,
     forests,
     locations,
@@ -547,6 +559,7 @@ export function useAthenHub() {
     recentFired,
     recentFiredImpacts,
     worldInfo,
+    geometryWorld,
     roads,
     forests,
     locations,
