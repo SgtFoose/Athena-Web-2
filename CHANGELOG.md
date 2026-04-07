@@ -18,6 +18,9 @@ All notable changes to Athena Web 2 will be documented in this file.
 - Fixed mounted-entity visibility gap: when relay vehicle coordinates are zero, vehicle markers now fall back to occupant positions and mounted units remain visible if their vehicle has no valid position
 - Fixed contour rendering parity drift by replacing angle-regularized contour simplification with Athena Desktop-style world-scaled trimming behavior
 - Fixed vehicle icon fallback issue where all vehicles rendered as question-mark symbols by hardening relay class extraction and class/category mapping lookup
+- Fixed dirt/gravel track appearance where `hide` road tiles were rendered as concrete grey instead of brown path styling
+- Fixed fragmented dirt path rendering where hide-tile centerline stubs appeared detached and north-facing by stitching path-like hide tiles into connected brown polylines
+- Fixed hedge/bush strip orientation mismatch by removing forced +90 degree hedge rotation offset
 
 ### Added
 

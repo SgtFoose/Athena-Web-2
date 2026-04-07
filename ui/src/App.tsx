@@ -87,6 +87,7 @@ function App() {
     serverSettings,
     exportStatus,
     shorelineRefreshToken,
+    cacheMode,
     selectWorld,
     requestWorldExport,
   } = useAthenHub()
@@ -95,21 +96,32 @@ function App() {
   const vehicles = frame?.vehicles ?? {}
   const groups   = frame?.groups   ?? {}
   const lazes    = frame?.lazes    ?? []
-  const liveWorld = frame?.world?.nameWorld ?? frame?.mission?.world ?? ''
+  const liveWorld = connected
+    ? (frame?.world?.nameWorld ?? frame?.mission?.world ?? '')
+    : ''
   // User-selected world for pre-planning; auto-cleared when live game sends a world
   const [userSelectedWorld, setUserSelectedWorld] = useState('')
   const world     = liveWorld || userSelectedWorld || worldInfo?.nameWorld || ''
 
-  // When the game starts sending a live world, clear any user selection so the game takes over
+  // When live telemetry starts, clear any UI-selected or bridge-stable world override.
   const prevLiveWorldRef = useRef('')
   useEffect(() => {
-    if (liveWorld && liveWorld !== prevLiveWorldRef.current && userSelectedWorld) {
-      setUserSelectedWorld('')
-      // Switch bridge back to live-follow mode
-      selectWorld('')
+    if (!liveWorld) {
+      prevLiveWorldRef.current = ''
+      return
     }
+
+    const liveWorldChanged = liveWorld !== prevLiveWorldRef.current
+    const hasManualOrStableOverride = Boolean(userSelectedWorld || cacheMode.worldOverride || cacheMode.mode === 'stable')
+
+    if (liveWorldChanged && hasManualOrStableOverride) {
+      setUserSelectedWorld('')
+      // Force bridge back to live-follow mode so world geometry matches live telemetry.
+      void selectWorld('')
+    }
+
     prevLiveWorldRef.current = liveWorld
-  }, [liveWorld, userSelectedWorld, selectWorld])
+  }, [liveWorld, userSelectedWorld, cacheMode.mode, cacheMode.worldOverride, selectWorld])
 
   // Handle user picking a cached world from the dropdown
   const handleSelectWorld = useCallback(async (worldName: string) => {
@@ -131,8 +143,13 @@ function App() {
   const { vehicleMap, locationMap } = useAthenaLibrary()
 
   // Health check  detect missing map cache and show first-time instructions
-  const { health, error: healthError } = useHealthCheck(15_000)
+  const { health, error: healthError, refetch: refetchHealth } = useHealthCheck(15_000)
   const [cacheBannerDismissed, setCacheBannerDismissed] = useState(false)
+
+  useEffect(() => {
+    if (!world) return
+    void refetchHealth()
+  }, [world, refetchHealth])
 
   // List of cached world names from the health endpoint (for world picker dropdown)
   const cachedWorlds = useMemo(
@@ -147,7 +164,7 @@ function App() {
     roads:      true,
     structures: true,
     locations:  true,
-    groups:     true,
+    groups:     false,
     waypoints:  true,
     lazes:      true,
     projectiles:true,

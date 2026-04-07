@@ -23,14 +23,20 @@ function sideColor(side: string): string {
 
 //  Road styling 
 
-function roadStyle(type: string, foot: boolean): { color: string; weight: number } | null {
-  if (foot) return { color: '#8B6B4A', weight: 1.6 }; // hiking/foot tracks
+function roadStyle(road: Road): { color: string; weight: number } | null {
+  if (road.foot) return { color: '#8B6B4A', weight: 1.6 }; // hiking/foot tracks
   // Bus exact road colors: MapHelper.cs PopulateRoads
   // Our Arma type strings map to Bus's RoadType enum:
   //   '' / 'road'  Highway (main paved), 'main road'  Concrete,
   //   'track'  Dirt, 'hide'  airport surfaces (Concrete)
-  const t = type.toLowerCase().trim();
+  const t = road.type.toLowerCase().trim();
+  const width = Number.isFinite(road.width) ? road.width : 0;
   if (t.includes('track') || t.includes('trail') || t.includes('dirt')) {
+    return { color: '#8B6B4A', weight: 2.6 };
+  }
+  // Relay line-segment roads often arrive as type="road" with width=0.
+  // In current cache data these are mostly dirt/gravel tracks, not paved roads.
+  if (t === 'road' && width <= 0.01) {
     return { color: '#8B6B4A', weight: 2.6 };
   }
   switch (t) {
@@ -38,7 +44,9 @@ function roadStyle(type: string, foot: boolean): { color: string; weight: number
     case 'road':       return { color: '#F4A460', weight: 7.0  };  // Highway  SandyBrown
     case 'main road':  return { color: '#D3D3D3', weight: 5.0  };  // Concrete  LightGray
     case 'track':      return { color: '#D2B48C', weight: 3.0  };  // Dirt  Tan
-    case 'hide':       return { color: '#D3D3D3', weight: 2.0  };  // airport  LightGray
+    // In live Web2 cache data, many dirt/gravel path tiles are exported as "hide".
+    // Default them to tan gravel for closer in-game parity.
+    case 'hide':       return { color: '#8B6B4A', weight: 2.2  };
     default:           return { color: '#A52A2A', weight: 3.0  };  // Unknown  Brown
   }
 }
@@ -76,6 +84,162 @@ function rotatedRoadRect(road: Road, scale: number): [number, number][] {
   return corners;
 }
 
+function hideSurfaceStyle(road: Road): { fillColor: string; lineColor: string } {
+  const maxDim = Math.max(Number(road.width) || 0, Number(road.length) || 0);
+  // Keep medium/small hide tiles brown so dirt tracks don't render as concrete.
+  // Only very large hide surfaces (runways/aprons) should be concrete gray.
+  if (maxDim <= 45) {
+    return { fillColor: '#8B6B4A', lineColor: '#8B6B4A' };
+  }
+  return { fillColor: '#D3D3D3', lineColor: '#D3D3D3' };
+}
+
+function isPathLikeHideTile(road: Road): boolean {
+  const maxDim = Math.max(Number(road.width) || 0, Number(road.length) || 0);
+  return maxDim <= 40;
+}
+
+function hidePathPoint(road: Road, scale: number): [number, number] {
+  const cx = (road.posX ? road.posX : (road.beg1X + road.end2X) / 2) * scale;
+  const cy = (road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2) * scale;
+  return [cy, cx];
+}
+
+function buildHidePathPolylines(points: [number, number][], scale: number): [number, number][][] {
+  if (points.length < 2) return [];
+
+  const maxLink = 28 * scale;
+  const minLink = 0.8 * scale;
+  const mergeLink = 22 * scale;
+
+  const dedup = new Map<string, [number, number]>();
+  points.forEach(([lat, lng]) => {
+    const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
+    if (!dedup.has(key)) dedup.set(key, [lat, lng]);
+  });
+  const nodes = Array.from(dedup.values());
+  if (nodes.length < 2) return [];
+
+  const candidates: { j: number; d: number }[][] = Array.from({ length: nodes.length }, () => []);
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const d = Math.hypot(nodes[i][0] - nodes[j][0], nodes[i][1] - nodes[j][1]);
+      if (d < minLink || d > maxLink) continue;
+      candidates[i].push({ j, d });
+      candidates[j].push({ j: i, d });
+    }
+  }
+
+  const edges = new Set<string>();
+  candidates.forEach((cand, i) => {
+    cand.sort((a, b) => a.d - b.d);
+    cand.slice(0, 3).forEach(({ j }) => {
+      const a = Math.min(i, j);
+      const b = Math.max(i, j);
+      edges.add(`${a}_${b}`);
+    });
+  });
+
+  const adjacency: number[][] = Array.from({ length: nodes.length }, () => []);
+  edges.forEach(edge => {
+    const [aStr, bStr] = edge.split('_');
+    const a = Number(aStr);
+    const b = Number(bStr);
+    adjacency[a].push(b);
+    adjacency[b].push(a);
+  });
+
+  const visitedEdges = new Set<string>();
+  const polylines: [number, number][][] = [];
+  const edgeKey = (a: number, b: number) => `${Math.min(a, b)}_${Math.max(a, b)}`;
+
+  const walk = (start: number, first: number): [number, number][] => {
+    const line: [number, number][] = [nodes[start]];
+    let prev = start;
+    let curr = first;
+    visitedEdges.add(edgeKey(start, first));
+    line.push(nodes[curr]);
+
+    while (true) {
+      const nextCandidates = adjacency[curr].filter(n => n !== prev && !visitedEdges.has(edgeKey(curr, n)));
+      if (nextCandidates.length === 0) break;
+
+      let next = nextCandidates[0];
+      if (nextCandidates.length > 1) {
+        const vx = nodes[curr][0] - nodes[prev][0];
+        const vy = nodes[curr][1] - nodes[prev][1];
+        let bestScore = Number.NEGATIVE_INFINITY;
+        for (const candidate of nextCandidates) {
+          const wx = nodes[candidate][0] - nodes[curr][0];
+          const wy = nodes[candidate][1] - nodes[curr][1];
+          const dot = (vx * wx) + (vy * wy);
+          const mag = Math.max(1e-6, Math.hypot(vx, vy) * Math.hypot(wx, wy));
+          const score = dot / mag;
+          if (score > bestScore) {
+            bestScore = score;
+            next = candidate;
+          }
+        }
+      }
+
+      visitedEdges.add(edgeKey(curr, next));
+      line.push(nodes[next]);
+      prev = curr;
+      curr = next;
+      if (line.length > nodes.length + 1) break;
+    }
+
+    return line;
+  };
+
+  const starts = [...nodes.keys()].sort((a, b) => adjacency[a].length - adjacency[b].length);
+  starts.forEach(start => {
+    adjacency[start].forEach(neighbor => {
+      if (visitedEdges.has(edgeKey(start, neighbor))) return;
+      const line = walk(start, neighbor);
+      if (line.length >= 2) polylines.push(line);
+    });
+  });
+
+  const ptDist = (a: [number, number], b: [number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const reverse = (line: [number, number][]) => [...line].reverse();
+
+  // Merge nearby polyline endpoints so fragmented tile chains read as one path.
+  let changed = true;
+  let guard = 0;
+  while (changed && guard < 200) {
+    guard++;
+    changed = false;
+
+    for (let i = 0; i < polylines.length && !changed; i++) {
+      for (let j = i + 1; j < polylines.length && !changed; j++) {
+        const a = polylines[i];
+        const b = polylines[j];
+        if (a.length < 2 || b.length < 2) continue;
+
+        const aStart = a[0];
+        const aEnd = a[a.length - 1];
+        const bStart = b[0];
+        const bEnd = b[b.length - 1];
+
+        let merged: [number, number][] | null = null;
+        if (ptDist(aEnd, bStart) <= mergeLink) merged = [...a, ...b.slice(1)];
+        else if (ptDist(aEnd, bEnd) <= mergeLink) merged = [...a, ...reverse(b).slice(1)];
+        else if (ptDist(aStart, bStart) <= mergeLink) merged = [...reverse(a), ...b.slice(1)];
+        else if (ptDist(aStart, bEnd) <= mergeLink) merged = [...b, ...a.slice(1)];
+
+        if (merged) {
+          polylines[i] = merged;
+          polylines.splice(j, 1);
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return polylines;
+}
+
 function rotatedStructureRect(
   s: MapStructure,
   scale: number,
@@ -104,7 +268,7 @@ function rotatedStructureRect(
 
 function isWallFenceLike(s: MapStructure): boolean {
   const sig = `${s.type} ${s.model}`.toLowerCase();
-  return /(wall|fence|barrier|railing|hedge)/.test(sig);
+  return /(wall|fence|barrier|railing)/.test(sig);
 }
 
 function isPowerWireLike(s: MapStructure): boolean {
@@ -127,13 +291,15 @@ function isVegetationLike(s: MapStructure): boolean {
 function structureOrientationPolicy(s: MapStructure): { dirOffsetDeg: number; swapAxes: boolean } {
   const sig = `${s.type} ${s.model}`.toLowerCase();
 
-  // Hedge strips behave more like fence segments in Athena cache data.
-  if (/(hedge|briar)/.test(sig)) {
-    return { dirOffsetDeg: 90, swapAxes: false };
+  // Hedge strips in current cache exports already carry usable heading and dimensions.
+  // Keep native axes or they appear rotated/perpendicular.
+  if (/(hedge|briar|brush|scrub)/.test(sig)) {
+    return { dirOffsetDeg: 0, swapAxes: false };
   }
 
   if (isVegetationLike(s)) {
-    return { dirOffsetDeg: 0, swapAxes: true };
+    // Smaller vegetation props generally look correct without axis swapping.
+    return { dirOffsetDeg: 0, swapAxes: false };
   }
 
   return { dirOffsetDeg: 0, swapAxes: false };
@@ -1366,13 +1532,26 @@ function vehicleIcon(vehicle: Vehicle, units: Record<string, Unit>, category: st
     const preferred = occupants.find(u => u.playerName?.trim()) ?? occupants[0];
     side = preferred?.side ?? 'unknown';
   }
+
+  let dir = Number.isFinite(vehicle.dir) ? vehicle.dir : 0;
+  if (Math.abs(dir) < 0.001) {
+    const crewDir = firstCrew ? units[firstCrew.unitId]?.dir : undefined;
+    if (typeof crewDir === 'number' && Number.isFinite(crewDir)) {
+      dir = crewDir;
+    } else {
+      const occupants = Object.values(units).filter(u => u.vehicleId === vehicle.id);
+      const preferred = occupants.find(u => u.playerName?.trim()) ?? occupants[0];
+      if (preferred && Number.isFinite(preferred.dir)) dir = preferred.dir;
+    }
+  }
+
   const color = sideColor(side);
   const size = 80;
   return L.divIcon({
     className:  '',
     iconSize:   [size, size],
     iconAnchor: [size / 2, size / 2],
-    html: vehicleIconHtml(category, color, vehicle.dir, size, vehicle.class),
+    html: vehicleIconHtml(category, color, dir, size, vehicle.class),
   });
 }
 
@@ -2284,6 +2463,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
 
     // Collect airport surfaces and render them first as base pavement.
     const airportRoads: Road[] = [];
+    const pathHidePoints: [number, number][] = [];
 
     roads.forEach(road => {
       // Airport surfaces  collect for later
@@ -2292,7 +2472,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
         return;
       }
 
-      const style = roadStyle(road.type, road.foot);
+      const style = roadStyle(road);
       if (!style) return;
 
       const beg: [number, number] = [road.beg1Y * scale, road.beg1X * scale];
@@ -2307,11 +2487,16 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
 
     // Pass 1: airport surface tiles first (base layer)
     airportRoads.forEach(road => {
+      if (isPathLikeHideTile(road)) {
+        pathHidePoints.push(hidePathPoint(road, scale));
+        return;
+      }
       const latlngs = rotatedRoadRect(road, scale);
+      const hideStyle = hideSurfaceStyle(road);
       L.polygon(latlngs, {
-        fillColor:   '#D3D3D3',
+        fillColor:   hideStyle.fillColor,
         fillOpacity: 1,
-        color:       '#D3D3D3',
+        color:       hideStyle.lineColor,
         weight:      0,
         stroke:      false,
         opacity:     1,
@@ -2344,6 +2529,20 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
         renderer:    canvas,
       }).addTo(roadLayerRef.current);
     });
+
+    // Pass 4: stitch path-like hide tiles into connected polylines.
+    const stitchedHidePaths = buildHidePathPolylines(pathHidePoints, scale);
+    if (stitchedHidePaths.length > 0) {
+      L.polyline(stitchedHidePaths, {
+        color: '#8B6B4A',
+        weight: 3.0,
+        opacity: 1,
+        lineCap: 'round',
+        lineJoin: 'round',
+        interactive: false,
+        renderer: canvas,
+      }).addTo(roadLayerRef.current);
+    }
 
     // Airport surfaces were rendered in Pass 1 so taxi/road lines remain visible.
     staticCacheRef.current.roads = true;

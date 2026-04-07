@@ -221,6 +221,9 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, 
 .map-cache-banner-footer {
   margin-top: 12px;
   font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .map-cache-banner-footer a {
   color: #58a6ff;

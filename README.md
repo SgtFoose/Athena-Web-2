@@ -8,7 +8,7 @@
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.4
 
-![Athena Web 2 v0.0.4 — Tanoa](Images/Athena%20Web%202%20v0.0.1.png)
+![Athena Web 2 v0.0.4 — Tanoa](Images/Athena%20Web%202%20v0.0.4.png)
 
 ## Latest Video
 
@@ -26,6 +26,9 @@ This is v0.0.4 — the current active Web2 release line. It focuses on world/cac
 - **Offline cached map selection** works while disconnected so pre-mission planning can switch between any cached worlds
 - **Vehicle toggle reliability** no longer gets overridden by zoom-threshold auto-switch behavior
 - **Vehicle icon mapping restored** relay class/category resolution now maps to Bus icon assets so vehicles no longer render as fallback question-mark symbols
+- **Dirt track parity** dirt/gravel path tiles now render in brown gravel tones instead of runway/concrete grey
+- **Dirt path continuity pass** path-like hide tiles are now stitched into connected brown polylines so paths read as continuous lines instead of detached north-facing stubs
+- **Hedge orientation correction** hedge strips now use cache heading directly (no forced +90 rotation)
 - **Groups default OFF** to reduce initial map clutter and match requested startup behavior
 - **Cache warning accuracy** avoids false "No cached data" banners when the active world is already present in local cache
 - **Contour parity tuning** now follows Athena Desktop-style contour point trimming (world-scaled tolerance) instead of aggressive angle straightening, producing cleaner natural contour lines

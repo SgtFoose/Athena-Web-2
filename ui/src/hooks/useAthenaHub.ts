@@ -64,6 +64,15 @@ function firstNonEmptyString(obj: Record<string, unknown>, keys: string[]): stri
   return '';
 }
 
+function firstFiniteNumber(obj: Record<string, unknown>, keys: string[], fallback = 0): number {
+  for (const key of keys) {
+    const raw = obj[key];
+    const n = Number(raw);
+    if (Number.isFinite(n)) return n;
+  }
+  return fallback;
+}
+
 function mapWorldSize(worldName: string): number {
   const key = worldName.trim().toLowerCase();
   switch (key) {
@@ -170,7 +179,7 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
       posX: asNumber(v.posx || v.posX),
       posY: asNumber(v.posy || v.posY),
       posZ: asNumber(v.posz || v.posZ),
-      dir: asNumber(v.dir || v.direction),
+      dir: firstFiniteNumber(v, ['dir', 'direction', 'heading', 'bearing', 'azimuth', 'course', 'yaw']),
       speed: asNumber(v.speed),
     };
   }
@@ -200,7 +209,7 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
       posX: asNumber(u.posx || u.posX),
       posY: asNumber(u.posy || u.posY),
       posZ: asNumber(u.posz || u.posZ),
-      dir: asNumber(u.dir || u.direction),
+      dir: firstFiniteNumber(u, ['dir', 'direction', 'heading', 'bearing', 'azimuth', 'course', 'yaw']),
       speed: asNumber(u.speed),
       isActivePlayer: false,
     };

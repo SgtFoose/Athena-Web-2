@@ -10,6 +10,22 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-07 — v0.0.4 Dirt Path Continuity Finalization
+- Confirmed hedge/bush orientation is now correct in user validation.
+- Investigated remaining dirt-path issue where brown segments rendered as detached stubs (often north-facing) due to unreliable per-tile heading in many `hide` road records.
+- Reworked hide-road rendering in `ui/src/components/AthenaMap.tsx`:
+  - classify path-like hide tiles separately from large runway/apron hide surfaces
+  - derive path nodes from hide tile centers
+  - stitch nearby nodes into connected polylines
+  - merge nearby polyline endpoints to reduce fragmentation and produce longer continuous path traces
+- Tuned continuity parameters to improve chain completion in sparse tile regions:
+  - widened path-like hide threshold (`<= 40m`)
+  - increased link radius and nearest-neighbor fanout
+  - applied endpoint merge pass for fragmented chains
+- Rebuilt UI, mirrored to `bridge/wwwroot`, and produced hotfix artifacts for validation:
+  - `AthenaWeb-0.0.4-hotfix3.exe`
+  - `AthenaWeb-0.0.4-hotfix4.exe`
+
 ### 2026-04-07 — v0.0.4 Vehicle Icon Mapping + EXE Embed Refresh
 - Investigated report where all vehicles rendered with question-mark fallback icon despite Bus icon assets being present.
 - Verified Bus original icon set under `Athena Desktop dnSpy/Athena Desktop/assets/map/vehicleicons` and Web2 packaged icon set under `ui/public/icons/vehicles` / `bridge/wwwroot/icons/vehicles` (79 icons).
@@ -26,6 +42,12 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Updated vehicle class extraction to prefer `type`/`classname` keys before `class`, and to ignore numeric-only values.
 - Added broader fallback matching for common modded vehicle classnames (for example Leopard MBT family) when library lookup misses.
 - Rebuilt and re-uploaded `AthenaWeb-0.0.4.exe` release asset after this root-cause fix.
+
+#### 2026-04-07 follow-up — dirt track color + hedge angle
+- Investigated live cache around reported coordinate `X:6736.40 Y:7537.21` and confirmed nearby dirt-path records were exported as road type `hide`.
+- Updated `ui/src/components/AthenaMap.tsx` road styling so `hide` paths render as brown gravel instead of concrete grey.
+- Updated hedge orientation policy to remove forced +90 degree rotation offset and use cache heading directly.
+- Rebuilt EXE and refreshed release asset after these visual parity fixes.
 
 ### 2026-04-07 — v0.0.4 Contour Processing Parity (Desktop Trace)
 - Investigated Athena Desktop import progress stage `Processing world mesh and tracing contours` and confirmed it runs real contour generation after `mapend` (not a cosmetic status string).

@@ -18,7 +18,15 @@ export function MapCacheBanner({ health, healthError, activeWorld, onDismiss }: 
   // Determine the problem (if any)
   const cacheExists = health?.mapCache?.exists ?? false;
   const worldCount = health?.mapCache?.worldCount ?? 0;
-  const activeWorldCached = health?.activeWorldCached ?? false;
+  const normalizedActiveWorld = activeWorld.trim().toLowerCase();
+  const listedActiveWorldCached = normalizedActiveWorld
+    ? (health?.mapCache?.worlds ?? []).some(
+      (w) => w.hasMapTxt && w.name.trim().toLowerCase() === normalizedActiveWorld,
+    )
+    : false;
+  const activeWorldCached = normalizedActiveWorld
+    ? (listedActiveWorldCached || (health?.activeWorldCached ?? false))
+    : true;
   const cachePath = health?.mapCache?.path ?? '%USERPROFILE%\\Documents\\Athena\\Maps';
 
   // World-specific: active world not cached but cache folder exists with other worlds
@@ -92,6 +100,13 @@ export function MapCacheBanner({ health, healthError, activeWorld, onDismiss }: 
             rel="noreferrer"
           >
             Download Athena Desktop (Steam Workshop)
+          </a>
+          <a
+            href="https://github.com/SgtFoose/Athena-Web-2?tab=readme-ov-file#first-time-map-export-required"
+            target="_blank"
+            rel="noreferrer"
+          >
+            First-time map export instructions
           </a>
         </div>
       </div>

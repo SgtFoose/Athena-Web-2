@@ -56,6 +56,7 @@ const worldCacheMemo = new Map();
 const contourCacheMemo = new Map();
 const landMaskCacheMemo = new Map();
 let latestWorldProbe = { at: 0, world: null };
+let activeWebPort = CONFIG.webPort;
 
 // GUID that identifies this bridge to the relay (keep stable between runs)
 const BRIDGE_GUID = '5f3a9c12-4e7b-4d1a-b023-ae8f2c6d19f0';
@@ -1720,6 +1721,14 @@ const httpServer = http.createServer((req, res) => {
 // ─── WebSocket server ─────────────────────────────────────────────────────────
 const wss = new WebSocketServer({ server: httpServer });
 
+wss.on('error', (err) => {
+  if (err && err.code === 'EADDRINUSE') {
+    // HTTP listener retry logic handles this case.
+    return;
+  }
+  console.error('[ws] Server error:', err?.message || err);
+});
+
 wss.on('connection', (ws, req) => {
   const ip = req.socket.remoteAddress;
   console.log(`[ws] Client connected: ${ip}  (total: ${wsClients.size + 1})`);
@@ -1795,19 +1804,41 @@ wss.on('connection', (ws, req) => {
 });
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
-httpServer.listen(CONFIG.webPort, '0.0.0.0', () => {
-  const ifaces = require('os').networkInterfaces();
-  const addrs  = Object.values(ifaces).flat()
-    .filter(i => i.family === 'IPv4' && !i.internal)
-    .map(i => `http://${i.address}:${CONFIG.webPort}`);
+function startHttpServer(preferredPort, maxRetries = 8) {
+  const tryListen = (port, retriesLeft) => {
+    const onError = (err) => {
+      if (err && err.code === 'EADDRINUSE' && retriesLeft > 0) {
+        console.warn(`[web] Port ${port} is in use. Trying ${port + 1} ...`);
+        tryListen(port + 1, retriesLeft - 1);
+        return;
+      }
+      console.error(`[web] Failed to bind HTTP server on port ${port}:`, err?.message || err);
+      process.exitCode = 1;
+    };
 
-  console.log('\n╔════════════════════════════════════════╗');
-  console.log('║   Athena Web PoC — Bridge Server       ║');
-  console.log('╚════════════════════════════════════════╝');
-  console.log(`Local:   http://localhost:${CONFIG.webPort}`);
-  addrs.forEach(a => console.log(`Network: ${a}  ← open on your phone`));
-  console.log(`\nRelay:   ${CONFIG.relayHost}:${CONFIG.relayPort}`);
-  console.log('─────────────────────────────────────────\n');
-});
+    httpServer.once('error', onError);
+    httpServer.listen(port, '0.0.0.0', () => {
+      httpServer.removeListener('error', onError);
+      activeWebPort = port;
+
+      const ifaces = require('os').networkInterfaces();
+      const addrs  = Object.values(ifaces).flat()
+        .filter(i => i.family === 'IPv4' && !i.internal)
+        .map(i => `http://${i.address}:${activeWebPort}`);
+
+      console.log('\n╔════════════════════════════════════════╗');
+      console.log('║   Athena Web PoC — Bridge Server       ║');
+      console.log('╚════════════════════════════════════════╝');
+      console.log(`Local:   http://localhost:${activeWebPort}`);
+      addrs.forEach(a => console.log(`Network: ${a}  ← open on your phone`));
+      console.log(`\nRelay:   ${CONFIG.relayHost}:${CONFIG.relayPort}`);
+      console.log('─────────────────────────────────────────\n');
+    });
+  };
+
+  tryListen(preferredPort, maxRetries);
+}
+
+startHttpServer(CONFIG.webPort);
 
 connectToRelay();
