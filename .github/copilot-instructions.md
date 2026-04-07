@@ -35,7 +35,7 @@ Architecture: **Bridge** (Node.js relay protocol adapter) -> **UI** (React + Vit
 - Keep docs in this repo scoped to `v0.x` language only.
 - Preserve existing Web2 UI look-and-feel, but do not import Remastered-specific backend assumptions.
 - Keep unresolved release blockers in `WORKLOG.md` with exact repro coordinates when available.
-- Current unresolved map-render issue to track: vegetation/hedge orientation mismatch at `X:6874.88 Y:7381.98` (Tanoa cache).
+- Current status: no active map-render blocker is pinned. If a new visual parity issue appears, record exact coordinates and world in `WORKLOG.md` immediately.
 
 ## Structure
 - `bridge/`: relay TCP client, REST API, WebSocket broadcast
