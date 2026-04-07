@@ -50,6 +50,26 @@ When shipping Web2 updates, update at minimum:
 - relevant `WORKLOG.md` timeline entry
 - `ui/src/version.ts` (`APP_VERSION`)
 
+## Documentation Sync Rule (Always-On)
+- Keep user-facing and release-tracking docs up-to-date whenever behavior, packaging, setup, or release flow changes.
+- Required sync targets for shipped changes:
+  - `README.md` (current version, quick start, setup notes, links)
+  - `CHANGELOG.md` (top release entry reflects actual shipped changes)
+  - `WORKLOG.md` (timeline entry with what changed and why)
+- Do not ship/push release-related updates unless these docs are updated in the same working batch.
+- When applicable, also update `.github/release-notes-template-vX.Y.Z.md` so GitHub release notes remain consistent with README guidance.
+
+## GitHub Release Distribution Rule
+- For every `v0.x` release intended for end users, publish a GitHub Release entry and attach the standalone EXE under **Assets**.
+- Preferred asset naming: `AthenaWeb-<version>.exe` (example: `AthenaWeb-0.0.4.exe`).
+- Release notes must include:
+  - direct user download path: open release -> Assets -> download EXE
+  - startup step: open `http://localhost:3000`
+  - Windows 11 SmartScreen workaround (`More info` -> `Run anyway`)
+  - fallback unblock steps (`Properties` -> `Unblock`) and PowerShell `Unblock-File` command
+- Keep release notes template in `.github/release-notes-template-vX.Y.Z.md` (or update existing current template) and sync README Quick Start wording with the same flow.
+- If automation is requested and `GITHUB_TOKEN` is available, Copilot may publish/update release metadata and assets through the GitHub REST API.
+
 ## Packaged UI Sync Rule
 - When shipping or validating Web2 from bridge port `3000`, ensure packaged UI is synced:
   - build UI: `npm --prefix ui run build`

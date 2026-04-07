@@ -2,6 +2,32 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.0.4] — 2026-04-06
+
+### Changed
+
+- Groups layer is now disabled by default on startup
+- Removed zoom-threshold auto-switching between groups and units/vehicles; layer visibility now follows explicit user toggles
+
+### Fixed
+
+- Fixed stale map overlay carry-over during live world swaps by clearing old geometry immediately and ignoring stale hydration responses
+- Fixed offline cached-world selection so map picker remains available when the game/relay is not connected
+- Fixed false cache-warning banner cases where the active world was already available in local cache
+- Fixed vehicle toggle behavior where zoom auto-switch logic could override user selection and hide vehicles unexpectedly
+- Fixed mounted-entity visibility gap: when relay vehicle coordinates are zero, vehicle markers now fall back to occupant positions and mounted units remain visible if their vehicle has no valid position
+
+### Added
+
+- GitHub release distribution flow for end users: `v0.0.4` release now includes `AthenaWeb-0.0.4.exe` under **Assets**
+- README first-time map export guide with screenshot for required Athena Desktop one-time per-map export setup
+- In-app map cache warning banner link to first-time map export instructions in README
+
+### Documentation
+
+- README now includes explicit `v0.0.4` release link and tracked bridge dist binary note
+- Release notes template added for consistent user-facing download/start/SmartScreen guidance
+
 ## [0.0.3] — 2026-04-06
 
 ### Changed
