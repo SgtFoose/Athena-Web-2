@@ -10,6 +10,68 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-07 — GitHub Release Distribution + First-Time Map Guidance
+- Published GitHub release `v0.0.4` and attached `AthenaWeb-0.0.4.exe` under release **Assets** for direct user download.
+- Updated release notes with explicit download/start flow and Windows 11 SmartScreen unblock guidance (`More info` -> `Run anyway`, plus `Unblock-File`).
+- Updated `README.md` quick-start and release visibility:
+  - added direct `v0.0.4` release link
+  - added explicit tracked bridge dist binary note (`bridge/dist/AthenaWeb-0.0.4.exe`)
+  - added first-time map export section with screenshot `Images/Athena Web 2 First Map Usage.png`
+- Updated in-app cache warning banner help links (`ui/src/components/MapCacheBanner.tsx`):
+  - retained Athena Desktop download link
+  - added direct link to README first-time map export instructions
+- Updated tracked dist artifact on `main` from `AthenaWeb-0.0.3.exe` to `AthenaWeb-0.0.4.exe` so repository tree matches current release line.
+
+### 2026-04-06 — Session Handoff Notes (Next Round)
+- Current release target is `v0.0.4`.
+- Latest packaged binaries in `bridge/dist`:
+  - `AthenaWeb.exe` (rebuilt at latest timestamp)
+  - `AthenaWeb-0.0.4-hotfix1.exe` (same payload as latest `AthenaWeb.exe`)
+  - `AthenaWeb-0.0.4.exe` may be stale if file lock prevented overwrite during this session.
+- UI bundle was rebuilt and mirrored to `bridge/wwwroot` after all fixes.
+- Vehicle icon asset pack was re-synced from Bus original desktop assets:
+  - source: `Athena Desktop dnSpy/Athena Desktop/assets/map/vehicleicons`
+  - destination: `ui/public/icons/vehicles`
+
+#### Next Round Quick Resume Checklist
+1. Ensure all old `AthenaWeb*.exe` processes are closed.
+2. Launch `bridge/dist/AthenaWeb-0.0.4-hotfix1.exe`.
+3. Hard-refresh browser (`Ctrl+F5`) before validation.
+4. Validate:
+   - vehicles render with proper icon (A-10 no longer shows blue `?`)
+   - groups are OFF by default on startup
+   - manual layer toggles for groups/vehicles/units persist across zoom
+5. If A-10 still shows `?`, add temporary debug label logging vehicle class + resolved category in map layer and patch class-to-category mapping.
+
+### 2026-04-06 — v0.0.4 World/Layer Reliability Pass
+- Investigated report where world switched from cached Stratis to live Tanoa but old-map roads remained visible.
+- Updated UI hydration safety in `ui/src/hooks/useAthenaHub.ts`:
+  - added request sequencing so stale async geometry responses are ignored
+  - clear prior geometry immediately on detected relay world change before new world cache hydration completes
+- Updated active-world behavior in `ui/src/App.tsx`:
+  - treat live world as valid only while bridge is connected
+  - keep cached world picker usable while disconnected
+  - clear stable/manual world override when live world arrives
+  - force health recheck on world change for faster cache-banner correctness
+- Updated cache banner matching in `ui/src/components/MapCacheBanner.tsx`:
+  - use case-insensitive cached-world list verification to avoid false "No cached data" warnings
+- Updated layer defaults and toggle behavior:
+  - set Groups layer default to OFF in `ui/src/App.tsx`
+  - removed zoom-threshold auto-toggle for groups/vehicles/units in `ui/src/components/AthenaMap.tsx` so manual toggles are respected
+- Added vehicle position fallback fix in `ui/src/components/AthenaMap.tsx`:
+  - when relay vehicle `posX/posY` are zero, vehicle marker anchor now falls back to first mounted occupant with a valid position
+  - mounted units are hidden only if their parent vehicle has a valid position, preventing mounted entities from disappearing entirely
+- Rebuilt and mirrored packaged UI (`ui/dist` -> `bridge/wwwroot`) after the vehicle fallback patch.
+- Rebuilt packaged executable after confirming runtime was still launching stale `bridge/dist/AthenaWeb-0.0.3.exe`:
+  - produced `bridge/dist/AthenaWeb-0.0.4.exe` from updated `wwwroot` assets
+  - release validation should use `AthenaWeb-0.0.4.exe` (or `AthenaWeb.exe` rebuilt at same timestamp)
+- Synced Bus original vehicle icon set from `Athena Desktop dnSpy/Athena Desktop/assets/map/vehicleicons` into `ui/public/icons/vehicles`, rebuilt UI, and mirrored into `bridge/wwwroot`.
+- Rebuilt packaged EXE again after icon sync and produced `bridge/dist/AthenaWeb-0.0.4-hotfix1.exe` (previous `AthenaWeb-0.0.4.exe` was file-locked by a running process).
+- Release metadata set to `v0.0.4`:
+  - `ui/src/version.ts`
+  - `README.md`
+  - `CHANGELOG.md`
+
 ### 2026-04-06 — Release Blocker Carried Forward (Tracked)
 - Runway alignment regression is resolved and accepted.
 - Remaining known blocker is still open:
