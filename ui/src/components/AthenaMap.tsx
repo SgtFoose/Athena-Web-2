@@ -201,6 +201,15 @@ function simplifyClosedRing(points: [number, number][], epsilon: number): [numbe
   return simplifiedOpen;
 }
 
+function contourSimplifyEpsilon(worldSize: number): number {
+  // Athena Desktop trims contour points after scaling by world cell size
+  // with SimplifyUtility tolerance 5.0 world meters.
+  // Convert that tolerance into this map's normalized 0..100 coordinate space.
+  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.02;
+  const normalized = (5 * 100) / worldSize;
+  return Math.max(0.008, normalized);
+}
+
 function normalizeAngleDeg(deg: number): number {
   let out = deg % 360;
   if (out < 0) out += 360;
@@ -1473,7 +1482,7 @@ type ProjectileDebugEntry = {
   lockSwitched: boolean;
 };
 
-function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpacts, world, worldSize, roads, forests: _forests, locations, structures, elevations, contours, layers, onLayersChange, renderMode, vehicleMap, locationMap, shorelineRefreshToken, onProjectileDebugChange }: LayerManagerProps) {
+function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpacts, world, worldSize, roads, forests: _forests, locations, structures, elevations, contours, layers, renderMode, vehicleMap, locationMap, shorelineRefreshToken, onProjectileDebugChange }: LayerManagerProps) {
   const map = useMap();
 
   useEffect(() => {
@@ -1763,11 +1772,8 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     // Runtime/cached structures from our own export pipeline render via the structure layer.
   }, [world, worldSize]);
 
-  //  Zoom auto-show for tree pane + unit/vehicle  group auto-toggle 
+  //  Zoom auto-show for tree/forest panes only 
   useEffect(() => {
-    const UNIT_GROUP_THRESHOLD = 2.5;  // Swap groups  units at 2.5x display scale
-    // Initialise to opposite of current zone so the first update() establishes correct state.
-    const prevZoneRef = { current: !(zoomToDisplayScale(map.getZoom()) >= UNIT_GROUP_THRESHOLD) };
     const update = () => {
       const z = map.getZoom();
       const scale = zoomToDisplayScale(z);
@@ -1782,25 +1788,11 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       if (fp) fp.style.display = showForest ? '' : 'none';
       const op = map.getPane('athena-objects');
       if (op) op.style.display = '';
-      // At scale < 2.5x (zoomed out): show groups, hide units + vehicles
-      // At scale  2.5x (zoomed in):  show units + vehicles, hide groups
-      // Auto-toggle fires only when crossing the threshold;
-      // user can still override manually within a zoom zone.
-      const inUnitZone = scale >= UNIT_GROUP_THRESHOLD;
-      if (inUnitZone !== prevZoneRef.current) {
-        prevZoneRef.current = inUnitZone;
-        onLayersChange?.(prev => ({
-          ...prev,
-          groups:   !inUnitZone,
-          vehicles:  inUnitZone,
-          units:     inUnitZone,
-        }));
-      }
     };
     map.on('zoomend', update);
     update(); // apply immediately on mount
     return () => { map.off('zoomend', update); };
-  }, [map, onLayersChange, layers.forest, layers.trees, hasRuntimeTrees]);
+  }, [map, layers.forest, layers.trees, hasRuntimeTrees]);
 
   //  Land silhouette  permanent base showing land (Ivory #FFFFF0) vs ocean (transparent) 
   // Tries vector fill from static Z=0 contour first (smooth/exact coastline),
@@ -1864,6 +1856,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const z0 = contours.find(c => c.z === 0);
       if (z0 && z0.lines.length > 0) {
         const scale = 100 / worldSize;
+        const contourEpsilon = contourSimplifyEpsilon(worldSize);
         const rings: L.LatLngExpression[][] = z0.lines
           .map(flat => {
             const pts: L.LatLngExpression[] = [];
@@ -1871,9 +1864,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
               // [lat=Y, lng=X] in normalised 0..100 map space
               pts.push([flat[i + 1] * scale, flat[i] * scale]);
             }
-            // Simplify + angle regularization for cleaner coastline segments.
-            const simplified = simplifyClosedRing(pts as [number, number][], 0.015);
-            return straightenPolylineSegments(simplified, 9, 0.015) as L.LatLngExpression[];
+            return simplifyClosedRing(pts as [number, number][], contourEpsilon) as L.LatLngExpression[];
           })
           .filter(r => r.length >= 3);
 
@@ -2228,6 +2219,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     coastLayerRef.current.clearLayers();
     if (contours.length === 0) return;
     const scale = 100 / worldSize;
+    const contourEpsilon = contourSimplifyEpsilon(worldSize);
     contours.forEach(cl => {
       const style = contourStyle(cl.z);
       // Each ContourLine.lines entry is a flat [x0,y0,x1,y1,...] array.
@@ -2238,8 +2230,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           for (let i = 0; i + 1 < flat.length; i += 2)
             pts.push([flat[i + 1] * scale, flat[i] * scale]); // [lat=Y, lng=X]
           if (cl.z === 0) return pts;
-          const simplified = simplifyPolylineRdp(pts, 0.006);
-          return straightenPolylineSegments(simplified, 10, 0.012);
+          return simplifyPolylineRdp(pts, contourEpsilon);
         })
         .filter(p => p.length >= 2);
       if (latlngs.length === 0) return;
@@ -2248,7 +2239,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       // above forests and land fill, with a crisp outer + inner stroke.
       if (cl.z === 0) {
         const coastLatLngs = latlngs
-          .map(line => straightenPolylineSegments(simplifyClosedRing(line, 0.015), 9, 0.015))
+          .map(line => simplifyClosedRing(line, contourEpsilon))
           .filter(line => line.length >= 2);
         // Bus exact: Z=0 coastline = MediumBlue, stroke 0.75
         L.polyline(coastLatLngs, {
@@ -3023,10 +3014,15 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     // Crew labels visible at display zoom >= 2.5x (internal zoom >= 9.2)
     const showCrew = zoom >= 9.2;
     Object.values(vehicles).forEach(veh => {
-      if (veh.posX === 0 && veh.posY === 0) return;
-      const ll: [number, number] = [veh.posY * scale, veh.posX * scale];
       // Resolve crew from units referencing this vehicle (crew array may be empty in live data)
       const occupants = Object.values(units).filter(u => u.vehicleId === veh.id);
+      const anchor = (veh.posX === 0 && veh.posY === 0)
+        ? occupants.find(u => !(u.posX === 0 && u.posY === 0))
+        : null;
+      const posX = anchor ? anchor.posX : veh.posX;
+      const posY = anchor ? anchor.posY : veh.posY;
+      if (posX === 0 && posY === 0) return;
+      const ll: [number, number] = [posY * scale, posX * scale];
       const crewNames = occupants.map(u => `${u.name} (${u.type})`).join(', ');
       const category = resolveVehicleCategory(veh.class, vehicleMap);
       L.marker(ll, { icon: vehicleIcon(veh, units, category), pane: 'athena-vehicle' })
@@ -3077,8 +3073,10 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     const scale = 100 / worldSize;
     Object.values(units).forEach(unit => {
       const mountedVehicle = unit.vehicleId ? vehicles[unit.vehicleId] : undefined;
-      // Bus/in-game behavior: mounted infantry/pilots are represented by the vehicle icon only.
-      if (mountedVehicle) return;
+      // Keep mounted infantry/pilots hidden only when the vehicle has a valid position.
+      // If vehicle coords are missing, fall back to unit marker so entities don't disappear.
+      const vehicleHasPos = Boolean(mountedVehicle) && !((mountedVehicle?.posX ?? 0) === 0 && (mountedVehicle?.posY ?? 0) === 0);
+      if (vehicleHasPos) return;
       const posX = unit.posX;
       const posY = unit.posY;
       if (posX === 0 && posY === 0) return;

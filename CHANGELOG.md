@@ -16,6 +16,7 @@ All notable changes to Athena Web 2 will be documented in this file.
 - Fixed false cache-warning banner cases where the active world was already available in local cache
 - Fixed vehicle toggle behavior where zoom auto-switch logic could override user selection and hide vehicles unexpectedly
 - Fixed mounted-entity visibility gap: when relay vehicle coordinates are zero, vehicle markers now fall back to occupant positions and mounted units remain visible if their vehicle has no valid position
+- Fixed contour rendering parity drift by replacing angle-regularized contour simplification with Athena Desktop-style world-scaled trimming behavior
 
 ### Added
 

@@ -2,9 +2,13 @@
 
 > Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-**Version: v0.0.3**
+**Version: v0.0.4**
 
-![Athena Web 2 v0.0.2 — Tanoa](Images/Athena%20Web%202%20v0.0.1.png)
+**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.4.exe`
+
+**Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.4
+
+![Athena Web 2 v0.0.4 — Tanoa](Images/Athena%20Web%202%20v0.0.1.png)
 
 ## Latest Video
 
@@ -14,7 +18,16 @@
 
 Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This is v0.0.3 — the current active Web2 release line. It sharpens map rendering parity with Athena Desktop by smoothing shoreline geometry and improving individual tree symbol styling.
+This is v0.0.4 — the current active Web2 release line. It focuses on world/cache switching reliability and map-layer control behavior parity.
+
+### v0.0.4 highlights
+
+- **World swap cache safety** clears stale geometry on world changes and prevents old async responses from repainting the wrong map overlays
+- **Offline cached map selection** works while disconnected so pre-mission planning can switch between any cached worlds
+- **Vehicle toggle reliability** no longer gets overridden by zoom-threshold auto-switch behavior
+- **Groups default OFF** to reduce initial map clutter and match requested startup behavior
+- **Cache warning accuracy** avoids false "No cached data" banners when the active world is already present in local cache
+- **Contour parity tuning** now follows Athena Desktop-style contour point trimming (world-scaled tolerance) instead of aggressive angle straightening, producing cleaner natural contour lines
 
 ### v0.0.3 highlights
 
@@ -60,16 +73,72 @@ This is v0.0.3 — the current active Web2 release line. It sharpens map renderi
 
 Use this when you want a one-file launcher with no dev setup.
 
-1. Download `AthenaWeb-0.0.3.exe` from this repository's release artifacts
-2. Run `AthenaWeb-0.0.3.exe`
-3. Open `http://localhost:3000`
-4. Start Arma 3 with the original Athena mod running (relay path)
+1. Open the `v0.0.4` release page: https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.4
+2. Under **Assets**, download `AthenaWeb-0.0.4.exe`
+3. Run `AthenaWeb-0.0.4.exe`
+4. Open `http://localhost:3000`
+5. Start Arma 3 with the original Athena mod running (relay path)
+
+If the browser page does not load, allow a few seconds for the EXE to start the bridge, then refresh once.
 
 What the EXE includes:
 
 - Built-in bridge server (HTTP + WebSocket)
 - Built-in precompiled web UI (`wwwroot`)
 - Built-in map cache health checks (`/api/health`) used by the in-app cache warning banner
+
+#### Windows 11 SmartScreen workaround ("Windows protected your PC")
+
+If Windows blocks the EXE on first launch:
+
+1. On the SmartScreen dialog, click **More info**
+2. Click **Run anyway**
+
+If **Run anyway** is missing or still blocked:
+
+1. Right-click `AthenaWeb-0.0.4.exe` -> **Properties**
+2. In the **General** tab, check **Unblock** (if shown)
+3. Click **Apply** then **OK**
+4. Launch the EXE again
+
+PowerShell alternative:
+
+```powershell
+Unblock-File -Path .\AthenaWeb-0.0.4.exe
+```
+
+Notes:
+
+- SmartScreen prompts are expected for unsigned/new binaries downloaded from the internet.
+- Always download the EXE from this repository's official GitHub Release page.
+
+#### Release maintainer checklist (GitHub)
+
+When publishing a new Web2 release, attach the EXE in the GitHub release so users can download it directly:
+
+1. Build the executable in `bridge/dist`
+2. Create a GitHub release tag (example: `v0.0.4`)
+3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.0.4.exe`)
+4. In release notes, include the Quick Start URL from this README and the SmartScreen workaround above
+5. Copy and adapt `.github/release-notes-template-v0.0.4.md` into the GitHub release description
+
+This keeps non-technical users on a one-download install path.
+
+### First-Time Map Export (required)
+
+When opening a map for the first time in Athena Web 2, you must use the original Athena Desktop export flow once for that map so static geometry is cached.
+
+![Athena Desktop first map usage export flow](Images/Athena%20Web%202%20First%20Map%20Usage.png)
+
+Per new map, do this once:
+
+1. Start Arma 3 with the original `@Athena - An Arma 2nd Screen Application` mod.
+2. Join a server running the target map.
+3. Open Athena Desktop and connect.
+4. Click `Export` in Athena Desktop.
+5. Restart `AthenaWeb-0.0.4.exe` and reopen `http://localhost:3000`.
+
+After export, Athena Web 2 can render roads, structures, trees, and other static layers for that map from local cache.
 
 ### Option B: Development mode (Node.js)
 

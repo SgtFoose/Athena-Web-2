@@ -10,6 +10,18 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-07 — v0.0.4 Contour Processing Parity (Desktop Trace)
+- Investigated Athena Desktop import progress stage `Processing world mesh and tracing contours` and confirmed it runs real contour generation after `mapend` (not a cosmetic status string).
+- Traced Desktop contour pipeline in decompiled source:
+  - `ProcessElevations()` -> `FillElevationCells()` -> `PopulateElevationPoints()`
+  - contour tracing via `MarchingSquare.DoMarch(...)`
+  - post-process trim via `MapHelper.TrimPoints(...)` (`SimplifyUtility` tolerance `5.0`)
+- Updated Web2 contour/coastline rendering in `ui/src/components/AthenaMap.tsx`:
+  - removed aggressive angle-straightening from contour/coastline lines
+  - introduced world-scaled simplification epsilon equivalent to Desktop trim tolerance (5m in world space)
+  - applied the same contour simplification tolerance to Z=0 coastline land-fill ring generation
+- Result: contour lines now retain more natural Desktop-like geometry while still reducing noisy points.
+
 ### 2026-04-07 — GitHub Release Distribution + First-Time Map Guidance
 - Published GitHub release `v0.0.4` and attached `AthenaWeb-0.0.4.exe` under release **Assets** for direct user download.
 - Updated release notes with explicit download/start flow and Windows 11 SmartScreen unblock guidance (`More info` -> `Run anyway`, plus `Unblock-File`).
