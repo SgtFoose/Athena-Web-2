@@ -25,6 +25,7 @@ This is v0.0.4 — the current active Web2 release line. It focuses on world/cac
 - **World swap cache safety** clears stale geometry on world changes and prevents old async responses from repainting the wrong map overlays
 - **Offline cached map selection** works while disconnected so pre-mission planning can switch between any cached worlds
 - **Vehicle toggle reliability** no longer gets overridden by zoom-threshold auto-switch behavior
+- **Vehicle icon mapping restored** relay class/category resolution now maps to Bus icon assets so vehicles no longer render as fallback question-mark symbols
 - **Groups default OFF** to reduce initial map clutter and match requested startup behavior
 - **Cache warning accuracy** avoids false "No cached data" banners when the active world is already present in local cache
 - **Contour parity tuning** now follows Athena Desktop-style contour point trimming (world-scaled tolerance) instead of aggressive angle straightening, producing cleaner natural contour lines

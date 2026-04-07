@@ -210,63 +210,6 @@ function contourSimplifyEpsilon(worldSize: number): number {
   return Math.max(0.008, normalized);
 }
 
-function normalizeAngleDeg(deg: number): number {
-  let out = deg % 360;
-  if (out < 0) out += 360;
-  return out;
-}
-
-function angularDiffDeg(a: number, b: number): number {
-  const da = normalizeAngleDeg(a);
-  const db = normalizeAngleDeg(b);
-  const d = Math.abs(da - db);
-  return d > 180 ? 360 - d : d;
-}
-
-function straightenPolylineSegments(
-  points: [number, number][],
-  toleranceDeg = 10,
-  minSegmentLen = 0.01,
-): [number, number][] {
-  if (points.length < 3) return points;
-
-  const out: [number, number][] = [points[0]];
-  for (let i = 1; i < points.length; i += 1) {
-    const prev = out[out.length - 1];
-    const cur = points[i];
-    const dLat = cur[0] - prev[0];
-    const dLng = cur[1] - prev[1];
-    const segLen = Math.hypot(dLat, dLng);
-    if (segLen < minSegmentLen) continue;
-
-    const angleDeg = normalizeAngleDeg((Math.atan2(dLat, dLng) * 180) / Math.PI);
-    const snappedDeg = normalizeAngleDeg(Math.round(angleDeg / 45) * 45);
-    const shouldSnap = angularDiffDeg(angleDeg, snappedDeg) <= toleranceDeg;
-
-    let nextPoint: [number, number] = cur;
-    if (shouldSnap) {
-      const rad = (snappedDeg * Math.PI) / 180;
-      nextPoint = [
-        prev[0] + Math.sin(rad) * segLen,
-        prev[1] + Math.cos(rad) * segLen,
-      ];
-    }
-
-    if (nextPoint[0] !== prev[0] || nextPoint[1] !== prev[1]) {
-      out.push(nextPoint);
-    }
-  }
-
-  if (out.length < 2) return points;
-  const srcLast = points[points.length - 1];
-  const outLast = out[out.length - 1];
-  if (outLast[0] !== srcLast[0] || outLast[1] !== srcLast[1]) {
-    out.push(srcLast);
-  }
-
-  return out;
-}
-
 interface TreeRecord {
   x: number;
   worldY: number;
@@ -982,13 +925,24 @@ function groupLabel(group: Group): string {
 }
 
 function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, string>): string {
-  const text = vehicleClass.toLowerCase();
+  const cls = (vehicleClass || '').trim();
+  const text = cls.toLowerCase();
 
   // Parachutes must never inherit helicopter mapping from the vehicle library.
   if (text.includes('parachute') || text.includes('chute')) return 'Parachutes';
 
-  const mapped = vehicleMap.get(vehicleClass);
+  const mapped = vehicleMap.get(cls) || vehicleMap.get(text);
   if (mapped) return mapped;
+  // High-confidence Arma naming fallbacks for cases where class libraries are unavailable.
+  if (/(wipeout|blackfish|neophron|buzzard|shikra|gryphon|to201|a149|falcon)/.test(text)) return 'Planes';
+  if (/(blackfoot|ghosthawk|mohawk|huron|orca|pawnee|taru|hellcat|ka60|ka62)/.test(text)) return 'Helicopters';
+  if (/(cheetah|tigris|praetorian|sam|aaa)/.test(text)) return 'AAs';
+  if (/(scorcher|sochor|sandstorm|mrls|mortar)/.test(text)) return 'Artillery';
+  if (/(panther|mora|kamysh|marshall|marid|gorgon|ifv|apc)/.test(text)) return 'APCs';
+  if (/(slammer|varsuk|kuma|mbt|tank|t140|t100)/.test(text)) return 'Tanks';
+  if (/(speedboat|assaultboat|rhib|motorboat|boat|ship|sdv|submarine)/.test(text)) return text.includes('sdv') || text.includes('sub') ? 'Submersibles' : 'Boats';
+  if (/(stomper|sentinel|drone|uav|ugv|pelican)/.test(text)) return 'Drones';
+  if (/(offroad|hunter|ifrit|strider|van|truck|zamak|tempest|hemtt|quadbike|mrap|lsv)/.test(text)) return 'Cars';
   if (text.includes('plane') || text.includes('jet')) return 'Planes';
   if (text.includes('heli')) return 'Helicopters';
   if (text.includes('uav') || text.includes('ugv') || text.includes('drone')) return 'Drones';

@@ -28,8 +28,14 @@ export function useAthenaLibrary() {
     ]).then(([vRes, lRes]) => {
       if (vRes.status === 'fulfilled') {
         const m = new Map<string, string>();
-        for (const entry of vRes.value as { Class: string; Category: string }[])
-          m.set(entry.Class, entry.Category);
+        for (const entry of vRes.value as { Class: string; Category: string }[]) {
+          const cls = String(entry.Class || '').trim();
+          const cat = String(entry.Category || '').trim();
+          if (!cls || !cat) continue;
+          // Keep original key and normalized lowercase key to survive relay casing variance.
+          m.set(cls, cat);
+          m.set(cls.toLowerCase(), cat);
+        }
         setVehicleMap(m);
       }
       if (lRes.status === 'fulfilled') {

@@ -49,6 +49,17 @@ function asString(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+function firstNonEmptyString(obj: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const raw = obj[key];
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      if (s) return s;
+    }
+  }
+  return '';
+}
+
 function mapWorldSize(worldName: string): number {
   const key = worldName.trim().toLowerCase();
   switch (key) {
@@ -134,9 +145,23 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
   for (const v of state.vehicles || []) {
     const id = asString(v.netid || v.netId || v.id);
     if (!id) continue;
+    const vehicleClass = firstNonEmptyString(v, [
+      'class',
+      'Class',
+      'classname',
+      'className',
+      'vehicleclass',
+      'vehicleClass',
+      'cfgClass',
+      'cfgclass',
+      'type',
+      'Type',
+      'displayName',
+      'name',
+    ]);
     vehicles[id] = {
       id,
-      class: asString(v.class || v.type),
+      class: vehicleClass,
       crew: [],
       posX: asNumber(v.posx || v.posX),
       posY: asNumber(v.posy || v.posY),
@@ -195,6 +220,7 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
 
 export function useAthenHub() {
   const wsRef = useRef<WebSocket | null>(null);
+  const hydrateRequestSeqRef = useRef(0);
   const [connected, setConnected] = useState(false);
   const [frame, setFrame] = useState<GameFrame | null>(null);
   const [worldInfo, setWorldInfo] = useState<WorldInfo | null>(null);
@@ -229,6 +255,29 @@ export function useAthenHub() {
   });
   const [shorelineRefreshToken, setShorelineRefreshToken] = useState(0);
 
+  const clearMapGeometry = useCallback(() => {
+    setRoads([]);
+    setForests(null);
+    setLocations([]);
+    setStructures([]);
+    setElevations(null);
+    setExportStatus({
+      phase: 'idle',
+      roadCount: 0,
+      roadsComplete: false,
+      treeCount: 0,
+      treesComplete: false,
+      forestCount: 0,
+      forestsComplete: false,
+      locationCount: 0,
+      locationsComplete: false,
+      structureCount: 0,
+      structuresComplete: false,
+      elevationCount: 0,
+      elevationsComplete: false,
+    });
+  }, []);
+
   const fetchCacheMode = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/game/cachemode`);
@@ -249,6 +298,9 @@ export function useAthenHub() {
   }, []);
 
   const hydrateGeometry = useCallback(async () => {
+    const requestSeq = hydrateRequestSeqRef.current + 1;
+    hydrateRequestSeqRef.current = requestSeq;
+
     const fetchJsonSafe = async <T,>(url: string, fallback: T): Promise<T> => {
       try {
         const res = await fetch(url);
@@ -269,6 +321,9 @@ export function useAthenHub() {
         fetchJsonSafe<ElevationsData | null>(`${API_BASE}/api/game/elevations`, null),
         fetchJsonSafe<ExportStatus | null>(`${API_BASE}/api/game/exportstatus`, null),
       ]);
+
+      // Ignore stale responses when a newer hydration request has started.
+      if (requestSeq !== hydrateRequestSeqRef.current) return;
 
       if (wi) setWorldInfo(wi);
       setRoads(Array.isArray(r) ? r : []);
@@ -364,6 +419,11 @@ export function useAthenHub() {
           // Hydrate once on first state, and again when the relay world changes.
           const relayWorld = mapped.worldInfo?.nameWorld || '';
           if (!hasHydrated || (relayWorld && relayWorld !== lastHydratedWorld)) {
+            // Prevent old-world overlays from lingering while new-world cache data loads.
+            if (relayWorld) {
+              clearMapGeometry();
+              setShorelineRefreshToken((prev) => prev + 1);
+            }
             hasHydrated = true;
             if (relayWorld) lastHydratedWorld = relayWorld;
             hydrateGeometry();
@@ -433,7 +493,7 @@ export function useAthenHub() {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, []);
+  }, [clearMapGeometry, hydrateGeometry]);
 
   useEffect(() => {
     hydrateGeometry();

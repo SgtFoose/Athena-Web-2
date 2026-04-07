@@ -10,6 +10,17 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-07 — v0.0.4 Vehicle Icon Mapping + EXE Embed Refresh
+- Investigated report where all vehicles rendered with question-mark fallback icon despite Bus icon assets being present.
+- Verified Bus original icon set under `Athena Desktop dnSpy/Athena Desktop/assets/map/vehicleicons` and Web2 packaged icon set under `ui/public/icons/vehicles` / `bridge/wwwroot/icons/vehicles` (79 icons).
+- Fixed Web2 vehicle icon resolution pipeline:
+  - normalized `vehicleClasses.json` map keys (original + lowercase)
+  - expanded relay vehicle class extraction to accept multiple key variants (`class`, `classname`, `vehicleClass`, `type`, `displayName`, etc.)
+  - added stronger class-name fallback heuristics to resolve known Arma vehicle families into Bus categories
+- Rebuilt UI and mirrored `ui/dist` to `bridge/wwwroot`.
+- Rebuilt standalone EXE with overwrite target `bridge/dist/AthenaWeb-0.0.4.exe` after releasing file lock from running process.
+- Updated GitHub release `v0.0.4` asset by replacing `AthenaWeb-0.0.4.exe` with rebuilt binary containing the mapping fix.
+
 ### 2026-04-07 — v0.0.4 Contour Processing Parity (Desktop Trace)
 - Investigated Athena Desktop import progress stage `Processing world mesh and tracing contours` and confirmed it runs real contour generation after `mapend` (not a cosmetic status string).
 - Traced Desktop contour pipeline in decompiled source:
