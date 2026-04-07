@@ -939,7 +939,7 @@ function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, st
   if (/(cheetah|tigris|praetorian|sam|aaa)/.test(text)) return 'AAs';
   if (/(scorcher|sochor|sandstorm|mrls|mortar)/.test(text)) return 'Artillery';
   if (/(panther|mora|kamysh|marshall|marid|gorgon|ifv|apc)/.test(text)) return 'APCs';
-  if (/(slammer|varsuk|kuma|mbt|tank|t140|t100)/.test(text)) return 'Tanks';
+  if (/(slammer|varsuk|kuma|mbt|tank|t140|t100|leopard|abrams|t72|t90|challenger)/.test(text)) return 'Tanks';
   if (/(speedboat|assaultboat|rhib|motorboat|boat|ship|sdv|submarine)/.test(text)) return text.includes('sdv') || text.includes('sub') ? 'Submersibles' : 'Boats';
   if (/(stomper|sentinel|drone|uav|ugv|pelican)/.test(text)) return 'Drones';
   if (/(offroad|hunter|ifrit|strider|van|truck|zamak|tempest|hemtt|quadbike|mrap|lsv)/.test(text)) return 'Cars';

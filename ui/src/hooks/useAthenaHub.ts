@@ -54,7 +54,11 @@ function firstNonEmptyString(obj: Record<string, unknown>, keys: string[]): stri
     const raw = obj[key];
     if (typeof raw === 'string') {
       const s = raw.trim();
-      if (s) return s;
+      if (!s) continue;
+      // Relay may send numeric category codes in `class` (e.g. "3").
+      // Skip numeric-only values and prefer real config class names.
+      if (/^\d+$/.test(s)) continue;
+      return s;
     }
   }
   return '';
@@ -146,16 +150,16 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
     const id = asString(v.netid || v.netId || v.id);
     if (!id) continue;
     const vehicleClass = firstNonEmptyString(v, [
-      'class',
-      'Class',
+      'type',
+      'Type',
       'classname',
       'className',
       'vehicleclass',
       'vehicleClass',
+      'class',
+      'Class',
       'cfgClass',
       'cfgclass',
-      'type',
-      'Type',
       'displayName',
       'name',
     ]);

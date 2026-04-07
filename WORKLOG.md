@@ -21,6 +21,12 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Rebuilt standalone EXE with overwrite target `bridge/dist/AthenaWeb-0.0.4.exe` after releasing file lock from running process.
 - Updated GitHub release `v0.0.4` asset by replacing `AthenaWeb-0.0.4.exe` with rebuilt binary containing the mapping fix.
 
+#### 2026-04-07 follow-up — root cause for `?` vehicle icons
+- Confirmed live relay vehicle payload schema used numeric category code in `class` (for example `"3"`) while actual config classname was present in `type`.
+- Updated vehicle class extraction to prefer `type`/`classname` keys before `class`, and to ignore numeric-only values.
+- Added broader fallback matching for common modded vehicle classnames (for example Leopard MBT family) when library lookup misses.
+- Rebuilt and re-uploaded `AthenaWeb-0.0.4.exe` release asset after this root-cause fix.
+
 ### 2026-04-07 — v0.0.4 Contour Processing Parity (Desktop Trace)
 - Investigated Athena Desktop import progress stage `Processing world mesh and tracing contours` and confirmed it runs real contour generation after `mapend` (not a cosmetic status string).
 - Traced Desktop contour pipeline in decompiled source:
