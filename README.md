@@ -8,7 +8,7 @@
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.5
 
-![Athena Web 2 v0.0.5 — Tanoa](Images/Athena%20Web%202%20v0.0.5.png)
+![Athena Web 2 v0.0.6 — I-TGT Workflow](Images/Athena%20Web%202%20v0.0.6.png)
 
 ## Latest Video
 
@@ -96,15 +96,27 @@ This is v0.0.6 — the current active Web2 release line. It focuses on Firewill-
 - **No custom DLL required** — uses Bus's original unmodified Athena mod and relay
 - **Phone/tablet support** — responsive layout for mobile viewing on local network
 
+## I-TGT TARGET WORKFLOW (v0.0.6)
+
+Use this flow to capture and manage Firewill-compatible I-TGT target codes:
+
+![Athena Web 2 v0.0.6 I-TGT usage](Images/Athena%20Web%202%20v0.0.6%20I-TGT.png)
+
+1. Move the cursor over the map and read the bottom-right `I-TGT: XXXXXXXX` value.
+2. Press `T` or click middle mouse button to store that target.
+3. Open the right `I-TGT TARGETS` panel entry to rename/copy/delete as needed.
+4. Use `Delete All` to clear the target list for a new run.
+5. Use the saved code in Firewill I-TGT strike workflow.
+
 ## QUICK START
 
 ### Option A: Standalone EXE (recommended)
 
 Use this when you want a one-file launcher with no dev setup.
 
-1. Open the `v0.0.5` release page: https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.5
-2. Under **Assets**, download `AthenaWeb-0.0.5.exe`
-3. Run `AthenaWeb-0.0.5.exe`
+1. Open the `v0.0.6` release page: https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.6
+2. Under **Assets**, download `AthenaWeb-0.0.6.exe`
+3. Run `AthenaWeb-0.0.6.exe`
 4. Open `http://localhost:3000`
 5. Start Arma 3 with the original Athena mod running (relay path)
 
@@ -125,7 +137,7 @@ If Windows blocks the EXE on first launch:
 
 If **Run anyway** is missing or still blocked:
 
-1. Right-click `AthenaWeb-0.0.5.exe` -> **Properties**
+1. Right-click `AthenaWeb-0.0.6.exe` -> **Properties**
 2. In the **General** tab, check **Unblock** (if shown)
 3. Click **Apply** then **OK**
 4. Launch the EXE again
@@ -133,7 +145,7 @@ If **Run anyway** is missing or still blocked:
 PowerShell alternative:
 
 ```powershell
-Unblock-File -Path .\AthenaWeb-0.0.5.exe
+Unblock-File -Path .\AthenaWeb-0.0.6.exe
 ```
 
 Notes:
@@ -146,10 +158,10 @@ Notes:
 When publishing a new Web2 release, attach the EXE in the GitHub release so users can download it directly:
 
 1. Build the executable in `bridge/dist`
-2. Create a GitHub release tag (example: `v0.0.5`)
-3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.0.5.exe`)
+2. Create a GitHub release tag (example: `v0.0.6`)
+3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.0.6.exe`)
 4. In release notes, include the Quick Start URL from this README and the SmartScreen workaround above
-5. Copy and adapt `.github/release-notes-template-v0.0.5.md` into the GitHub release description
+5. Copy and adapt `.github/release-notes-template-v0.0.6.md` into the GitHub release description
 
 This keeps non-technical users on a one-download install path.
 
@@ -165,7 +177,7 @@ Per new map, do this once:
 2. Join a server running the target map.
 3. Open Athena Desktop and connect.
 4. Click `Export` in Athena Desktop.
-5. Restart `AthenaWeb-0.0.5.exe` and reopen `http://localhost:3000`.
+5. Restart `AthenaWeb-0.0.6.exe` and reopen `http://localhost:3000`.
 
 After export, Athena Web 2 can render roads, structures, trees, and other static layers for that map from local cache.
 
