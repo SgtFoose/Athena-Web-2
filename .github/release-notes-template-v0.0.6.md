@@ -36,11 +36,14 @@ Unblock-File -Path .\AthenaWeb-0.0.6.exe
 ## v0.0.6 Highlights
 
 - Added Firewill-style 8-digit I-TGT coordinate output (`XXXXYYYY`) in the map cursor overlay
-- Added fast I-TGT capture actions (`T` hotkey and middle mouse click)
+- Added fast I-TGT capture actions (`T` hotkey, middle mouse click, and touch/tablet `SAVE TGT` flow)
 - Added persistent right-panel target list with rename, copy, delete, and Delete All actions
+- Updated I-TGT label behavior so labels start at `TGT_0` and reset to `TGT_0` after Delete All
 - Added labeled blue map triangle markers for saved I-TGT targets
 - Increased marker size slightly for improved in-map readability
 - Removed bottom-right overlay copy icon button to simplify target workflow
+- Fixed cross-map airport visual leak where yellow taxi overlays appeared on non-Malden cached maps
+- Added iPad Safari landscape spacing mitigation so top UI is not covered by browser chrome/favorites bar
 
 ## Notes
 
