@@ -1,5 +1,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --app-top-offset: env(safe-area-inset-top, 0px);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
 /* Keep raster overlays crisp, but allow anti-aliased vector coast/contour paths. */
 canvas { image-rendering: pixelated; }
 .leaflet-overlay-pane svg,
@@ -14,8 +22,21 @@ canvas { image-rendering: pixelated; }
   transform: translateZ(0);
 }
 
-body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, sans-serif; height: 100vh; overflow: hidden; }
-.app-shell { display: grid; grid-template-columns: 260px 1fr 220px; height: 100vh; }
+body {
+  background: #0d1117;
+  color: #e6edf3;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr 220px;
+  height: 100vh;
+  height: 100dvh;
+  padding-top: var(--app-top-offset);
+}
 .app-shell.left-collapsed { grid-template-columns: 0 1fr 220px; }
 .app-shell.right-collapsed { grid-template-columns: 260px 1fr 0; }
 .app-shell.left-collapsed.right-collapsed { grid-template-columns: 0 1fr 0; }
@@ -349,4 +370,12 @@ body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', system-ui, 
   .sidebar-header { padding: 8px 10px; }
   .logo-text { font-size: 12px; letter-spacing: 1.2px; }
   .donate-link { font-size: 9px; }
+}
+
+/* iPad Safari landscape can overlay page content with browser chrome/favorites.
+   Add an extra top offset on coarse-pointer landscape devices. */
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  :root {
+    --app-top-offset: max(env(safe-area-inset-top, 0px), 38px);
+  }
 }

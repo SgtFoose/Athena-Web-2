@@ -188,6 +188,7 @@ function App() {
   const [renderMode, setRenderMode] = useState<RenderMode>('2d')
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
+  const [isTouchInput, setIsTouchInput] = useState(false)
   const [followActivePlayer, setFollowActivePlayer] = useState(false)
   const [storedITgtTargets, setStoredITgtTargets] = useState<StoredITgtTarget[]>([])
   const itgtNextIndexRef = useRef(0)
@@ -309,6 +310,7 @@ function App() {
 
   const handleDeleteAllITgt = useCallback(() => {
     setStoredITgtTargets([])
+    itgtNextIndexRef.current = 0
   }, [])
 
   const handleCopyITgt = useCallback(async (code: string) => {
@@ -317,6 +319,24 @@ function App() {
     } catch {
       // no-op
     }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(pointer: coarse)')
+
+    const detectInput = () => {
+      const hasTouch = (navigator.maxTouchPoints ?? 0) > 0 || 'ontouchstart' in window
+      setIsTouchInput(Boolean(mq.matches && hasTouch))
+    }
+
+    detectInput()
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', detectInput)
+      return () => mq.removeEventListener('change', detectInput)
+    }
+    mq.addListener(detectInput)
+    return () => mq.removeListener(detectInput)
   }, [])
 
   useEffect(() => {
@@ -473,6 +493,7 @@ function App() {
             onUserInteraction={() => setFollowActivePlayer(false)}
             storedITgtTargets={storedITgtTargets}
             onStoreCursorITgt={handleStoreCursorITgt}
+            isTouchInput={isTouchInput}
           />
         </MapErrorBoundary>
         {exportStatus.phase !== 'idle' && (
@@ -519,7 +540,9 @@ function App() {
         <div className="panel-header">I-TGT TARGETS</div>
         <div style={{ padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
           <div style={{ color: '#8FA7C8', lineHeight: 1.45 }}>
-            Store current mouse map position: <strong>T</strong> or <strong>middle mouse button</strong>.
+            {isTouchInput
+              ? <>Touch mode: tap map to set cursor, then use <strong>SAVE TGT</strong> on the map overlay.</>
+              : <>Store current mouse map position: <strong>T</strong> or <strong>middle mouse button</strong>.</>}
           </div>
 
           {storedITgtTargets.length > 0 && (

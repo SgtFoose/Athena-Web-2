@@ -15,6 +15,22 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - start default labels at `TGT_0` (instead of starting from 1)
   - when `Delete All` is used, reset counter so next stored target is `TGT_0` again
 
+#### 2026-04-08 follow-up — Global Taxi Overlay Cleanup + Tablet I-TGT Capture
+- Fixed cross-map runway/taxi visual regression where yellow taxi centerline overlays leaked into cached worlds beyond Malden (for example Tanoa).
+  - removed the global yellow taxi-lane overlay pass from hide-tile rendering
+  - preserved neutral gray runway/taxi surface rendering for all cached maps
+- Added touch/tablet-compatible I-TGT capture workflow:
+  - detect coarse touch input at runtime and switch guidance text to touch mode
+  - allow cursor coordinate updates from map tap/click (not only mouse move)
+  - added in-map `SAVE TGT` action on touch input so target capture does not require keyboard `T` or middle mouse
+- Added iPad Safari landscape layout hardening:
+  - use dynamic viewport height (`dvh`) + safe-area top offset in shell layout
+  - add coarse-pointer landscape top offset so Safari favorites/browser chrome does not overlap top controls
+- Updated I-TGT target label sequencing behavior:
+  - first saved target label starts at `TGT_0`
+  - `Delete All` now resets label index so next saved target returns to `TGT_0`
+- Rebuilt and repackaged `AthenaWeb-0.0.6.exe` after validating UI build with the new tablet capture path.
+
 ### 2026-04-08 — v0.0.6 I-TGT Target Workflow + UI Polish
 - Added Firewill-compatible 8-digit I-TGT cursor coordinate output (`XXXXYYYY`) while keeping legacy XY readout visible.
 - Added map capture workflow for I-TGT targets:

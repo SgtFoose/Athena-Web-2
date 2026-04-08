@@ -10,11 +10,20 @@ All notable changes to Athena Web 2 will be documented in this file.
 - Added keyboard and mouse capture flow for I-TGT targets (`T` hotkey or middle mouse click) with a persistent right-panel target list
 - Added target management actions in the right panel: rename, per-target copy, per-target delete, and bulk Delete All
 - Added map rendering for stored I-TGT targets using blue tactical triangle markers with persistent labels
+- Added touch/tablet I-TGT capture workflow: tap map to set cursor and use in-map `SAVE TGT` action for storing targets without keyboard/middle mouse
+- Added iPad Safari landscape top-offset handling (`safe-area` + `dvh`) to keep top UI controls visible under browser chrome/favorites bar
 
 ### Changed
 
 - Increased on-map I-TGT triangle marker size for clearer visibility during target planning
 - Enlarged and simplified the bottom-right coordinate overlay for easier in-flight readability
+- Updated right-panel I-TGT guidance text to adapt automatically for touch input vs mouse/keyboard input
+- Updated I-TGT default label sequence behavior so first saved target is `TGT_0`
+
+### Fixed
+
+- Fixed cross-map airport visual regression where yellow taxi centerline overlays appeared on cached maps outside Malden; runway/taxi surfaces now remain neutral gray across all cached worlds
+- Fixed I-TGT label counter reset so using `Delete All` restarts new entries from `TGT_0`
 
 ### Removed
 

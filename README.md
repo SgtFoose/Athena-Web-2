@@ -24,10 +24,14 @@ This is v0.0.6 — the current active Web2 release line. It focuses on Firewill-
 
 - **Firewill I-TGT code output** map cursor now shows 8-digit I-TGT coordinates (`XXXXYYYY`) while keeping legacy `X/Y` readout visible
 - **Fast target capture flow** store current map cursor as a target using `T` or middle mouse click
+- **Touch/tablet I-TGT capture flow** tap map to set cursor then use in-map `SAVE TGT` action (no keyboard/middle mouse required)
 - **Right-panel target management** saved targets can be renamed, copied, deleted individually, or cleared with Delete All
+- **Predictable target labels** stored labels start at `TGT_0`, and `Delete All` resets the next saved label back to `TGT_0`
 - **Persistent map target markers** saved I-TGT entries render as labeled blue tactical triangles on the map
 - **Readability polish** stored target triangles are slightly larger for faster in-map scanning
 - **Bottom-right overlay simplification** removed overlay copy icon button; copy action remains available per target in the right sidebar
+- **Cross-map airport overlay fix** removed unintended yellow taxi-strip overlays leaking to non-Malden cached maps while preserving gray runway/taxi surfaces
+- **iPad Safari landscape spacing fix** added top offset and dynamic viewport handling so browser chrome/favorites no longer overlap top UI controls
 
 ### v0.0.5 highlights
 
@@ -104,9 +108,10 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 
 1. Move the cursor over the map and read the bottom-right `I-TGT: XXXXXXXX` value.
 2. Press `T` or click middle mouse button to store that target.
-3. Open the right `I-TGT TARGETS` panel entry to rename/copy/delete as needed.
-4. Use `Delete All` to clear the target list for a new run.
-5. Use the saved code in Firewill I-TGT strike workflow.
+3. On touch/tablet devices, tap map to set cursor and press `SAVE TGT` in the bottom-right overlay.
+4. Open the right `I-TGT TARGETS` panel entry to rename/copy/delete as needed.
+5. Use `Delete All` to clear the target list for a new run (next new label restarts at `TGT_0`).
+6. Use the saved code in Firewill I-TGT strike workflow.
 
 ![Athena Web 2 v0.0.6 Firewill I-TGT workflow](Images/Athena%20Web%202%20v0.0.6%20Firewill%20I-TGT.png)
 

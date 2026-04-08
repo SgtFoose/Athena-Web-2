@@ -1,6 +1,6 @@
 import { MapContainer, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, FiredEvent, FiredImpactEvent, ActiveLaze } from '../types/game';
 import { API_BASE } from '../apiBase';
@@ -3400,6 +3400,7 @@ interface MapProps {
   onUserInteraction?: () => void;
   storedITgtTargets?: StoredITgtTarget[];
   onStoreCursorITgt?: (target: { x: number; y: number; code: string }) => void;
+  isTouchInput?: boolean;
 }
 
 export type StoredITgtTarget = {
@@ -3552,9 +3553,9 @@ function CursorCoordinateBridge({
 
   useEffect(() => {
     const scale = 100 / worldSize;
-    const onMove = (e: L.LeafletMouseEvent) => {
-      const x = e.latlng.lng / scale;
-      const y = e.latlng.lat / scale;
+    const updateFromLatLng = (latlng: L.LatLng) => {
+      const x = latlng.lng / scale;
+      const y = latlng.lat / scale;
       const clampedX = Math.min(worldSize, Math.max(0, x));
       const clampedY = Math.min(worldSize, Math.max(0, y));
       let z: number | null = null;
@@ -3566,13 +3567,23 @@ function CursorCoordinateBridge({
       onChange({ x: clampedX, y: clampedY, z });
     };
 
+    const onMove = (e: L.LeafletMouseEvent) => {
+      updateFromLatLng(e.latlng);
+    };
+
+    const onClick = (e: L.LeafletMouseEvent) => {
+      updateFromLatLng(e.latlng);
+    };
+
     const onOut = () => onChange(null);
 
     map.on('mousemove', onMove);
+    map.on('click', onClick);
     map.on('mouseout', onOut);
 
     return () => {
       map.off('mousemove', onMove);
+      map.off('click', onClick);
       map.off('mouseout', onOut);
     };
   }, [map, worldSize, elevLookup, onChange]);
@@ -3739,6 +3750,7 @@ export function AthenaMap({
   onUserInteraction,
   storedITgtTargets = [],
   onStoreCursorITgt,
+  isTouchInput = false,
 }: MapProps) {
   const bounds: L.LatLngBoundsExpression = [[0, 0], [100, 100]];
   const [projectileDebugEntries, setProjectileDebugEntries] = useState<ProjectileDebugEntry[]>([]);
@@ -3757,6 +3769,11 @@ export function AthenaMap({
     if (!cursorCoords) return '--------';
     return toITgt8(cursorCoords.x, cursorCoords.y);
   }, [cursorCoords]);
+
+  const storeCursorITgt = useCallback(() => {
+    if (!onStoreCursorITgt || !cursorCoords) return;
+    onStoreCursorITgt({ x: cursorCoords.x, y: cursorCoords.y, code: toITgt8(cursorCoords.x, cursorCoords.y) });
+  }, [onStoreCursorITgt, cursorCoords]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -3906,6 +3923,31 @@ export function AthenaMap({
       {cursorCoords
         ? `X:${cursorCoords.x.toFixed(2)} Y:${cursorCoords.y.toFixed(2)}${cursorCoords.z !== null ? ` Z:${cursorCoords.z.toFixed(1)}` : ''}`
         : 'X:-- Y:--'}
+      {isTouchInput && onStoreCursorITgt && (
+        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <button
+            type="button"
+            onClick={storeCursorITgt}
+            disabled={!cursorCoords}
+            style={{
+              border: '1px solid rgba(183,196,222,0.6)',
+              borderRadius: 4,
+              background: cursorCoords ? 'rgba(31,58,116,0.92)' : 'rgba(55,55,60,0.65)',
+              color: cursorCoords ? '#EAF1FF' : '#A7ACB8',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 0.2,
+              padding: '5px 8px',
+              cursor: cursorCoords ? 'pointer' : 'not-allowed',
+            }}
+          >
+            SAVE TGT
+          </button>
+          <div style={{ color: '#B7C4DE', fontSize: 11 }}>
+            Tap map to set cursor, then Save.
+          </div>
+        </div>
+      )}
     </div>
     </div>
   );
