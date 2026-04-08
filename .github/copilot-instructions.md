@@ -50,6 +50,13 @@ When shipping Web2 updates, update at minimum:
 - relevant `WORKLOG.md` timeline entry
 - `ui/src/version.ts` (`APP_VERSION`)
 
+## Dist + Release Sync Rule (Required)
+- Keep `bridge/dist` and GitHub Release assets synchronized for every published `v0.x` release.
+- If `bridge/dist` tracks a versioned EXE, it must match the current release version (example: `bridge/dist/AthenaWeb-0.0.5.exe` for `v0.0.5`).
+- Do not leave a previous-version tracked EXE in `bridge/dist` after a release version bump.
+- Ensure the GitHub Release for that tag uses the same versioned EXE filename under **Assets**.
+- Keep `.github/release-notes-template-vX.Y.Z.md` aligned with the same version and download filename used in `bridge/dist` and the release page.
+
 ## Documentation Sync Rule (Always-On)
 - Keep user-facing and release-tracking docs up-to-date whenever behavior, packaging, setup, or release flow changes.
 - Required sync targets for shipped changes:
