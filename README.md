@@ -2,13 +2,13 @@
 
 > Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-**Version: v0.0.4**
+**Version: v0.0.5**
 
-**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.4.exe`
+**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.5.exe`
 
-**Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.4
+**Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.5
 
-![Athena Web 2 v0.0.4 — Tanoa](Images/Athena%20Web%202%20v0.0.4.png)
+![Athena Web 2 v0.0.5 — Tanoa](Images/Athena%20Web%202%20v0.0.5.png)
 
 ## Latest Video
 
@@ -18,7 +18,19 @@
 
 Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This is v0.0.4 — the current active Web2 release line. It focuses on world/cache switching reliability and map-layer control behavior parity.
+This is v0.0.5 — the current active Web2 release line. It focuses on vehicle icon completeness, map alignment correctness across world swaps, and final airport surface rendering parity polish.
+
+### v0.0.5 highlights
+
+- **Stratis alignment fix** shoreline, roads, structures, and location labels now keep correct overlay alignment after world swaps by using hydrated world-size metadata before relay fallbacks
+- **Stratis fallback size fix** relay fallback now uses the correct Stratis world size (`8192`) to avoid pre-hydration scale drift
+- **Vehicle icon coverage pass** expanded classname heuristics for a wider set of vehicles (including modded/common families) to reduce unknown icon fallback cases
+- **No more question-mark fallback default** unknown vehicle classes now render a generic vehicle silhouette instead of the question-mark icon
+- **Arma-style drone/turret markers** all drone and turret categories now use Athena Desktop NATO marker textures (with subtype-specific radar/mortar/art/support mapping)
+- **AI vehicle fallback badge** generic AI-only relay classes (for example `*_UAV_AI`) now display an `AI` badge when specific platform identity is unavailable
+- **Quadbike marker correction** quad bikes now render as 4-wheel vehicle icons instead of 2-wheel motorcycle symbols
+- **Malden airport surface parity fix** taxi-lane paths now render without recoloring nearby normal roads around the airfield
+- **iPad-friendly fullscreen workflow** both sidebars now have collapse/expand edge buttons so map view can be maximized on tablet resolutions
 
 ### v0.0.4 highlights
 
@@ -81,9 +93,9 @@ This is v0.0.4 — the current active Web2 release line. It focuses on world/cac
 
 Use this when you want a one-file launcher with no dev setup.
 
-1. Open the `v0.0.4` release page: https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.4
-2. Under **Assets**, download `AthenaWeb-0.0.4.exe`
-3. Run `AthenaWeb-0.0.4.exe`
+1. Open the `v0.0.5` release page: https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.5
+2. Under **Assets**, download `AthenaWeb-0.0.5.exe`
+3. Run `AthenaWeb-0.0.5.exe`
 4. Open `http://localhost:3000`
 5. Start Arma 3 with the original Athena mod running (relay path)
 
@@ -104,7 +116,7 @@ If Windows blocks the EXE on first launch:
 
 If **Run anyway** is missing or still blocked:
 
-1. Right-click `AthenaWeb-0.0.4.exe` -> **Properties**
+1. Right-click `AthenaWeb-0.0.5.exe` -> **Properties**
 2. In the **General** tab, check **Unblock** (if shown)
 3. Click **Apply** then **OK**
 4. Launch the EXE again
@@ -112,7 +124,7 @@ If **Run anyway** is missing or still blocked:
 PowerShell alternative:
 
 ```powershell
-Unblock-File -Path .\AthenaWeb-0.0.4.exe
+Unblock-File -Path .\AthenaWeb-0.0.5.exe
 ```
 
 Notes:
@@ -125,10 +137,10 @@ Notes:
 When publishing a new Web2 release, attach the EXE in the GitHub release so users can download it directly:
 
 1. Build the executable in `bridge/dist`
-2. Create a GitHub release tag (example: `v0.0.4`)
-3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.0.4.exe`)
+2. Create a GitHub release tag (example: `v0.0.5`)
+3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.0.5.exe`)
 4. In release notes, include the Quick Start URL from this README and the SmartScreen workaround above
-5. Copy and adapt `.github/release-notes-template-v0.0.4.md` into the GitHub release description
+5. Copy and adapt `.github/release-notes-template-v0.0.5.md` into the GitHub release description
 
 This keeps non-technical users on a one-download install path.
 
@@ -144,7 +156,7 @@ Per new map, do this once:
 2. Join a server running the target map.
 3. Open Athena Desktop and connect.
 4. Click `Export` in Athena Desktop.
-5. Restart `AthenaWeb-0.0.4.exe` and reopen `http://localhost:3000`.
+5. Restart `AthenaWeb-0.0.5.exe` and reopen `http://localhost:3000`.
 
 After export, Athena Web 2 can render roads, structures, trees, and other static layers for that map from local cache.
 

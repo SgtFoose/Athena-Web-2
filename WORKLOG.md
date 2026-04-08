@@ -10,6 +10,72 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-08 — v0.0.5 Vehicle Icon Coverage + Stratis Alignment Fix
+- Investigated report after high-density vehicle placement where some vehicle markers still fell back to question-mark icon rendering.
+- Updated vehicle classification fallback in `ui/src/components/AthenaMap.tsx`:
+  - expanded classname heuristics for additional common/modded families (helis, jets, APC/IFV, MBT, trucks/cars, boats)
+  - changed unknown icon fallback from `iconvehicle` (question-mark visual) to `iconcar` generic silhouette
+  - broadened truck/motorbike subtype checks for category-to-icon mapping
+- Investigated Stratis world swap misalignment where shoreline/roads/objects/location labels appeared shifted downward relative to land.
+- Fixed world-size source precedence in `ui/src/App.tsx`:
+  - prefer hydrated cache/static world metadata (`activeWorldInfo/staticInfo`) before relay fallback size
+  - prevents stale fallback scale from distorting static-layer positioning
+- Added explicit Stratis world-size fallback (`8192`) in `ui/src/hooks/useAthenaHub.ts` to reduce pre-hydration scale drift.
+- Synced release metadata/docs for `v0.0.5`:
+  - `ui/src/version.ts`
+  - `README.md`
+  - `CHANGELOG.md`
+  - `.github/release-notes-template-v0.0.5.md`
+
+#### 2026-04-08 follow-up — ArmaTools UAV/Radar Marker Overrides
+- Applied requested marker improvements for specific UAV/radar-class vehicles that still rendered generic icons:
+  - `B_UAV_02_dynamicLoadout_F` (Greyhawk)
+  - `B_UAV_05_F` (UCAV Sentinel)
+  - `B_UGV_01_F` (UGV Stomper)
+  - `B_T_UAV_03_dynamicLoadout_F` (MQ-12 Falcon)
+  - `B_UAV_06_F`, `B_UAV_06_medical_F` (AL-6 Pelican)
+  - `B_Radar_System_01_F` (AN/MPQ-105)
+  - `B_Ship_MRLS_01_F` (VLS/Ship MRLS)
+- Updated `ui/src/components/AthenaMap.tsx` icon pipeline:
+  - side-aware NATO marker mask overrides now use Athena Desktop marker textures (`*_uav`, `*_installation`, `*_art`) for these classes/categories
+  - Turret MRLS subclasses now resolve to artillery-style marker/icon path instead of default static MG fallback
+
+#### 2026-04-08 follow-up — Universal Drone/Turret Arma Markers + iPad UX
+- Expanded marker policy to use Arma-style NATO marker textures for all Drone and Turret categories (not only per-class exceptions):
+  - drones/UAV/UGV -> `*_uav`
+  - turret radar -> `*_installation`
+  - turret mortar -> `*_mortar`
+  - turret naval/SAM/AAA -> `*_art`
+  - turret generic support weapons -> `*_support`
+- Added generic AI fallback badge in marker renderer for classes like `*_UAV_AI` when specific platform identity is unavailable.
+- Fixed quadbike icon regression where `quadbike` was being matched by generic `bike` logic and rendered as motorcycle.
+- Investigated Malden airport taxi-lane gap using live cache dimensions:
+  - confirmed `hide` tiles are 20x20 runway/apron squares
+  - identified nearby `RoadType=3` zero-width segments used for taxi-lane centerlines
+  - added runway-adjacent taxi-lane detection and high-contrast taxi-lane rendering so lanes are visible over airport surfaces
+- Added collapsible left and right sidebar controls in app shell for tablet (including iPad Mini) so users can maximize map viewport as needed.
+
+#### 2026-04-08 follow-up — Release Polish Adjustments
+- Moved collapse/expand buttons from map-middle placement to top-edge placement on each sidebar boundary for faster access.
+- Restored Groups layer default to ON after user report that group markers were not visible in normal startup flow.
+- Removed Waypoints toggle from sidebar layer controls for this release because the feature is not functioning in Web2 parity mode.
+- Retuned Malden taxi-lane detection by increasing runway-adjacent matching distance for zero-width road centerlines.
+- Finalized Malden taxi-lane fix by broadening classifier to include midpoint/either-end runway adjacency and rendering taxi lanes as paved high-contrast strips instead of subtle centerlines.
+- Added aggressive fallback pass for Malden airport lanes:
+  - expanded runway-proximity search radius for zero-width road segments
+  - constrained candidate segment lengths to reduce false positives
+  - switched lane styling to bright high-contrast yellow for unambiguous visibility during validation
+- Follow-up refinement after user validation:
+  - tightened taxi-lane classifier to strict runway-near segments within airport bounds
+  - reverted lane tint from yellow to neutral concrete to prevent nearby normal roads from being recolored
+- Reworked taxi-lane approach after further validation:
+  - removed road-segment recoloring override (it affected normal roads near airports)
+  - detect taxi-lane candidates from hide-tile topology (sparse/linear hide neighborhoods)
+  - render taxi tiles with subtle concrete lane contrast + centerline overlay inside airport surfaces
+- Final user validation pass:
+  - confirmed airport-adjacent normal roads are back to standard styling (no unwanted recolor)
+  - accepted this state as final for `v0.0.5` release packaging and publication
+
 ### 2026-04-07 - v0.0.4 Final World-Swap Guard + Release Sync
 - Added bridge live-frame freshness timeout behavior so live map state expires when relay is connected but telemetry is stale (for example Arma Editor idle):
   - `bridge/server.js` now tracks `lastLiveFrameAt`

@@ -80,6 +80,7 @@ function mapWorldSize(worldName: string): number {
     case 'tanoa': return 15360;
     case 'malden': return 12800;
     case 'enoch': return 12800;
+    case 'stratis': return 8192;
     default: return 10240;
   }
 }

@@ -2,6 +2,40 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.0.5] — 2026-04-08
+
+### Fixed
+
+- Fixed Stratis static-layer misalignment after world swaps where shoreline, roads, structures, and location labels rendered shifted toward the bottom due to incorrect world-size fallback precedence
+- Fixed Stratis world-size fallback in relay-frame world mapping (`8192`) to prevent scale drift before cache world metadata hydrates
+- Fixed remaining missing vehicle icon cases by expanding classname fallback heuristics for modded/common families (helis, jets, APC/IFV, MBT, trucks/cars, boats)
+- Fixed fallback vehicle icon behavior so unknown classes no longer render as question-mark symbols
+- Fixed UAV/radar-class marker parity for key assets (Greyhawk, Sentinel, Stomper, Falcon, Pelican, AN/MPQ-105, Ship MRLS) by applying Athena Desktop NATO marker textures (`*_uav`, `*_installation`, `*_art`) instead of generic plane/static MG fallback
+- Fixed quad-bike icon mapping so quadbike classes no longer render as two-wheel motorcycle icons
+- Fixed Malden airport taxi-lane rendering by switching to hide-tile topology detection with centerline overlays while keeping nearby normal roads unchanged
+- Fixed drone/turret consistency by applying Arma-style NATO marker textures for all drone and turret categories (with subtype-specific turret symbols)
+- Added AI fallback badge behavior so generic AI-only vehicle classes (for example `*_UAV_AI`) render a visible `AI` tag when specific class detail is unavailable
+
+### Changed
+
+- Added collapsible left/right sidebar controls to improve map visibility and usability on iPad Mini/tablet resolutions
+- Moved sidebar collapse/expand controls to the top edge of each map-side border for quicker tablet access
+- Restored group marker visibility by enabling Groups layer by default at startup
+- Hid non-functional Waypoints layer toggle from UI for this Web2 release line
+
+### Tweaked
+
+- Increased airport taxi-lane detection radius for runway-adjacent zero-width road segments so Malden taxi lanes render reliably
+- Updated airport taxi-lane styling from subtle centerline to high-contrast paved strip rendering for better visibility on Malden
+- Expanded airport taxi-lane classification fallback (runway proximity + segment-length constraints) and switched to bright high-contrast lane color to ensure lanes remain visible on Malden
+- Tightened airport taxi-lane classifier (airport-bounds + strict runway-near segment criteria) and changed lane tint to neutral concrete to avoid recoloring normal roads around the airfield
+- Switched Malden taxi-lane rendering to hide-tile topology detection (lane-like hide strips with centerline overlay), removing normal-road recoloring around the airport
+
+### Documentation
+
+- Updated release metadata/docs for `v0.0.5` in README, worklog, and release notes template
+- Finalized `v0.0.5` as release-ready after validation that airport-adjacent normal roads render with standard styling
+
 ## [0.0.4] — 2026-04-07
 
 ### Changed

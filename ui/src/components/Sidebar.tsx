@@ -349,7 +349,6 @@ function CommonPanel({
           { key: 'structures', label: 'Structures' },
           { key: 'locations',  label: 'Locations' },
           { key: 'groups',     label: 'Groups' },
-          { key: 'waypoints',  label: 'Waypoints' },
           { key: 'vehicles',   label: 'Vehicles' },
           { key: 'units',      label: 'Units' },
         ] as { key: keyof LayerVisibility; label: string }[]).map(({ key, label }) => (

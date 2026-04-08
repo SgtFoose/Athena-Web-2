@@ -140,9 +140,10 @@ function App() {
   // Load pre-computed Athena Desktop cache (contour lines + metadata) for the active world
   const { staticInfo, contours } = useStaticMap(world || null)
 
-  // worldSize: prefer live SignalR data, fall back to static Athena Desktop cache, then default
+  // worldSize: prefer cached/static map metadata first to avoid relay fallback-size drift
+  // (for example Stratis reported as 10240 before worldinfo hydration), then live fallback.
   const worldSize = hasActiveWorld
-    ? (frame?.world?.size ?? activeWorldInfo?.size ?? staticInfo?.worldSize ?? 10240)
+    ? (activeWorldInfo?.size ?? staticInfo?.worldSize ?? frame?.world?.size ?? 10240)
     : 10240
 
   const mapRoads = hasMatchingGeometry ? roads : []
@@ -177,7 +178,7 @@ function App() {
     roads:      true,
     structures: true,
     locations:  true,
-    groups:     false,
+    groups:     true,
     waypoints:  true,
     lazes:      true,
     projectiles:true,
@@ -185,6 +186,8 @@ function App() {
     units:      false,
   })
   const [renderMode, setRenderMode] = useState<RenderMode>('2d')
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
   const [followActivePlayer, setFollowActivePlayer] = useState(false)
   const [mapSessionKey, setMapSessionKey] = useState(0)
   const previousWorldRef = useRef('')
@@ -292,8 +295,8 @@ function App() {
   }, [connected, world])
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
+    <div className={`app-shell ${leftSidebarCollapsed ? 'left-collapsed' : ''} ${rightSidebarCollapsed ? 'right-collapsed' : ''}`}>
+      <aside className={`sidebar ${leftSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <span className="logo-text">ATHENA REMASTERED</span>
           <span className="header-right">
@@ -336,6 +339,22 @@ function App() {
         />
       </aside>
       <main className="map-area">
+        <button
+          className={`sidebar-toggle left ${leftSidebarCollapsed ? 'collapsed' : ''}`}
+          type="button"
+          onClick={() => setLeftSidebarCollapsed(prev => !prev)}
+          title={leftSidebarCollapsed ? 'Expand left sidebar' : 'Collapse left sidebar'}
+        >
+          {leftSidebarCollapsed ? '>' : '<'}
+        </button>
+        <button
+          className={`sidebar-toggle right ${rightSidebarCollapsed ? 'collapsed' : ''}`}
+          type="button"
+          onClick={() => setRightSidebarCollapsed(prev => !prev)}
+          title={rightSidebarCollapsed ? 'Expand right sidebar' : 'Collapse right sidebar'}
+        >
+          {rightSidebarCollapsed ? '<' : '>'}
+        </button>
         {/* Welcome overlay shown when no world has been loaded yet */}
         {!hasActiveWorld && (
           <div className="welcome-overlay">
@@ -456,7 +475,7 @@ function App() {
           </div>
         )}
       </main>
-      <aside className="event-panel">
+      <aside className={`event-panel ${rightSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="panel-header">EVENTS</div>
         <div style={{ padding: '12px 8px', color: '#666', fontSize: 12, textAlign: 'center' }}>
           <p style={{ margin: '0 0 8px', color: '#888' }}>Event tracking (kills &amp; shots) requires the Athena Remastered extension DLL and is not available in ClientOnly mode.</p>

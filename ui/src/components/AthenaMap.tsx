@@ -1140,6 +1140,12 @@ function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, st
   if (/(speedboat|assaultboat|rhib|motorboat|boat|ship|sdv|submarine)/.test(text)) return text.includes('sdv') || text.includes('sub') ? 'Submersibles' : 'Boats';
   if (/(stomper|sentinel|drone|uav|ugv|pelican)/.test(text)) return 'Drones';
   if (/(offroad|hunter|ifrit|strider|van|truck|zamak|tempest|hemtt|quadbike|mrap|lsv)/.test(text)) return 'Cars';
+  if (/(\buh[-_]?\d+|\bah[-_]?\d+|\bmh[-_]?\d+|\bmi[-_]?\d+|\bka[-_]?\d+|\bch[-_]?\d+|\bmv[-_]?\d+)/.test(text)) return 'Helicopters';
+  if (/(\bsu[-_]?\d+|\bmig[-_]?\d+|\bf[-_]?\d+|\ba[-_]?\d+|\bav[-_]?\d+|\bjet\b)/.test(text)) return 'Planes';
+  if (/(\bbmp\b|\bbtr\b|\bbrdm\b|\bm113\b|\bifv\b|\bapc\b)/.test(text)) return 'APCs';
+  if (/(\bmbt\b|\bt[-_]?\d+\b|\bm1a\d+\b|\bleopard\b|\babrams\b|\btank\b)/.test(text)) return 'Tanks';
+  if (/(\bural\b|\bkamaz\b|\bm939\b|\bmtvr\b|\btruck\b|\bcar\b|\bmrap\b|\bjeep\b|\bhumvee\b|\bhmmwv\b|\bquad\b)/.test(text)) return 'Cars';
+  if (/(\bboat\b|\brhib\b|\bship\b|\bcutter\b|\bpatrol\b)/.test(text)) return 'Boats';
   if (text.includes('plane') || text.includes('jet')) return 'Planes';
   if (text.includes('heli')) return 'Helicopters';
   if (text.includes('uav') || text.includes('ugv') || text.includes('drone')) return 'Drones';
@@ -1207,7 +1213,13 @@ function categoryToIconFile(category: string, vehicleClass?: string): string {
   const cl = (vehicleClass ?? '').toLowerCase();
   switch (category) {
     case 'Parachutes':    return 'iconparachute';
-    case 'Cars':          return cl.includes('truck') ? 'icontruck' : cl.includes('motorcycle') ? 'iconmotorcycle' : 'iconcar';
+    case 'Cars':          return cl.includes('quad') || cl.includes('quadbike')
+      ? 'iconcar'
+      : (cl.includes('truck') || cl.includes('zamak') || cl.includes('tempest') || cl.includes('hemtt') || cl.includes('m939') || cl.includes('ural') || cl.includes('kamaz'))
+      ? 'icontruck'
+      : (cl.includes('motorcycle') || cl.includes('motorbike') || cl.includes('bike'))
+        ? 'iconmotorcycle'
+        : 'iconcar';
     case 'APCs':          return 'iconapc';
     case 'Tanks':         return 'icontank';
     case 'Helicopters':   return 'iconhelicopter';
@@ -1217,23 +1229,65 @@ function categoryToIconFile(category: string, vehicleClass?: string): string {
     case 'AAs':           return 'iconapc';  // Desktop: AAs inherit tank/APC, show as APC
     case 'Submersibles':  return 'iconship';
     case 'Drones':        return 'iconplane'; // Desktop: drones use plane icon
-    case 'Turrets':       return 'iconstaticmg';
-    default:              return 'iconvehicle';
+    case 'Turrets':       return cl.includes('ship_mrls') || cl.includes('mrls') ? 'iconstaticcannon' : 'iconstaticmg';
+    default:              return 'iconcar';
   }
 }
 
-function vehicleIconHtml(category: string, color: string, dir: number, size: number, vehicleClass?: string): string {
+function natoVehicleMarkerPath(vehicleClass: string | undefined, side: string, category: string): string | null {
+  const cls = (vehicleClass ?? '').toLowerCase();
+  const sidePrefix = natoSidePrefix(side);
+
+  // Arma/Athena Desktop style: all drones use dedicated UAV NATO marker.
+  if (category === 'Drones' || /\buav_\d+|\bugv_\d+|greyhawk|sentinel|stomper|falcon|pelican/.test(cls)) {
+    return `/icons/nato/${sidePrefix}_uav.png`;
+  }
+
+  // Arma/Athena Desktop style: turret-like assets use NATO-style installation/support/art symbols.
+  if (category === 'Turrets') {
+    const subtype = resolveTurretSubtype(cls);
+    if (subtype === 'radar') return `/icons/nato/${sidePrefix}_installation.png`;
+    if (subtype === 'mortar') return `/icons/nato/${sidePrefix}_mortar.png`;
+    if (subtype === 'naval' || subtype === 'sam' || subtype === 'aaa') return `/icons/nato/${sidePrefix}_art.png`;
+    return `/icons/nato/${sidePrefix}_support.png`;
+  }
+
+  if (cls.includes('radar_system') || cls.includes('_radar_') || cls.includes('radar')) {
+    return `/icons/nato/${sidePrefix}_installation.png`;
+  }
+  if (cls.includes('ship_mrls') || cls.includes('_mrls_') || cls.includes('vls')) {
+    return `/icons/nato/${sidePrefix}_art.png`;
+  }
+
+  return null;
+}
+
+function isAIGenericVehicleClass(vehicleClass?: string): boolean {
+  const cls = (vehicleClass ?? '').trim().toLowerCase();
+  if (!cls) return false;
+  return cls === 'b_uav_ai' || cls === 'o_uav_ai' || cls === 'i_uav_ai' || cls.endsWith('_uav_ai') || cls.endsWith('_ugv_ai') || /(^|[_\-])ai($|[_\-])/.test(cls);
+}
+
+function vehicleIconHtml(category: string, color: string, dir: number, size: number, vehicleClass?: string, side = 'unknown'): string {
   const icon = categoryToIconFile(category, vehicleClass);
-  return `<div style="width:${size}px;height:${size}px;` +
+  const natoMarkerPath = natoVehicleMarkerPath(vehicleClass, side, category);
+  const maskPath = natoMarkerPath ?? `/icons/vehicles/${icon}.png`;
+  const aiBadge = isAIGenericVehicleClass(vehicleClass)
+    ? `<div style="position:absolute;right:-2px;bottom:-4px;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,0.82);border:1px solid rgba(255,255,255,0.55);color:#fff;font-size:9px;font-weight:800;line-height:1;letter-spacing:0.3px;">AI</div>`
+    : '';
+  return `<div style="position:relative;width:${size}px;height:${size}px;">` +
+    `<div style="width:${size}px;height:${size}px;` +
     `background-color:${color};` +
-    `-webkit-mask-image:url(/icons/vehicles/${icon}.png);` +
-    `mask-image:url(/icons/vehicles/${icon}.png);` +
+    `-webkit-mask-image:url(${maskPath});` +
+    `mask-image:url(${maskPath});` +
     `-webkit-mask-size:contain;mask-size:contain;` +
     `-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;` +
     `-webkit-mask-position:center;mask-position:center;` +
     `transform:rotate(${dir}deg);transform-origin:center;` +
     `filter:drop-shadow(1px 0 0 rgba(0,0,0,0.6)) drop-shadow(-1px 0 0 rgba(0,0,0,0.6)) drop-shadow(0 1px 0 rgba(0,0,0,0.6)) drop-shadow(0 -1px 0 rgba(0,0,0,0.6));` +
-    `"></div>`;
+    `"></div>` +
+    aiBadge +
+    `</div>`;
 }
 
 function vehicleSvg(category: string, color: string, dir: number, vehicleClass?: string): string {
@@ -1582,7 +1636,7 @@ function vehicleIcon(vehicle: Vehicle, units: Record<string, Unit>, category: st
     className:  '',
     iconSize:   [size, size],
     iconAnchor: [size / 2, size / 2],
-    html: vehicleIconHtml(category, color, dir, size, vehicle.class),
+    html: vehicleIconHtml(category, color, dir, size, vehicle.class, side),
   });
 }
 
@@ -2495,6 +2549,14 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     // Collect airport surfaces and render them first as base pavement.
     const airportRoads: Road[] = [];
     const pathHidePoints: [number, number][] = [];
+    const hideCentersWorld: Array<{ x: number; y: number }> = [];
+
+    roads.forEach(road => {
+      if (road.type.toLowerCase() !== 'hide' || road.width <= 0 || road.length <= 0) return;
+      const cx = road.posX ? road.posX : (road.beg1X + road.end2X) / 2;
+      const cy = road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2;
+      hideCentersWorld.push({ x: cx, y: cy });
+    });
 
     roads.forEach(road => {
       // Airport surfaces  collect for later
@@ -2517,24 +2579,66 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     });
 
     // Pass 1: airport surface tiles first (base layer)
+    const snap = (v: number) => Math.round(v / 20) * 20;
+    const approxEq = (a: number, b: number, tol = 3.5) => Math.abs(a - b) <= tol;
+    const hasHideAt = (x: number, y: number) => hideCentersWorld.some(p => approxEq(p.x, x) && approxEq(p.y, y));
+
+    const isTaxiHideTile = (road: Road): boolean => {
+      const cx = road.posX ? road.posX : (road.beg1X + road.end2X) / 2;
+      const cy = road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2;
+      const sx = snap(cx);
+      const sy = snap(cy);
+      const n = hasHideAt(sx, sy + 20);
+      const s = hasHideAt(sx, sy - 20);
+      const e = hasHideAt(sx + 20, sy);
+      const w = hasHideAt(sx - 20, sy);
+      const count = Number(n) + Number(s) + Number(e) + Number(w);
+      // Lane-like strips are usually linear (1-2 neighbors), runway/apron masses have denser neighborhoods.
+      return count >= 1 && count <= 2;
+    };
+
     airportRoads.forEach(road => {
       if (isPathLikeHideTile(road)) {
         pathHidePoints.push(hidePathPoint(road, scale));
         return;
       }
       const latlngs = rotatedRoadRect(road, scale);
-      const hideStyle = hideSurfaceStyle(road);
+      const taxiLike = isTaxiHideTile(road);
+      const hideStyle = taxiLike
+        ? { fillColor: '#D4D4D4', lineColor: '#B8B8B8' }
+        : hideSurfaceStyle(road);
       L.polygon(latlngs, {
         fillColor:   hideStyle.fillColor,
         fillOpacity: 1,
         color:       hideStyle.lineColor,
-        weight:      0,
-        stroke:      false,
+        weight:      taxiLike ? 0.7 : 0,
+        stroke:      taxiLike,
         opacity:     1,
         interactive: false,
         pane:        'athena-road',
         renderer:    canvas,
       }).addTo(roadLayerRef.current);
+
+      if (taxiLike) {
+        const cx = (road.posX ? road.posX : (road.beg1X + road.end2X) / 2) * scale;
+        const cy = (road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2) * scale;
+        const angle = (road.dir * Math.PI) / 180;
+        const half = Math.max(3.8, Math.min(7.8, (Number(road.length) || 20) * scale * 0.34));
+        const dx = Math.sin(angle) * half;
+        const dy = Math.cos(angle) * half;
+        L.polyline(
+          [[cy - dy, cx - dx], [cy + dy, cx + dx]],
+          {
+            color: '#EFE39A',
+            weight: 1.4,
+            opacity: 0.95,
+            lineCap: 'round',
+            interactive: false,
+            pane: 'athena-road',
+            renderer: canvas,
+          }
+        ).addTo(roadLayerRef.current);
+      }
     });
 
     // Pass 2: all black borders (drawn first = behind colored road fills)
