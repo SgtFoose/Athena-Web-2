@@ -6,7 +6,7 @@
 
 **Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.6.exe`
 
-**Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.6
+**Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/latest
 
 ![Athena Web 2 v0.0.6 — I-TGT Workflow](Images/Athena%20Web%202%20v0.0.6.png)
 

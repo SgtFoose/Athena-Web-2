@@ -2624,27 +2624,6 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
         pane:        'athena-road',
         renderer:    canvas,
       }).addTo(roadLayerRef.current);
-
-      if (taxiLike) {
-        const cx = (road.posX ? road.posX : (road.beg1X + road.end2X) / 2) * scale;
-        const cy = (road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2) * scale;
-        const angle = (road.dir * Math.PI) / 180;
-        const half = Math.max(3.8, Math.min(7.8, (Number(road.length) || 20) * scale * 0.34));
-        const dx = Math.sin(angle) * half;
-        const dy = Math.cos(angle) * half;
-        L.polyline(
-          [[cy - dy, cx - dx], [cy + dy, cx + dx]],
-          {
-            color: '#EFE39A',
-            weight: 1.4,
-            opacity: 0.95,
-            lineCap: 'round',
-            interactive: false,
-            pane: 'athena-road',
-            renderer: canvas,
-          }
-        ).addTo(roadLayerRef.current);
-      }
     });
 
     // Pass 2: all black borders (drawn first = behind colored road fills)
