@@ -124,7 +124,7 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 
 Use this when you want a one-file launcher with no dev setup.
 
-1. Open the `v0.0.6` release page: https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.6
+1. Open the latest release page: https://github.com/SgtFoose/Athena-Web-2/releases/latest
 2. Under **Assets**, download `AthenaWeb-0.0.6.exe`
 3. Run `AthenaWeb-0.0.6.exe`
 4. Open `http://localhost:3000`
