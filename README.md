@@ -4,7 +4,7 @@
 
 **Version: v0.0.6**
 
-**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.6-preview3.exe`
+**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.6.exe`
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.5
 
