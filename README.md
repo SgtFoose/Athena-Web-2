@@ -108,6 +108,8 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 4. Use `Delete All` to clear the target list for a new run.
 5. Use the saved code in Firewill I-TGT strike workflow.
 
+![Athena Web 2 v0.0.6 Firewill I-TGT workflow](Images/Athena%20Web%202%20v0.0.6%20Firewill%20I-TGT.png)
+
 ## QUICK START
 
 ### Option A: Standalone EXE (recommended)

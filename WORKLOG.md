@@ -10,6 +10,11 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-08 — v0.0.7 To-Do Queue
+- Target label index behavior for stored I-TGT entries:
+  - start default labels at `TGT_0` (instead of starting from 1)
+  - when `Delete All` is used, reset counter so next stored target is `TGT_0` again
+
 ### 2026-04-08 — v0.0.6 I-TGT Target Workflow + UI Polish
 - Added Firewill-compatible 8-digit I-TGT cursor coordinate output (`XXXXYYYY`) while keeping legacy XY readout visible.
 - Added map capture workflow for I-TGT targets:
