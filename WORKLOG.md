@@ -10,6 +10,29 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-08 — v0.0.6 I-TGT Target Workflow + UI Polish
+- Added Firewill-compatible 8-digit I-TGT cursor coordinate output (`XXXXYYYY`) while keeping legacy XY readout visible.
+- Added map capture workflow for I-TGT targets:
+  - keyboard capture with `T` (guarded to avoid firing while typing in input/textarea/contenteditable)
+  - middle mouse capture on map
+- Added persistent I-TGT target management in right sidebar:
+  - default target labels (`TGT_n`)
+  - per-target rename
+  - per-target copy code
+  - per-target delete
+  - bulk Delete All action
+- Added stored I-TGT map annotations:
+  - dark blue triangle markers with labels
+  - pane ordering tuned to keep markers readable while remaining below city/dynamic marker layers
+- Applied final usability polish pass:
+  - slightly increased stored target marker size for readability
+  - removed bottom-right I-TGT copy icon button per UX request (copy remains in right-panel target entries)
+- Updated release/version tracking for `v0.0.6` in:
+  - `ui/src/version.ts`
+  - `CHANGELOG.md`
+  - `README.md`
+  - `.github/release-notes-template-v0.0.6.md`
+
 ### 2026-04-08 — v0.0.5 Vehicle Icon Coverage + Stratis Alignment Fix
 - Investigated report after high-density vehicle placement where some vehicle markers still fell back to question-mark icon rendering.
 - Updated vehicle classification fallback in `ui/src/components/AthenaMap.tsx`:

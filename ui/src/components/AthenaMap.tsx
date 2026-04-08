@@ -641,6 +641,12 @@ function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
 }
 
+function toITgt8(x: number, y: number): string {
+  const x4 = Math.max(0, Math.min(9999, Math.floor(x / 10))).toString().padStart(4, '0');
+  const y4 = Math.max(0, Math.min(9999, Math.floor(y / 10))).toString().padStart(4, '0');
+  return `${x4}${y4}`;
+}
+
 function normDeg(deg: number): number {
   let d = deg % 360;
   if (d < 0) d += 360;
@@ -3413,7 +3419,17 @@ interface MapProps {
   onRegisterFocus?: (fn: (posX: number, posY: number) => void) => void;
   onRegisterPan?: (fn: (posX: number, posY: number) => void) => void;
   onUserInteraction?: () => void;
+  storedITgtTargets?: StoredITgtTarget[];
+  onStoreCursorITgt?: (target: { x: number; y: number; code: string }) => void;
 }
+
+export type StoredITgtTarget = {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  code: string;
+};
 
 const DEFAULT_MAP_CENTER: [number, number] = [50, 50];
 const DEFAULT_MAP_ZOOM = 4;
@@ -3585,6 +3601,103 @@ function CursorCoordinateBridge({
   return null;
 }
 
+function ITgtCaptureBridge({
+  cursorCoords,
+  onStoreCursorITgt,
+}: {
+  cursorCoords: { x: number; y: number; z: number | null } | null;
+  onStoreCursorITgt: (target: { x: number; y: number; code: string }) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const storeCurrent = () => {
+      if (!cursorCoords) return;
+      onStoreCursorITgt({ x: cursorCoords.x, y: cursorCoords.y, code: toITgt8(cursorCoords.x, cursorCoords.y) });
+    };
+
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.repeat) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
+      if (ev.key.toLowerCase() === 't') {
+        storeCurrent();
+      }
+    };
+
+    const onMouseDown = (e: L.LeafletMouseEvent) => {
+      const button = (e.originalEvent as MouseEvent | undefined)?.button;
+      if (button !== 1) return;
+      e.originalEvent?.preventDefault();
+      storeCurrent();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    map.on('mousedown', onMouseDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      map.off('mousedown', onMouseDown);
+    };
+  }, [map, cursorCoords, onStoreCursorITgt]);
+
+  return null;
+}
+
+function ITgtMarkerLayer({
+  targets,
+  worldSize,
+}: {
+  targets: StoredITgtTarget[];
+  worldSize: number;
+}) {
+  const map = useMap();
+  const layerRef = useRef<L.LayerGroup | null>(null);
+
+  useEffect(() => {
+    const pane = map.getPane('athena-itgt') ?? map.createPane('athena-itgt');
+    pane.style.zIndex = '590';
+    pane.style.pointerEvents = 'none';
+
+    const layer = L.layerGroup().addTo(map);
+    layerRef.current = layer;
+    return () => {
+      map.removeLayer(layer);
+      layerRef.current = null;
+    };
+  }, [map]);
+
+  useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer) return;
+    layer.clearLayers();
+    const scale = 100 / worldSize;
+    targets.forEach(target => {
+      const ll: [number, number] = [target.y * scale, target.x * scale];
+      L.marker(ll, {
+        pane: 'athena-itgt',
+        interactive: false,
+        icon: L.divIcon({
+          className: '',
+          iconSize: [22, 22],
+          iconAnchor: [11, 20],
+          html:
+            `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">` +
+            `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" style="display:block;">` +
+            `<polygon points="10,2 18,17 2,17" fill="#133B98" stroke="#B5CEFF" stroke-width="1" />` +
+            `</svg>` +
+            `<div style="font-family:Consolas, 'Lucida Console', monospace;font-size:11px;font-weight:700;color:#E7EFFF;white-space:nowrap;` +
+            `text-shadow:-1px 0 0 rgba(0,0,0,0.9),1px 0 0 rgba(0,0,0,0.9),0 -1px 0 rgba(0,0,0,0.9),0 1px 0 rgba(0,0,0,0.9);">${escapeHtml(target.label)}</div>` +
+            `</div>`,
+        }),
+      })
+        .bindTooltip(`<b>${escapeHtml(target.label)}</b><br>${target.code}`, { sticky: true })
+        .addTo(layer);
+    });
+  }, [targets, worldSize]);
+
+  return null;
+}
+
 // Keep startup/world-switch rendering deterministic: force Leaflet to recalc size,
 // then restore the canonical map center/zoom used when a world is freshly loaded.
 function StartupRecenterControl({ world, worldSize }: { world: string; worldSize: number }) {
@@ -3645,6 +3758,8 @@ export function AthenaMap({
   onRegisterFocus,
   onRegisterPan,
   onUserInteraction,
+  storedITgtTargets = [],
+  onStoreCursorITgt,
 }: MapProps) {
   const bounds: L.LatLngBoundsExpression = [[0, 0], [100, 100]];
   const [projectileDebugEntries, setProjectileDebugEntries] = useState<ProjectileDebugEntry[]>([]);
@@ -3658,6 +3773,11 @@ export function AthenaMap({
     }
     return { m, step };
   }, [elevations]);
+
+  const iTgtCoordinate = useMemo(() => {
+    if (!cursorCoords) return '--------';
+    return toITgt8(cursorCoords.x, cursorCoords.y);
+  }, [cursorCoords]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -3680,6 +3800,8 @@ export function AthenaMap({
       {(onRegisterFocus || onRegisterPan) && <FocusBridge worldSize={worldSize} onRegisterFocus={onRegisterFocus} onRegisterPan={onRegisterPan} />}
       {onUserInteraction && <UserInteractionBridge onInteraction={onUserInteraction} />}
       <CursorCoordinateBridge worldSize={worldSize} elevLookup={elevLookup} onChange={setCursorCoords} />
+      {onStoreCursorITgt && <ITgtCaptureBridge cursorCoords={cursorCoords} onStoreCursorITgt={onStoreCursorITgt} />}
+      <ITgtMarkerLayer targets={storedITgtTargets} worldSize={worldSize} />
       <LayerManager
         units={units}
         vehicles={vehicles}
@@ -3788,17 +3910,20 @@ export function AthenaMap({
         right: 12,
         bottom: 12,
         zIndex: 1200,
-        pointerEvents: 'none',
-        padding: '5px 8px',
+        pointerEvents: 'auto',
+        padding: '8px 10px',
         borderRadius: 6,
         background: 'rgba(10,10,12,0.72)',
         border: '1px solid rgba(220,220,220,0.25)',
         color: '#f2f2ec',
-        fontSize: 11,
+        fontSize: 14,
         fontFamily: 'Consolas, "Lucida Console", monospace',
         fontVariantNumeric: 'tabular-nums',
       }}
     >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        <span style={{ color: '#FFCD7E', fontSize: 16, fontWeight: 700, letterSpacing: 0.4 }}>I-TGT:{iTgtCoordinate}</span>
+      </div>
       {cursorCoords
         ? `X:${cursorCoords.x.toFixed(2)} Y:${cursorCoords.y.toFixed(2)}${cursorCoords.z !== null ? ` Z:${cursorCoords.z.toFixed(1)}` : ''}`
         : 'X:-- Y:--'}

@@ -1,6 +1,6 @@
 import { Component, useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
-import { AthenaMap }   from './components/AthenaMap'
+import { AthenaMap, type StoredITgtTarget }   from './components/AthenaMap'
 import { Sidebar }     from './components/Sidebar'
 import { MapCacheBanner } from './components/MapCacheBanner'
 import { useAthenHub } from './hooks/useAthenaHub'
@@ -189,6 +189,8 @@ function App() {
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
   const [followActivePlayer, setFollowActivePlayer] = useState(false)
+  const [storedITgtTargets, setStoredITgtTargets] = useState<StoredITgtTarget[]>([])
+  const itgtNextIndexRef = useRef(0)
   const [mapSessionKey, setMapSessionKey] = useState(0)
   const previousWorldRef = useRef('')
   const previousConnectedRef = useRef(false)
@@ -280,6 +282,42 @@ function App() {
     setMapSessionKey(prev => prev + 1)
     requestWorldExport('world')
   }, [requestWorldExport])
+
+  const handleStoreCursorITgt = useCallback((target: { x: number; y: number; code: string }) => {
+    const idx = itgtNextIndexRef.current++
+    const defaultLabel = `TGT_${idx}`
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+    setStoredITgtTargets(prev => [
+      {
+        id,
+        label: defaultLabel,
+        x: target.x,
+        y: target.y,
+        code: target.code,
+      },
+      ...prev,
+    ])
+  }, [])
+
+  const handleRenameITgt = useCallback((id: string, nextLabel: string) => {
+    setStoredITgtTargets(prev => prev.map(t => t.id === id ? { ...t, label: nextLabel } : t))
+  }, [])
+
+  const handleDeleteITgt = useCallback((id: string) => {
+    setStoredITgtTargets(prev => prev.filter(t => t.id !== id))
+  }, [])
+
+  const handleDeleteAllITgt = useCallback(() => {
+    setStoredITgtTargets([])
+  }, [])
+
+  const handleCopyITgt = useCallback(async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+    } catch {
+      // no-op
+    }
+  }, [])
 
   useEffect(() => {
     const worldKey = world || ''
@@ -433,6 +471,8 @@ function App() {
             onRegisterFocus={(fn) => { mapFocusRef.current = fn }}
             onRegisterPan={(fn) => { mapPanRef.current = fn }}
             onUserInteraction={() => setFollowActivePlayer(false)}
+            storedITgtTargets={storedITgtTargets}
+            onStoreCursorITgt={handleStoreCursorITgt}
           />
         </MapErrorBoundary>
         {exportStatus.phase !== 'idle' && (
@@ -476,9 +516,104 @@ function App() {
         )}
       </main>
       <aside className={`event-panel ${rightSidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="panel-header">EVENTS</div>
-        <div style={{ padding: '12px 8px', color: '#666', fontSize: 12, textAlign: 'center' }}>
-          <p style={{ margin: '0 0 8px', color: '#888' }}>Event tracking (kills &amp; shots) requires the Athena Remastered extension DLL and is not available in ClientOnly mode.</p>
+        <div className="panel-header">I-TGT TARGETS</div>
+        <div style={{ padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
+          <div style={{ color: '#8FA7C8', lineHeight: 1.45 }}>
+            Store current mouse map position: <strong>T</strong> or <strong>middle mouse button</strong>.
+          </div>
+
+          {storedITgtTargets.length > 0 && (
+            <button
+              type="button"
+              onClick={handleDeleteAllITgt}
+              style={{
+                alignSelf: 'flex-start',
+                border: '1px solid #6E3B49',
+                borderRadius: 4,
+                background: '#2B1319',
+                color: '#FFB9C7',
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 700,
+                padding: '4px 8px',
+              }}
+            >
+              Delete All
+            </button>
+          )}
+
+          {storedITgtTargets.length === 0 ? (
+            <div style={{ color: '#7A8796', fontSize: 12 }}>No stored I-TGT coordinates yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 'calc(100vh - 180px)', overflowY: 'auto', paddingRight: 2 }}>
+              {storedITgtTargets.map(target => (
+                <div
+                  key={target.id}
+                  style={{
+                    border: '1px solid #2C3C53',
+                    borderRadius: 6,
+                    background: 'rgba(11, 17, 30, 0.75)',
+                    padding: 6,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      value={target.label}
+                      onChange={(e) => handleRenameITgt(target.id, e.target.value)}
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        background: '#101827',
+                        border: '1px solid #364963',
+                        color: '#DDE9FF',
+                        borderRadius: 4,
+                        fontSize: 12,
+                        padding: '4px 6px',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      title="Copy I-TGT code"
+                      onClick={() => void handleCopyITgt(target.code)}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        border: '1px solid #4D6382',
+                        borderRadius: 4,
+                        background: '#142239',
+                        color: '#DDE9FF',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ⧉
+                    </button>
+                    <button
+                      type="button"
+                      title="Delete target"
+                      onClick={() => handleDeleteITgt(target.id)}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        border: '1px solid #6E3B49',
+                        borderRadius: 4,
+                        background: '#2B1319',
+                        color: '#FFB9C7',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div style={{ color: '#FFCD7E', fontFamily: 'Consolas, "Lucida Console", monospace', fontSize: 14, fontWeight: 700 }}>
+                    {target.code}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
     </div>

@@ -2,9 +2,9 @@
 
 > Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-**Version: v0.0.5**
+**Version: v0.0.6**
 
-**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.5.exe`
+**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.6-preview3.exe`
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/tag/v0.0.5
 
@@ -18,7 +18,16 @@
 
 Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This is v0.0.5 — the current active Web2 release line. It focuses on vehicle icon completeness, map alignment correctness across world swaps, and final airport surface rendering parity polish.
+This is v0.0.6 — the current active Web2 release line. It focuses on Firewill-compatible I-TGT coordinate workflow and map target management usability while preserving Web2 relay compatibility.
+
+### v0.0.6 highlights
+
+- **Firewill I-TGT code output** map cursor now shows 8-digit I-TGT coordinates (`XXXXYYYY`) while keeping legacy `X/Y` readout visible
+- **Fast target capture flow** store current map cursor as a target using `T` or middle mouse click
+- **Right-panel target management** saved targets can be renamed, copied, deleted individually, or cleared with Delete All
+- **Persistent map target markers** saved I-TGT entries render as labeled blue tactical triangles on the map
+- **Readability polish** stored target triangles are slightly larger for faster in-map scanning
+- **Bottom-right overlay simplification** removed overlay copy icon button; copy action remains available per target in the right sidebar
 
 ### v0.0.5 highlights
 

@@ -2,6 +2,24 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.0.6] — 2026-04-08
+
+### Added
+
+- Added Firewill-style I-TGT 8-digit coordinate readout (`XXXXYYYY`) to the map cursor overlay while preserving legacy XY coordinate display
+- Added keyboard and mouse capture flow for I-TGT targets (`T` hotkey or middle mouse click) with a persistent right-panel target list
+- Added target management actions in the right panel: rename, per-target copy, per-target delete, and bulk Delete All
+- Added map rendering for stored I-TGT targets using blue tactical triangle markers with persistent labels
+
+### Changed
+
+- Increased on-map I-TGT triangle marker size for clearer visibility during target planning
+- Enlarged and simplified the bottom-right coordinate overlay for easier in-flight readability
+
+### Removed
+
+- Removed the bottom-right overlay copy-to-clipboard icon/button (copy remains available from stored target entries in the right panel)
+
 ## [0.0.5] — 2026-04-08
 
 ### Fixed

@@ -35,7 +35,7 @@ Architecture: **Bridge** (Node.js relay protocol adapter) -> **UI** (React + Vit
 - Keep docs in this repo scoped to `v0.x` language only.
 - Preserve existing Web2 UI look-and-feel, but do not import Remastered-specific backend assumptions.
 - Keep unresolved release blockers in `WORKLOG.md` with exact repro coordinates when available.
-- Current status: v0.0.5 finalized with Stratis alignment fixes, expanded icon parity, and Malden airport road/taxi-lane parity pass; no active map-render blocker is pinned. If a new visual parity issue appears, record exact coordinates and world in `WORKLOG.md` immediately.
+- Current status: v0.0.6 active with Firewill I-TGT coordinate capture workflow and right-panel target management; no active map-render blocker is pinned. If a new visual parity issue appears, record exact coordinates and world in `WORKLOG.md` immediately.
 
 ## Structure
 - `bridge/`: relay TCP client, REST API, WebSocket broadcast
