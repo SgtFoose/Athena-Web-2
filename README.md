@@ -109,6 +109,9 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 1. Move the cursor over the map and read the bottom-right `I-TGT: XXXXXXXX` value.
 2. Press `T` or click middle mouse button to store that target.
 3. On touch/tablet devices, tap map to set cursor and press `SAVE TGT` in the bottom-right overlay.
+
+![Athena Web 2 I-TGT Tablet](Images/Athena%20Web%202%20I-TGT%20Tablet.PNG)
+
 4. Open the right `I-TGT TARGETS` panel entry to rename/copy/delete as needed.
 5. Use `Delete All` to clear the target list for a new run (next new label restarts at `TGT_0`).
 6. Use the saved code in Firewill I-TGT strike workflow.
