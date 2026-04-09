@@ -56,6 +56,10 @@ When shipping Web2 updates, update at minimum:
 - Do not leave a previous-version tracked EXE in `bridge/dist` after a release version bump.
 - Ensure the GitHub Release for that tag uses the same versioned EXE filename under **Assets**.
 - Keep `.github/release-notes-template-vX.Y.Z.md` aligned with the same version and download filename used in `bridge/dist` and the release page.
+- Treat this as a parity gate: release is not complete until local `bridge/dist` artifacts and GitHub Release asset refer to the same version and same binary payload.
+- Keep `bridge/dist/AthenaWeb-<version>.exe` and `bridge/dist/AthenaWeb.exe` in sync with the same built output for that release cycle.
+- Keep `repo_dist_contents.json` updated to the current tracked versioned EXE path/size/blob SHA after each release publish or asset replacement.
+- When replacing a GitHub Release asset, verify parity by comparing local SHA256 of `bridge/dist/AthenaWeb-<version>.exe` with the release asset digest before closing the release task.
 
 ## Documentation Sync Rule (Always-On)
 - Keep user-facing and release-tracking docs up-to-date whenever behavior, packaging, setup, or release flow changes.
