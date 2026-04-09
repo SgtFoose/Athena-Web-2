@@ -2,6 +2,19 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.0.7] — 2026-04-09
+
+### Fixed
+
+- Fixed offline contour/coastline rendering quality on smaller cached worlds (for example Stratis) by reducing over-aggressive geometry simplification so shorelines and contours remain smooth in offline map mode
+- Fixed stale live marker carry-over after online -> offline transition by suppressing non-live entity rendering when live telemetry is unavailable (vehicles, units, groups)
+- Fixed online -> offline session residue by clearing stored I-TGT targets when the app leaves live telemetry mode and returns to splash/offline flow
+
+### Changed
+
+- Updated I-TGT workflow docs to include Firewill mod Workshop reference link in README
+- Updated release/version references across README and app versioning for `v0.0.7`
+
 ## [0.0.6] — 2026-04-08
 
 ### Added

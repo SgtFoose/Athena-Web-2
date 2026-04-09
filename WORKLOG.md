@@ -14,6 +14,25 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Target label index behavior for stored I-TGT entries:
   - start default labels at `TGT_0` (instead of starting from 1)
   - when `Delete All` is used, reset counter so next stored target is `TGT_0` again
+- Offline static map parity for coastline/contour rendering on cache-backed worlds (for example Stratis):
+  - improve shoreline and terrain contour line quality/smoothing in offline mode to match Tanoa-level visual finish
+  - verify no jagged/rough contour or coastline artifacts after switching into offline maps
+- Online -> offline session cleanup behavior:
+  - when Athena Splash appears after disconnect/offline transition, clear all stored I-TGT markers/entries from the active map session
+  - clear live dynamic markers (vehicles, units, groups) so switching between offline maps does not show stale online entities
+
+#### 2026-04-09 follow-up — v0.0.7 Offline Smoothing + Live->Offline Cleanup
+- Implemented offline contour/coastline smoothing tuning in `ui/src/components/AthenaMap.tsx`:
+  - reduced contour simplification tolerance for smaller worlds to preserve curved line detail
+  - added dedicated tighter coastline simplification tolerance and applied it to both land-fill ring generation and Z=0 coastline rendering
+- Implemented live-to-offline cleanup hardening in `ui/src/App.tsx`:
+  - dynamic live marker datasets (units/vehicles/groups/lazes) are now gated behind active live telemetry availability
+  - when live telemetry drops (online -> offline), clear stored I-TGT targets and reset next target label index
+  - reset follow-active-player state and bump map session key on live telemetry loss to prevent stale session carry-over
+- Updated release/version docs for `v0.0.7` in:
+  - `ui/src/version.ts`
+  - `README.md`
+  - `CHANGELOG.md`
 
 #### 2026-04-08 follow-up — Global Taxi Overlay Cleanup + Tablet I-TGT Capture
 - Fixed cross-map runway/taxi visual regression where yellow taxi centerline overlays leaked into cached worlds beyond Malden (for example Tanoa).

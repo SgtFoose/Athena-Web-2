@@ -369,12 +369,19 @@ function simplifyClosedRing(points: [number, number][], epsilon: number): [numbe
 }
 
 function contourSimplifyEpsilon(worldSize: number): number {
-  // Athena Desktop trims contour points after scaling by world cell size
-  // with SimplifyUtility tolerance 5.0 world meters.
-  // Convert that tolerance into this map's normalized 0..100 coordinate space.
-  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.02;
-  const normalized = (5 * 100) / worldSize;
-  return Math.max(0.008, normalized);
+  // Keep contour detail higher on smaller worlds (for example Stratis)
+  // so offline lines retain smooth curvature instead of angular trimming.
+  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.012;
+  const normalized = (2.5 * 100) / worldSize;
+  return Math.max(0.004, Math.min(0.02, normalized));
+}
+
+function coastlineSimplifyEpsilon(worldSize: number): number {
+  // Coastline rings need tighter tolerance than inland contours to avoid
+  // visible stair-step artifacts along shore edges.
+  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.007;
+  const normalized = (1.2 * 100) / worldSize;
+  return Math.max(0.0025, Math.min(0.012, normalized));
 }
 
 interface TreeRecord {
@@ -2080,7 +2087,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const z0 = contours.find(c => c.z === 0);
       if (z0 && z0.lines.length > 0) {
         const scale = 100 / worldSize;
-        const contourEpsilon = contourSimplifyEpsilon(worldSize);
+        const coastEpsilon = coastlineSimplifyEpsilon(worldSize);
         const rings: L.LatLngExpression[][] = z0.lines
           .map(flat => {
             const pts: L.LatLngExpression[] = [];
@@ -2088,7 +2095,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
               // [lat=Y, lng=X] in normalised 0..100 map space
               pts.push([flat[i + 1] * scale, flat[i] * scale]);
             }
-            return simplifyClosedRing(pts as [number, number][], contourEpsilon) as L.LatLngExpression[];
+            return simplifyClosedRing(pts as [number, number][], coastEpsilon) as L.LatLngExpression[];
           })
           .filter(r => r.length >= 3);
 
@@ -2444,6 +2451,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     if (contours.length === 0) return;
     const scale = 100 / worldSize;
     const contourEpsilon = contourSimplifyEpsilon(worldSize);
+    const coastEpsilon = coastlineSimplifyEpsilon(worldSize);
     contours.forEach(cl => {
       const style = contourStyle(cl.z);
       // Each ContourLine.lines entry is a flat [x0,y0,x1,y1,...] array.
@@ -2463,7 +2471,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       // above forests and land fill, with a crisp outer + inner stroke.
       if (cl.z === 0) {
         const coastLatLngs = latlngs
-          .map(line => simplifyClosedRing(line, contourEpsilon))
+          .map(line => simplifyClosedRing(line, coastEpsilon))
           .filter(line => line.length >= 2);
         // Bus exact: Z=0 coastline = MediumBlue, stroke 0.75
         L.polyline(coastLatLngs, {

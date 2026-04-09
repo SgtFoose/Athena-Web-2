@@ -93,13 +93,14 @@ function App() {
     requestWorldExport,
   } = useAthenHub()
 
-  const units    = frame?.units    ?? {}
-  const vehicles = frame?.vehicles ?? {}
-  const groups   = frame?.groups   ?? {}
-  const lazes    = frame?.lazes    ?? []
   const liveWorld = connected
     ? (frame?.world?.nameWorld ?? frame?.mission?.world ?? '')
     : ''
+  const hasLiveTelemetry = connected && liveWorld.length > 0
+  const units    = hasLiveTelemetry ? (frame?.units    ?? {}) : {}
+  const vehicles = hasLiveTelemetry ? (frame?.vehicles ?? {}) : {}
+  const groups   = hasLiveTelemetry ? (frame?.groups   ?? {}) : {}
+  const lazes    = hasLiveTelemetry ? (frame?.lazes    ?? []) : []
   // User-selected world for pre-planning; auto-cleared when live game sends a world
   const [userSelectedWorld, setUserSelectedWorld] = useState('')
   const world     = liveWorld || userSelectedWorld || ''
@@ -195,6 +196,7 @@ function App() {
   const [mapSessionKey, setMapSessionKey] = useState(0)
   const previousWorldRef = useRef('')
   const previousConnectedRef = useRef(false)
+  const hadLiveTelemetryRef = useRef(false)
 
   const toggleLayer = (key: keyof LayerVisibility) =>
     setLayers(prev => ({ ...prev, [key]: !prev[key] }))
@@ -351,6 +353,18 @@ function App() {
     previousConnectedRef.current = connected
     previousWorldRef.current = worldKey
   }, [connected, world])
+
+  useEffect(() => {
+    const justLostLiveTelemetry = !hasLiveTelemetry && hadLiveTelemetryRef.current
+    if (justLostLiveTelemetry) {
+      // Entering offline/splash mode should start from a clean tactical session.
+      setStoredITgtTargets([])
+      itgtNextIndexRef.current = 0
+      setFollowActivePlayer(false)
+      setMapSessionKey(prev => prev + 1)
+    }
+    hadLiveTelemetryRef.current = hasLiveTelemetry
+  }, [hasLiveTelemetry])
 
   return (
     <div className={`app-shell ${leftSidebarCollapsed ? 'left-collapsed' : ''} ${rightSidebarCollapsed ? 'right-collapsed' : ''}`}>
