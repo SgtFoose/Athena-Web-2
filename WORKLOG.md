@@ -34,6 +34,14 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - `README.md`
   - `CHANGELOG.md`
 
+#### 2026-04-09 follow-up — v0.0.7 Offline Tanoa Dirt Path Classification Pass
+- Investigated offline Tanoa report where dirt-walk hide tiles still showed mixed rendering (part brown path, part gray runway-like blocks).
+- Updated `ui/src/components/AthenaMap.tsx` hide-surface classification:
+  - added hide-tile cluster analysis (size + bounding-box density) to classify dense airport/apron regions vs sparse path networks
+  - constrained taxi-lane styling to airport-classified clusters only
+  - routed off-airfield sparse hide tiles to stitched dirt-path polyline rendering
+- Rebuilt UI and repackaged local executable for validation; synced `bridge/wwwroot` to the new build output.
+
 #### 2026-04-08 follow-up — Global Taxi Overlay Cleanup + Tablet I-TGT Capture
 - Fixed cross-map runway/taxi visual regression where yellow taxi centerline overlays leaked into cached worlds beyond Malden (for example Tanoa).
   - removed the global yellow taxi-lane overlay pass from hide-tile rendering

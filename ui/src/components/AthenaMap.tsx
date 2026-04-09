@@ -2560,7 +2560,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     // Group road segments by style for batched rendering (~6 layers vs thousands)
     const groups = new Map<string, { color: string; weight: number; segments: [number,number][][] }>();
 
-    // Collect airport surfaces and render them first as base pavement.
+    // Collect hide surfaces and classify them as airport/apron vs dirt-path tiles.
     const airportRoads: Road[] = [];
     const pathHidePoints: [number, number][] = [];
     const hideCentersWorld: Array<{ x: number; y: number }> = [];
@@ -2597,11 +2597,99 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     const approxEq = (a: number, b: number, tol = 3.5) => Math.abs(a - b) <= tol;
     const hasHideAt = (x: number, y: number) => hideCentersWorld.some(p => approxEq(p.x, x) && approxEq(p.y, y));
 
+    const hideTileKeys = new Set<string>();
+    const hideByKey = new Map<string, { x: number; y: number }>();
+    hideCentersWorld.forEach(({ x, y }) => {
+      const sx = snap(x);
+      const sy = snap(y);
+      const key = `${sx}_${sy}`;
+      hideTileKeys.add(key);
+      if (!hideByKey.has(key)) hideByKey.set(key, { x: sx, y: sy });
+    });
+
+    const cardinalOffsets = [
+      [20, 0],
+      [-20, 0],
+      [0, 20],
+      [0, -20],
+    ] as const;
+
+    const allOffsets = [
+      ...cardinalOffsets,
+      [20, 20],
+      [20, -20],
+      [-20, 20],
+      [-20, -20],
+    ] as const;
+
+    const neighborCardinalCountByKey = new Map<string, number>();
+    const neighborAnyCountByKey = new Map<string, number>();
+    hideByKey.forEach(({ x, y }, key) => {
+      const card = cardinalOffsets.reduce((sum, [ox, oy]) => (
+        sum + Number(hideTileKeys.has(`${x + ox}_${y + oy}`))
+      ), 0);
+      const any = allOffsets.reduce((sum, [ox, oy]) => (
+        sum + Number(hideTileKeys.has(`${x + ox}_${y + oy}`))
+      ), 0);
+      neighborCardinalCountByKey.set(key, card);
+      neighborAnyCountByKey.set(key, any);
+    });
+
+    // Build hide-tile clusters so dense airfield/apron patches stay gray while sparse path chains become dirt.
+    const clusterByKey = new Map<string, { isAirportSurface: boolean }>();
+    const visited = new Set<string>();
+    hideByKey.forEach(({ x, y }, startKey) => {
+      if (visited.has(startKey)) return;
+      const queue: string[] = [startKey];
+      visited.add(startKey);
+      const keys: string[] = [];
+      let minX = x;
+      let maxX = x;
+      let minY = y;
+      let maxY = y;
+
+      while (queue.length > 0) {
+        const key = queue.pop()!;
+        keys.push(key);
+        const tile = hideByKey.get(key);
+        if (!tile) continue;
+        if (tile.x < minX) minX = tile.x;
+        if (tile.x > maxX) maxX = tile.x;
+        if (tile.y < minY) minY = tile.y;
+        if (tile.y > maxY) maxY = tile.y;
+
+        allOffsets.forEach(([ox, oy]) => {
+          const nextKey = `${tile.x + ox}_${tile.y + oy}`;
+          if (!hideTileKeys.has(nextKey) || visited.has(nextKey)) return;
+          visited.add(nextKey);
+          queue.push(nextKey);
+        });
+      }
+
+      const widthTiles = Math.max(1, Math.round((maxX - minX) / 20) + 1);
+      const heightTiles = Math.max(1, Math.round((maxY - minY) / 20) + 1);
+      const bboxAreaTiles = widthTiles * heightTiles;
+      const density = keys.length / Math.max(1, bboxAreaTiles);
+
+      // Airport/apron groups are usually large and dense. Sparse/linear clusters are path networks.
+      const isAirportSurface =
+        (keys.length >= 36 && density >= 0.32) ||
+        (keys.length >= 18 && density >= 0.58) ||
+        (keys.length >= 10 && density >= 0.82);
+
+      keys.forEach((key) => {
+        clusterByKey.set(key, { isAirportSurface });
+      });
+    });
+
     const isTaxiHideTile = (road: Road): boolean => {
       const cx = road.posX ? road.posX : (road.beg1X + road.end2X) / 2;
       const cy = road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2;
       const sx = snap(cx);
       const sy = snap(cy);
+      const key = `${sx}_${sy}`;
+      const inAirportCluster = clusterByKey.get(key)?.isAirportSurface ?? false;
+      if (!inAirportCluster) return false;
       const n = hasHideAt(sx, sy + 20);
       const s = hasHideAt(sx, sy - 20);
       const e = hasHideAt(sx + 20, sy);
@@ -2611,8 +2699,24 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       return count >= 1 && count <= 2;
     };
 
+    const isPathHideTile = (road: Road): boolean => {
+      if (isPathLikeHideTile(road)) return true;
+      const cx = road.posX ? road.posX : (road.beg1X + road.end2X) / 2;
+      const cy = road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2;
+      const sx = snap(cx);
+      const sy = snap(cy);
+      const key = `${sx}_${sy}`;
+      const inAirportCluster = clusterByKey.get(key)?.isAirportSurface ?? false;
+      if (inAirportCluster) return false;
+
+      const card = neighborCardinalCountByKey.get(key) ?? 0;
+      const any = neighborAnyCountByKey.get(key) ?? 0;
+      // Off-airfield hide tiles with sparse neighbors are usually dirt paths/trails.
+      return card <= 2 && any <= 4;
+    };
+
     airportRoads.forEach(road => {
-      if (isPathLikeHideTile(road)) {
+      if (isPathHideTile(road)) {
         pathHidePoints.push(hidePathPoint(road, scale));
         return;
       }
