@@ -38,6 +38,7 @@ Unblock-File -Path .\AthenaWeb-0.0.7.exe
 - Improved offline contour/coastline rendering smoothness for smaller worlds (for example Stratis) by reducing over-aggressive simplification
 - Cleared stale online entities when switching to offline mode so vehicles, units, and groups no longer persist across offline world changes
 - Cleared stored I-TGT targets on online -> offline transition to prevent stale tactical markers after Athena splash/disconnect
+- Fixed offline Tanoa dirt-walk path rendering so sparse off-airfield `hide` tiles no longer appear as gray runway blocks
 - Updated README I-TGT section with Firewill mod Workshop reference
 - Updated README latest video block to the v0.0.6 video with local tablet thumbnail
 

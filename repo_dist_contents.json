@@ -1,18 +1,18 @@
 [
   {
-    "name": "AthenaWeb-0.0.6.exe",
-    "path": "bridge/dist/AthenaWeb-0.0.6.exe",
-    "sha": "ca5ca0c57e0b99484b97baec0be3e7453a9f3bae",
-    "size": 61981818,
-    "url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.6.exe?ref=main",
-    "html_url": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.6.exe",
-    "git_url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/ca5ca0c57e0b99484b97baec0be3e7453a9f3bae",
-    "download_url": "https://raw.githubusercontent.com/SgtFoose/Athena-Web-2/main/bridge/dist/AthenaWeb-0.0.6.exe",
+    "name": "AthenaWeb-0.0.7.exe",
+    "path": "bridge/dist/AthenaWeb-0.0.7.exe",
+    "sha": "44c846226924f3f082133d741ebbc6f71c176d41",
+    "size": 61982508,
+    "url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.7.exe?ref=main",
+    "html_url": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.7.exe",
+    "git_url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/44c846226924f3f082133d741ebbc6f71c176d41",
+    "download_url": "https://raw.githubusercontent.com/SgtFoose/Athena-Web-2/main/bridge/dist/AthenaWeb-0.0.7.exe",
     "type": "file",
     "_links": {
-      "self": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.6.exe?ref=main",
-      "git": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/ca5ca0c57e0b99484b97baec0be3e7453a9f3bae",
-      "html": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.6.exe"
+      "self": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.7.exe?ref=main",
+      "git": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/44c846226924f3f082133d741ebbc6f71c176d41",
+      "html": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.7.exe"
     }
   }
 ]
