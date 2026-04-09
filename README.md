@@ -107,7 +107,7 @@ This is v0.0.7 — the current active Web2 release line. It focuses on offline m
 
 Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 
-- Firewill mod Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=366425329
+- Firewill mod Workshop: [Firewill I-TGT Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=366425329)
 
 ![Athena Web 2 v0.0.6 I-TGT usage](Images/Athena%20Web%202%20v0.0.6%20I-TGT.png)
 
@@ -341,11 +341,11 @@ Contributions are welcome. This project is actively developed.
 
 - **Athena - An Arma 2nd Screen Application**
 - Creator: **Bus**
-- Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736
+- Workshop: [Athena - An Arma 2nd Screen Application](https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736)
 
 ### Athena Remastered (related work)
 
-- Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3687225607
+- Workshop: [Athena Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=3687225607)
 
 ## LICENSE
 
