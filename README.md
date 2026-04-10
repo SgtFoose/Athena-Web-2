@@ -2,9 +2,9 @@
 
 > Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-**Version: v0.0.7**
+**Version: v0.0.8**
 
-**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.7.exe`
+**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.0.8.exe`
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/latest
 
@@ -18,7 +18,14 @@
 
 Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This is v0.0.7 — the current active Web2 release line. It focuses on offline map-render parity improvements and reliable online-to-offline session cleanup while preserving Web2 relay compatibility.
+This is v0.0.8 — the current active Web2 release line. It focuses on Firewill I-TGT interoperability validation (relay marker passthrough) while preserving Web2 relay compatibility.
+
+### v0.0.8 highlights
+
+- **Firewill live marker passthrough validated** bridge relay frames now confirmed to carry Firewill I-TGT marker payloads end-to-end (`text` label and XY coordinates)
+- **I-TGT marker naming parity confirmed** validated live Firewill marker payload shape using in-session marker `TGT_0_NightHawk` (`name: MKR_0_NightHawk`, `type: mil_triangle`, `color: ColorBlue`)
+- **I-TGT label readability polish** Firewill and locally placed marker labels now use a larger Firewill-style blue text treatment for better in-map visibility
+- **v0.0.8 local test packaging** rebuilt bridge/UI bundle and produced local `AthenaWeb-0.0.8.exe` test artifact
 
 ### v0.0.7 highlights
 
@@ -103,7 +110,7 @@ This is v0.0.7 — the current active Web2 release line. It focuses on offline m
 - **No custom DLL required** — uses Bus's original unmodified Athena mod and relay
 - **Phone/tablet support** — responsive layout for mobile viewing on local network
 
-## I-TGT TARGET WORKFLOW (v0.0.7)
+## I-TGT TARGET WORKFLOW (v0.0.8)
 
 Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 
@@ -130,8 +137,8 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 Use this when you want a one-file launcher with no dev setup.
 
 1. Open the latest release page: https://github.com/SgtFoose/Athena-Web-2/releases/latest
-2. Under **Assets**, download `AthenaWeb-0.0.7.exe`
-3. Run `AthenaWeb-0.0.7.exe`
+2. Under **Assets**, download `AthenaWeb-0.0.8.exe`
+3. Run `AthenaWeb-0.0.8.exe`
 4. Open `http://localhost:3000`
 5. Start Arma 3 with the original Athena mod running (relay path)
 
@@ -152,7 +159,7 @@ If Windows blocks the EXE on first launch:
 
 If **Run anyway** is missing or still blocked:
 
-1. Right-click `AthenaWeb-0.0.7.exe` -> **Properties**
+1. Right-click `AthenaWeb-0.0.8.exe` -> **Properties**
 2. In the **General** tab, check **Unblock** (if shown)
 3. Click **Apply** then **OK**
 4. Launch the EXE again
@@ -160,7 +167,7 @@ If **Run anyway** is missing or still blocked:
 PowerShell alternative:
 
 ```powershell
-Unblock-File -Path .\AthenaWeb-0.0.7.exe
+Unblock-File -Path .\AthenaWeb-0.0.8.exe
 ```
 
 Notes:
@@ -173,10 +180,10 @@ Notes:
 When publishing a new Web2 release, attach the EXE in the GitHub release so users can download it directly:
 
 1. Build the executable in `bridge/dist`
-2. Create a GitHub release tag (example: `v0.0.7`)
-3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.0.7.exe`)
+2. Create a GitHub release tag (example: `v0.0.8`)
+3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.0.8.exe`)
 4. In release notes, include the Quick Start URL from this README and the SmartScreen workaround above
-5. Copy and adapt `.github/release-notes-template-v0.0.7.md` into the GitHub release description
+5. Copy and adapt `.github/release-notes-template-v0.0.8.md` into the GitHub release description
 
 This keeps non-technical users on a one-download install path.
 
@@ -192,7 +199,7 @@ Per new map, do this once:
 2. Join a server running the target map.
 3. Open Athena Desktop and connect.
 4. Click `Export` in Athena Desktop.
-5. Restart `AthenaWeb-0.0.7.exe` and reopen `http://localhost:3000`.
+5. Restart `AthenaWeb-0.0.8.exe` and reopen `http://localhost:3000`.
 
 After export, Athena Web 2 can render roads, structures, trees, and other static layers for that map from local cache.
 

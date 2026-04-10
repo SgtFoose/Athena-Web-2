@@ -2,7 +2,7 @@ import { MapContainer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, FiredEvent, FiredImpactEvent, ActiveLaze } from '../types/game';
+import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, FiredEvent, FiredImpactEvent, ActiveLaze, RelayMarker } from '../types/game';
 import { API_BASE } from '../apiBase';
 import 'leaflet/dist/leaflet.css';
 
@@ -3490,6 +3490,7 @@ interface MapProps {
   units:      Record<string, Unit>;
   vehicles:   Record<string, Vehicle>;
   groups:     Record<string, Group>;
+  firewillMarkers?: RelayMarker[];
   lazes?:     ActiveLaze[];
   firedEvents?: FiredEvent[];
   firedImpacts?: FiredImpactEvent[];
@@ -3747,9 +3748,11 @@ function ITgtCaptureBridge({
 
 function ITgtMarkerLayer({
   targets,
+  firewillMarkers,
   worldSize,
 }: {
   targets: StoredITgtTarget[];
+  firewillMarkers: RelayMarker[];
   worldSize: number;
 }) {
   const map = useMap();
@@ -3773,6 +3776,11 @@ function ITgtMarkerLayer({
     if (!layer) return;
     layer.clearLayers();
     const scale = 100 / worldSize;
+
+    const triangleSize = 42;
+    const iconSize = 48;
+    const iconAnchor: [number, number] = [24, 42];
+
     targets.forEach(target => {
       const ll: [number, number] = [target.y * scale, target.x * scale];
       L.marker(ll, {
@@ -3780,22 +3788,49 @@ function ITgtMarkerLayer({
         interactive: false,
         icon: L.divIcon({
           className: '',
-          iconSize: [22, 22],
-          iconAnchor: [11, 20],
+          iconSize: [iconSize, iconSize],
+          iconAnchor,
           html:
             `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">` +
-            `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" style="display:block;">` +
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${triangleSize}" height="${triangleSize}" viewBox="0 0 20 20" style="display:block;">` +
             `<polygon points="10,2 18,17 2,17" fill="#133B98" stroke="#B5CEFF" stroke-width="1" />` +
             `</svg>` +
-            `<div style="font-family:Consolas, 'Lucida Console', monospace;font-size:11px;font-weight:700;color:#E7EFFF;white-space:nowrap;` +
-            `text-shadow:-1px 0 0 rgba(0,0,0,0.9),1px 0 0 rgba(0,0,0,0.9),0 -1px 0 rgba(0,0,0,0.9),0 1px 0 rgba(0,0,0,0.9);">${escapeHtml(target.label)}</div>` +
+            `<div style="font-family:Consolas, 'Lucida Console', monospace;font-size:15px;font-weight:800;color:#4DA3FF;-webkit-text-fill-color:#4DA3FF;white-space:nowrap;` +
+            `letter-spacing:0.2px;text-shadow:-1px 0 0 rgba(0,0,0,0.9),1px 0 0 rgba(0,0,0,0.9),0 -1px 0 rgba(0,0,0,0.9),0 1px 0 rgba(0,0,0,0.9);">${escapeHtml(target.label)}</div>` +
             `</div>`,
         }),
       })
         .bindTooltip(`<b>${escapeHtml(target.label)}</b><br>${target.code}`, { sticky: true })
         .addTo(layer);
     });
-  }, [targets, worldSize]);
+
+    firewillMarkers
+      .forEach(marker => {
+        if (!Number.isFinite(marker.posX) || !Number.isFinite(marker.posY)) return;
+        const label = marker.text.trim() || marker.name.trim();
+        if (!label.toUpperCase().startsWith('TGT_')) return;
+        const ll: [number, number] = [marker.posY * scale, marker.posX * scale];
+        L.marker(ll, {
+          pane: 'athena-itgt',
+          interactive: false,
+          icon: L.divIcon({
+            className: '',
+            iconSize: [iconSize, iconSize],
+            iconAnchor,
+            html:
+              `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">` +
+              `<svg xmlns="http://www.w3.org/2000/svg" width="${triangleSize}" height="${triangleSize}" viewBox="0 0 20 20" style="display:block;">` +
+              `<polygon points="10,2 18,17 2,17" fill="#133B98" stroke="#B5CEFF" stroke-width="1" />` +
+              `</svg>` +
+              `<div style="font-family:Consolas, 'Lucida Console', monospace;font-size:15px;font-weight:800;color:#4DA3FF;-webkit-text-fill-color:#4DA3FF;white-space:nowrap;` +
+              `letter-spacing:0.2px;text-shadow:-1px 0 0 rgba(0,0,0,0.9),1px 0 0 rgba(0,0,0,0.9),0 -1px 0 rgba(0,0,0,0.9),0 1px 0 rgba(0,0,0,0.9);">${escapeHtml(label)}</div>` +
+              `</div>`,
+          }),
+        })
+          .bindTooltip(`<b>${escapeHtml(label)}</b><br>${marker.name}`, { sticky: true })
+          .addTo(layer);
+      });
+  }, [targets, firewillMarkers, worldSize]);
 
   return null;
 }
@@ -3849,6 +3884,7 @@ function StartupRecenterControl({ world, worldSize }: { world: string; worldSize
 
 export function AthenaMap({
   units, vehicles, groups,
+  firewillMarkers = [],
   lazes = [],
   firedEvents = [],
   firedImpacts = [],
@@ -3909,7 +3945,7 @@ export function AthenaMap({
       {onUserInteraction && <UserInteractionBridge onInteraction={onUserInteraction} />}
       <CursorCoordinateBridge worldSize={worldSize} elevLookup={elevLookup} onChange={setCursorCoords} />
       {onStoreCursorITgt && <ITgtCaptureBridge cursorCoords={cursorCoords} onStoreCursorITgt={onStoreCursorITgt} />}
-      <ITgtMarkerLayer targets={storedITgtTargets} worldSize={worldSize} />
+      <ITgtMarkerLayer targets={storedITgtTargets} firewillMarkers={firewillMarkers} worldSize={worldSize} />
       <LayerManager
         units={units}
         vehicles={vehicles}

@@ -10,6 +10,24 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-10 — v0.0.8 Local Firewill I-TGT Marker Interop Validation
+- Investigated live Firewill I-TGT marker passthrough while in-game with relay active.
+- Verified relay/bridge frame ingestion included marker channel (`Children -> Markers`) in live v2 frames.
+- Confirmed live Firewill I-TGT marker payload present in bridge WebSocket `state` feed:
+  - `name: MKR_0_NightHawk`
+  - `text: TGT_0_NightHawk`
+  - `type: mil_triangle`
+  - `color: ColorBlue`
+  - `posx: 746.009`, `posy: 12267.2`
+- Confirmed current gap for UI parity remains client-side marker consumption/rendering of relay marker payloads.
+- Prepared v0.0.8 local test packaging update and version/doc sync.
+
+#### 2026-04-10 follow-up — v0.0.8 Marker Label Readability Final Pass
+- Implemented final I-TGT label style tuning for both local placed targets and Firewill relay targets in `ui/src/components/AthenaMap.tsx`.
+- Removed dark boxed label background and aligned label color to Firewill-style readable blue while keeping enlarged label size.
+- Rebuilt UI bundle, mirrored `ui/dist` to `bridge/wwwroot`, and rebuilt packaged executable with latest embedded UI.
+- Validated runtime asset swap on port 3000 to confirm live EXE serves the updated marker-label rendering path.
+
 ### 2026-04-08 — v0.0.7 To-Do Queue
 - Target label index behavior for stored I-TGT entries:
   - start default labels at `TGT_0` (instead of starting from 1)

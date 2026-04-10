@@ -35,7 +35,7 @@ Architecture: **Bridge** (Node.js relay protocol adapter) -> **UI** (React + Vit
 - Keep docs in this repo scoped to `v0.x` language only.
 - Preserve existing Web2 UI look-and-feel, but do not import Remastered-specific backend assumptions.
 - Keep unresolved release blockers in `WORKLOG.md` with exact repro coordinates when available.
-- Current status: v0.0.6 active with Firewill I-TGT workflow across mouse + touch/tablet capture paths, iPad Safari landscape top-bar overlap mitigation, and cross-map taxi-overlay cleanup (yellow leakage removed on non-Malden cached worlds); no active map-render blocker is pinned. If a new visual parity issue appears, record exact coordinates and world in `WORKLOG.md` immediately.
+- Current status: v0.0.8 active with Firewill relay marker interoperability, dual-path I-TGT label rendering (local + Firewill), and packaged EXE/UI parity checks; no active map-render blocker is pinned. If a new visual parity issue appears, record exact coordinates and world in `WORKLOG.md` immediately.
 
 ## Structure
 - `bridge/`: relay TCP client, REST API, WebSocket broadcast
