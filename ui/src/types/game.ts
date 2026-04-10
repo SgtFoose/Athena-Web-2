@@ -148,6 +148,22 @@ export interface ActiveLaze {
   posY: number;
 }
 
+export interface RelayMarker {
+  brush: string;
+  color: string;
+  shape: string;
+  type: string;
+  name: string;
+  text: string;
+  alpha: number;
+  dir: number;
+  posX: number;
+  posY: number;
+  posZ: number;
+  sizeX: number;
+  sizeY: number;
+}
+
 export interface FiredEvent {
   unitId: string;
   vehicleId: string;
@@ -191,6 +207,7 @@ export interface GameFrame {
   groups: Record<string, Group>;
   units: Record<string, Unit>;
   vehicles: Record<string, Vehicle>;
+  markers: RelayMarker[];
   lazes: ActiveLaze[];
   fired: FiredEvent[];
   killed: KilledEvent[];

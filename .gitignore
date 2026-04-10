@@ -13,6 +13,10 @@ Thumbs.db
 # Build/cache
 coverage/
 dist/
+!bridge/dist/
+bridge/dist/*
+!bridge/dist/AthenaWeb.exe
+!bridge/dist/AthenaWeb-*.exe
 
 # Analysis/temp
 .analysis/

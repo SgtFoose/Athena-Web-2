@@ -17,6 +17,7 @@ import type {
   Vehicle,
   Mission,
   GameTime,
+  RelayMarker,
 } from '../types/game';
 import { API_BASE } from '../apiBase';
 
@@ -29,6 +30,7 @@ interface RelayState {
   profile?: string;
   date?: string;
   time?: string;
+  markers?: Array<Record<string, unknown>>;
   units?: Array<Record<string, unknown>>;
   groups?: Array<Record<string, unknown>>;
   vehicles?: Array<Record<string, unknown>>;
@@ -185,6 +187,22 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
     };
   }
 
+  const markers: RelayMarker[] = (state.markers || []).map((m) => ({
+    brush: firstNonEmptyString(m, ['brush', 'Brush', 'markerBrush', 'MarkerBrush']),
+    color: firstNonEmptyString(m, ['color', 'Color', 'markerColor', 'MarkerColor']),
+    shape: firstNonEmptyString(m, ['shape', 'Shape', 'markerShape', 'MarkerShape']),
+    type: firstNonEmptyString(m, ['type', 'Type', 'markerType', 'MarkerType']),
+    name: firstNonEmptyString(m, ['name', 'Name', 'markerName', 'MarkerName']),
+    text: firstNonEmptyString(m, ['text', 'Text', 'label', 'Label']),
+    alpha: firstFiniteNumber(m, ['alpha', 'Alpha'], 0),
+    dir: firstFiniteNumber(m, ['dir', 'Dir', 'direction', 'Direction'], 0),
+    posX: firstFiniteNumber(m, ['posx', 'posX', 'PosX', 'x', 'X'], 0),
+    posY: firstFiniteNumber(m, ['posy', 'posY', 'PosY', 'y', 'Y'], 0),
+    posZ: firstFiniteNumber(m, ['posz', 'posZ', 'PosZ', 'z', 'Z'], 0),
+    sizeX: firstFiniteNumber(m, ['sizex', 'sizeX', 'SizeX'], 0),
+    sizeY: firstFiniteNumber(m, ['sizey', 'sizeY', 'SizeY'], 0),
+  }));
+
   const units: Record<string, Unit> = {};
   for (const u of state.units || []) {
     const id = asString(u.netid || u.netId || u.id);
@@ -225,6 +243,7 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
       groups,
       units,
       vehicles,
+      markers,
       lazes: [],
       fired: [],
       killed: [],
