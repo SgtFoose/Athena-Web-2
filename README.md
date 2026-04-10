@@ -116,6 +116,8 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 
 - Firewill mod Workshop: [Firewill I-TGT Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=366425329)
 
+![Athena Web 2 v0.0.8 Firewill I-TGT workflow](Images/Athena%20Web%202%20v0.0.8%20Firewill%20I-TGT%20Interaction.png)
+
 ![Athena Web 2 v0.0.6 I-TGT usage](Images/Athena%20Web%202%20v0.0.6%20I-TGT.png)
 
 1. Move the cursor over the map and read the bottom-right `I-TGT: XXXXXXXX` value.
@@ -127,8 +129,6 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 4. Open the right `I-TGT TARGETS` panel entry to rename/copy/delete as needed.
 5. Use `Delete All` to clear the target list for a new run (next new label restarts at `TGT_0`).
 6. Use the saved code in Firewill I-TGT strike workflow.
-
-![Athena Web 2 v0.0.8 Firewill I-TGT workflow](Images/Athena%20Web%202%20v0.0.8%20Firewill%20I-TGT%20Interaction.png)
 
 ## QUICK START
 
