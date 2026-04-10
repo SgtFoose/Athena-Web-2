@@ -12,7 +12,12 @@
 
 ## Latest Video
 
-[![Athena Web 2 v0.0.6](Images/Athena%20Web%202%20I-TGT%20Tablet.PNG)](https://youtu.be/7SljQN0B0Qk)
+[![Athena Web 2 v0.0.8](Images/Athena%20Web%202%20v0.0.8%20Firewill%20I-TGT%20Interaction.png)](https://youtu.be/xWuv--eIWdA)
+
+### Older Videos
+
+- [Athena Web 2 v0.0.6 I-TGT Tablet Demo](https://youtu.be/7SljQN0B0Qk)
+- [Athena Web 2 Early Demo](https://youtu.be/4-AioVt9iUQ)
 
 ## SITREP
 
