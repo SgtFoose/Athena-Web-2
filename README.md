@@ -12,7 +12,7 @@
 
 ## Latest Video
 
-[![Athena Web 2 v0.0.8](Images/Athena%20Web%202%20v0.0.8%20Firewill%20I-TGT%20Interaction.png)](https://youtu.be/xWuv--eIWdA)
+[![Athena Web 2 v0.0.8](Images/Athena%20Web%202%20v0.0.8%20Firewill%20I-TGT%20Interaction.png)](https://youtu.be/9CKiBNtlWgQ)
 
 ### Older Videos
 
