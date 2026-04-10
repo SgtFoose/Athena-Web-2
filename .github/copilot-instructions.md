@@ -91,3 +91,8 @@ When shipping Web2 updates, update at minimum:
 - Confirm changed files are only Web2 paths (`bridge/`, `ui/`, Web2 docs/config).
 - Confirm no Remastered-specific folders or `1.x` version text were introduced.
 - Confirm any new feature is achievable using relay/cache data without custom DLL dependencies.
+
+## Auth Prompt Rule (Per Commit)
+- Before any `git commit`, `git push`, GitHub Release update, or GitHub API operation, Copilot must ask the user to confirm `GITHUB_TOKEN` is set for the current terminal/session.
+- If `GITHUB_TOKEN` is missing, Copilot must pause remote GitHub operations and ask the user to set/provide the token before continuing.
+- Re-check token availability for every new commit/release operation in the conversation (do not assume prior token state still applies).

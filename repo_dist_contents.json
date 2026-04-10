@@ -3,6 +3,7 @@
     "name": "AthenaWeb-0.0.8.exe",
     "path": "bridge/dist/AthenaWeb-0.0.8.exe",
     "sha": "8e807c83879c2d715a3f47600e8db6b4f9b97512",
+    "sha256": "523964e636e7b4a09f9511f592023011546bd1262f50c7bcd9fcfe9c904b7016",
     "size": 61983069,
     "url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.8.exe?ref=main",
     "html_url": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.8.exe",

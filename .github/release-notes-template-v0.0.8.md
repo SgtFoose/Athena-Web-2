@@ -35,11 +35,11 @@ Unblock-File -Path .\AthenaWeb-0.0.8.exe
 
 ## v0.0.8 Highlights
 
-- Firewill marker relay interoperability: bridge now consumes live relay marker payloads and renders Firewill I-TGT labels on-map
-- Local + Firewill I-TGT label parity: both marker paths share the same tactical triangle and label rendering behavior
-- Marker readability polish: larger label text with Firewill-style blue color treatment and improved contrast handling on bright map surfaces
-- Session hygiene hardening: tactical marker state cleanup remains consistent across live disconnects and world/map context changes
-- Packaged runtime sync: rebuilt EXE with latest embedded UI assets for v0.0.8 release parity
+- Firewill live marker passthrough validated bridge relay frames now confirmed to carry Firewill I-TGT marker payloads end-to-end (text label and XY coordinates)
+- Users can now see Arma map markers in Athena Web 2.
+- I-TGT marker naming parity confirmed validated live Firewill marker payload shape using in-session marker TGT_0_NightHawk (name: MKR_0_NightHawk, type: mil_triangle, color: ColorBlue)
+- I-TGT label readability polish Firewill and locally placed marker labels now use a larger Firewill-style blue text treatment for better in-map visibility
+- v0.0.8 local test packaging rebuilt bridge/UI bundle and produced local AthenaWeb-0.0.8.exe test artifact
 
 ![Athena Web 2 v0.0.8 Arma in-game markers](../Images/Athena%20Web%202%20v0.0.8%20Arma%20in-game%20markers.png)
 ![Athena Web 2 v0.0.8 Arma in-game and I-TGT markers](../Images/Athena%20Web%202%20v0.0.8%20Arma%20in-game%20and%20I-TGT%20markers.png)
