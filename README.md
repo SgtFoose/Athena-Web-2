@@ -32,6 +32,8 @@ This is v0.0.8 — the current active Web2 release line. It focuses on Firewill 
 - **I-TGT label readability polish** Firewill and locally placed marker labels now use a larger Firewill-style blue text treatment for better in-map visibility
 - **v0.0.8 local test packaging** rebuilt bridge/UI bundle and produced local `AthenaWeb-0.0.8.exe` test artifact
 
+![Athena Web 2 v0.0.8 Arma in-game markers](Images/Athena%20Web%202%20v0.0.8%20Arma%20in-game%20markers.png)
+
 ### v0.0.7 highlights
 
 - **Offline shoreline/contour parity pass** reduced over-simplification on smaller worlds (for example Stratis) so coastline and contour geometry stays smoother in offline cache mode

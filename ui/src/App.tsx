@@ -1,7 +1,6 @@
 import { Component, useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { AthenaMap, type StoredITgtTarget }   from './components/AthenaMap'
-import type { RelayMarker } from './types/game'
 import { Sidebar }     from './components/Sidebar'
 import { MapCacheBanner } from './components/MapCacheBanner'
 import { useAthenHub } from './hooks/useAthenaHub'
@@ -20,6 +19,8 @@ export interface LayerVisibility {
   roads:      boolean
   structures: boolean
   locations:  boolean
+  armaMarkers:boolean
+  firewillITgtMarkers:boolean
   groups:     boolean
   waypoints:  boolean
   lazes:      boolean
@@ -132,8 +133,6 @@ function App() {
 
   // Handle user picking a cached world from the dropdown
   const handleSelectWorld = useCallback(async (worldName: string) => {
-    // Switching map context should not carry relay markers from the previous session.
-    setFirewillITgtTargets([])
     setUserSelectedWorld(worldName)
     if (worldName) {
       await selectWorld(worldName)
@@ -183,6 +182,8 @@ function App() {
     roads:      true,
     structures: true,
     locations:  true,
+    armaMarkers: true,
+    firewillITgtMarkers: true,
     groups:     true,
     waypoints:  true,
     lazes:      true,
@@ -196,7 +197,6 @@ function App() {
   const [isTouchInput, setIsTouchInput] = useState(false)
   const [followActivePlayer, setFollowActivePlayer] = useState(false)
   const [storedITgtTargets, setStoredITgtTargets] = useState<StoredITgtTarget[]>([])
-  const [firewillITgtTargets, setFirewillITgtTargets] = useState<RelayMarker[]>([])
   const itgtNextIndexRef = useRef(0)
   const [mapSessionKey, setMapSessionKey] = useState(0)
   const previousWorldRef = useRef('')
@@ -320,40 +320,6 @@ function App() {
     itgtNextIndexRef.current = 0
   }, [])
 
-  useEffect(() => {
-    if (!hasLiveTelemetry) return
-
-    const incomingTargets = relayMarkers
-      .map(marker => {
-        const label = (marker.text || marker.name).trim()
-        return {
-          ...marker,
-          text: label,
-        }
-      })
-      .filter(marker => marker.text.toUpperCase().startsWith('TGT_'))
-      .filter(marker => Number.isFinite(marker.posX) && Number.isFinite(marker.posY))
-
-    if (incomingTargets.length === 0) return
-
-    setFirewillITgtTargets(prev => {
-      const next = [...prev]
-      for (const marker of incomingTargets) {
-        const labelKey = marker.text.trim().toUpperCase()
-        const existingIndex = next.findIndex(existing => {
-          const existingLabel = (existing.text || existing.name).trim().toUpperCase()
-          return existingLabel === labelKey
-        })
-        if (existingIndex >= 0) {
-          next[existingIndex] = marker
-        } else {
-          next.unshift(marker)
-        }
-      }
-      return next
-    })
-  }, [hasLiveTelemetry, relayMarkers])
-
   const handleCopyITgt = useCallback(async (code: string) => {
     try {
       await navigator.clipboard.writeText(code)
@@ -386,7 +352,6 @@ function App() {
     const worldChanged = worldKey !== previousWorldRef.current
 
     if ((justConnected && worldKey) || (worldKey && worldChanged)) {
-      setFirewillITgtTargets([])
       setMapSessionKey(prev => prev + 1)
     }
 
@@ -399,7 +364,6 @@ function App() {
     if (justLostLiveTelemetry) {
       // Entering offline/splash mode should start from a clean tactical session.
       setStoredITgtTargets([])
-      setFirewillITgtTargets([])
       itgtNextIndexRef.current = 0
       setFollowActivePlayer(false)
       setMapSessionKey(prev => prev + 1)
@@ -526,7 +490,7 @@ function App() {
             units={units}
             vehicles={vehicles}
             groups={groups}
-            firewillMarkers={firewillITgtTargets}
+            relayMarkers={relayMarkers}
             lazes={lazes}
             firedEvents={recentFired}
             firedImpacts={recentFiredImpacts}

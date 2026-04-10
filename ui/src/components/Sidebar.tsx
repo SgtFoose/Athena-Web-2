@@ -348,6 +348,8 @@ function CommonPanel({
           { key: 'roads',      label: 'Roads' },
           { key: 'structures', label: 'Structures' },
           { key: 'locations',  label: 'Locations' },
+          { key: 'armaMarkers', label: 'Arma Markers' },
+          { key: 'firewillITgtMarkers', label: 'Firewill I-TGT Markers' },
           { key: 'groups',     label: 'Groups' },
           { key: 'vehicles',   label: 'Vehicles' },
           { key: 'units',      label: 'Units' },

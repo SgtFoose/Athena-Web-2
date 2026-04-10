@@ -3490,7 +3490,7 @@ interface MapProps {
   units:      Record<string, Unit>;
   vehicles:   Record<string, Vehicle>;
   groups:     Record<string, Group>;
-  firewillMarkers?: RelayMarker[];
+  relayMarkers?: RelayMarker[];
   lazes?:     ActiveLaze[];
   firedEvents?: FiredEvent[];
   firedImpacts?: FiredImpactEvent[];
@@ -3512,6 +3512,7 @@ interface MapProps {
   onRegisterPan?: (fn: (posX: number, posY: number) => void) => void;
   onUserInteraction?: () => void;
   storedITgtTargets?: StoredITgtTarget[];
+  firewillITgtTargets?: FirewillITgtTarget[];
   onStoreCursorITgt?: (target: { x: number; y: number; code: string }) => void;
   isTouchInput?: boolean;
 }
@@ -3522,6 +3523,15 @@ export type StoredITgtTarget = {
   x: number;
   y: number;
   code: string;
+};
+
+export type FirewillITgtTarget = {
+  id: string;
+  name: string;
+  label: string;
+  x: number;
+  y: number;
+  deletedInFirewill: boolean;
 };
 
 const DEFAULT_MAP_CENTER: [number, number] = [50, 50];
@@ -3748,11 +3758,11 @@ function ITgtCaptureBridge({
 
 function ITgtMarkerLayer({
   targets,
-  firewillMarkers,
+  firewillTargets,
   worldSize,
 }: {
   targets: StoredITgtTarget[];
-  firewillMarkers: RelayMarker[];
+  firewillTargets: FirewillITgtTarget[];
   worldSize: number;
 }) {
   const map = useMap();
@@ -3804,12 +3814,13 @@ function ITgtMarkerLayer({
         .addTo(layer);
     });
 
-    firewillMarkers
-      .forEach(marker => {
-        if (!Number.isFinite(marker.posX) || !Number.isFinite(marker.posY)) return;
-        const label = marker.text.trim() || marker.name.trim();
-        if (!label.toUpperCase().startsWith('TGT_')) return;
-        const ll: [number, number] = [marker.posY * scale, marker.posX * scale];
+    firewillTargets.forEach(target => {
+        if (!Number.isFinite(target.x) || !Number.isFinite(target.y)) return;
+        const label = target.label.trim();
+        const ll: [number, number] = [target.y * scale, target.x * scale];
+        const fill = target.deletedInFirewill ? '#6d2a2a' : '#133B98';
+        const stroke = target.deletedInFirewill ? '#ff9393' : '#B5CEFF';
+        const textColor = target.deletedInFirewill ? '#ff9f9f' : '#4DA3FF';
         L.marker(ll, {
           pane: 'athena-itgt',
           interactive: false,
@@ -3820,17 +3831,273 @@ function ITgtMarkerLayer({
             html:
               `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">` +
               `<svg xmlns="http://www.w3.org/2000/svg" width="${triangleSize}" height="${triangleSize}" viewBox="0 0 20 20" style="display:block;">` +
-              `<polygon points="10,2 18,17 2,17" fill="#133B98" stroke="#B5CEFF" stroke-width="1" />` +
+              `<polygon points="10,2 18,17 2,17" fill="${fill}" stroke="${stroke}" stroke-width="1" />` +
               `</svg>` +
-              `<div style="font-family:Consolas, 'Lucida Console', monospace;font-size:15px;font-weight:800;color:#4DA3FF;-webkit-text-fill-color:#4DA3FF;white-space:nowrap;` +
+              `<div style="font-family:Consolas, 'Lucida Console', monospace;font-size:15px;font-weight:800;color:${textColor};-webkit-text-fill-color:${textColor};white-space:nowrap;` +
               `letter-spacing:0.2px;text-shadow:-1px 0 0 rgba(0,0,0,0.9),1px 0 0 rgba(0,0,0,0.9),0 -1px 0 rgba(0,0,0,0.9),0 1px 0 rgba(0,0,0,0.9);">${escapeHtml(label)}</div>` +
               `</div>`,
           }),
         })
-          .bindTooltip(`<b>${escapeHtml(label)}</b><br>${marker.name}`, { sticky: true })
+          .bindTooltip(`<b>${escapeHtml(label)}</b><br>${target.deletedInFirewill ? 'Deleted in Firewill' : escapeHtml(target.name)}`, { sticky: true })
           .addTo(layer);
       });
-  }, [targets, firewillMarkers, worldSize]);
+  }, [targets, firewillTargets, worldSize]);
+
+  return null;
+}
+
+function relayMarkerLabel(marker: RelayMarker): string {
+  return (marker.text || marker.name || '').trim();
+}
+
+function normalizeRelayMarkerKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/-/g, '_');
+}
+
+const RELAY_HANDDRAWN_ICON_KEYS = new Set([
+  'dot',
+  'objective',
+  'flag',
+  'ambush',
+  'destroy',
+  'start',
+  'end',
+  'pickup',
+  'join',
+  'warning',
+  'unknown',
+  'arrow',
+]);
+
+function relayMarkerTypeCandidates(marker: RelayMarker): string[] {
+  const out: string[] = [];
+  const push = (v: string) => {
+    const key = normalizeRelayMarkerKey(v);
+    if (!key) return;
+    if (!out.includes(key)) out.push(key);
+  };
+
+  push(marker.type || '');
+  push(marker.name || '');
+  push(marker.text || '');
+  return out;
+}
+
+function baseRelayMarkerTypeKey(marker: RelayMarker): string {
+  const candidates = relayMarkerTypeCandidates(marker);
+  for (const candidate of candidates) {
+    if (RELAY_HANDDRAWN_ICON_KEYS.has(candidate)) return candidate;
+    if (candidate.startsWith('hd_')) {
+      const key = candidate.slice(3);
+      if (RELAY_HANDDRAWN_ICON_KEYS.has(key)) return key;
+    }
+    if (candidate.startsWith('mil_')) {
+      const key = candidate.slice(4);
+      if (RELAY_HANDDRAWN_ICON_KEYS.has(key)) return key;
+    }
+    for (const known of RELAY_HANDDRAWN_ICON_KEYS) {
+      if (candidate.includes(known)) return known;
+    }
+  }
+  return '';
+}
+
+function shouldIgnoreRelayMarker(marker: RelayMarker): boolean {
+  const candidates = relayMarkerTypeCandidates(marker);
+  return candidates.some((candidate) => (
+    candidate === 'aws_laser_target'
+      || candidate === 'red_crystal'
+      || candidate === 'white'
+      || candidate.includes('aws_laser')
+      || candidate.includes('red_crystal')
+  ));
+}
+
+function relayMarkerIconPath(marker: RelayMarker): string | null {
+  const key = baseRelayMarkerTypeKey(marker);
+  if (!key) return null;
+  return `/icons/handdrawn/${key}.png`;
+}
+
+function isRelayITgtMarker(marker: RelayMarker): boolean {
+  return relayMarkerLabel(marker).toUpperCase().startsWith('TGT_');
+}
+
+function relayMarkerShape(marker: RelayMarker): 'icon' | 'ellipse' | 'rectangle' {
+  const shape = (marker.shape || '').toLowerCase();
+  if (shape.includes('ellipse')) return 'ellipse';
+  if (shape.includes('rect')) return 'rectangle';
+  return 'icon';
+}
+
+function relayMarkerColor(colorName: string): string {
+  const key = (colorName || '').toLowerCase();
+  if (key.includes('blufor') || key.includes('west')) return '#4e9de0';
+  if (key.includes('opfor') || key.includes('east')) return '#d9534f';
+  if (key.includes('independent') || key.includes('guer') || key.includes('resistance')) return '#4ec94e';
+  if (key.includes('civilian') || key.includes('civ')) return '#cfcfcf';
+  if (key.includes('unknown')) return '#b9b9b9';
+  if (key.includes('red')) return '#d9534f';
+  if (key.includes('blue')) return '#4e9de0';
+  if (key.includes('green')) return '#4ec94e';
+  if (key.includes('yellow')) return '#e7cc5b';
+  if (key.includes('orange')) return '#e9974a';
+  if (key.includes('pink')) return '#d783b7';
+  if (key.includes('white')) return '#f2f2f2';
+  if (key.includes('black')) return '#222222';
+  return '#f2f2f2';
+}
+
+function rotatedMarkerRect(centerX: number, centerY: number, sizeX: number, sizeY: number, dirDeg: number): [number, number][] {
+  const halfX = sizeX;
+  const halfY = sizeY;
+  const angle = (dirDeg * Math.PI) / 180;
+  const sin = Math.sin(angle);
+  const cos = Math.cos(angle);
+
+  return [
+    [-halfX, -halfY],
+    [halfX, -halfY],
+    [halfX, halfY],
+    [-halfX, halfY],
+  ].map(([dx, dy]) => [
+    centerY + (-dx * sin) + (dy * cos),
+    centerX + (dx * cos) + (dy * sin),
+  ]);
+}
+
+function rotatedMarkerEllipse(centerX: number, centerY: number, sizeX: number, sizeY: number, dirDeg: number): [number, number][] {
+  const angle = (dirDeg * Math.PI) / 180;
+  const sin = Math.sin(angle);
+  const cos = Math.cos(angle);
+  const points: [number, number][] = [];
+  for (let i = 0; i < 24; i++) {
+    const t = (i / 24) * Math.PI * 2;
+    const dx = Math.cos(t) * sizeX;
+    const dy = Math.sin(t) * sizeY;
+    points.push([
+      centerY + (-dx * sin) + (dy * cos),
+      centerX + (dx * cos) + (dy * sin),
+    ]);
+  }
+  return points;
+}
+
+function RelayMarkerLayer({
+  relayMarkers,
+  worldSize,
+}: {
+  relayMarkers: RelayMarker[];
+  worldSize: number;
+}) {
+  const map = useMap();
+  const layerRef = useRef<L.LayerGroup | null>(null);
+
+  useEffect(() => {
+    const pane = map.getPane('athena-relay-marker') ?? map.createPane('athena-relay-marker');
+    pane.style.zIndex = '605';
+    pane.style.pointerEvents = 'none';
+
+    const layer = L.layerGroup().addTo(map);
+    layerRef.current = layer;
+    return () => {
+      map.removeLayer(layer);
+      layerRef.current = null;
+    };
+  }, [map]);
+
+  useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer) return;
+    layer.clearLayers();
+    if (!Number.isFinite(worldSize) || worldSize <= 0) return;
+
+    const scale = 100 / worldSize;
+
+    relayMarkers.forEach((marker) => {
+      if (!Number.isFinite(marker.posX) || !Number.isFinite(marker.posY)) return;
+      if (isRelayITgtMarker(marker)) return;
+      if (shouldIgnoreRelayMarker(marker)) return;
+
+      const ll: [number, number] = [marker.posY * scale, marker.posX * scale];
+      const color = relayMarkerColor(marker.color);
+      const alpha = Math.max(0.05, Math.min(1, Number.isFinite(marker.alpha) ? marker.alpha : 1));
+      const dir = Number.isFinite(marker.dir) ? marker.dir : 0;
+      const shape = relayMarkerShape(marker);
+      const iconPath = relayMarkerIconPath(marker);
+
+      if (shape === 'rectangle' && marker.sizeX > 0 && marker.sizeY > 0) {
+        const points = rotatedMarkerRect(marker.posX * scale, marker.posY * scale, marker.sizeX * scale, marker.sizeY * scale, dir);
+        L.polygon(points, {
+          pane: 'athena-relay-marker',
+          interactive: false,
+          color,
+          weight: 1.2,
+          opacity: Math.max(alpha, 0.3),
+          fillColor: color,
+          fillOpacity: Math.max(alpha * 0.25, 0.08),
+        }).addTo(layer);
+      } else if (shape === 'ellipse' && marker.sizeX > 0 && marker.sizeY > 0) {
+        const points = rotatedMarkerEllipse(marker.posX * scale, marker.posY * scale, marker.sizeX * scale, marker.sizeY * scale, dir);
+        L.polygon(points, {
+          pane: 'athena-relay-marker',
+          interactive: false,
+          color,
+          weight: 1.2,
+          opacity: Math.max(alpha, 0.3),
+          fillColor: color,
+          fillOpacity: Math.max(alpha * 0.25, 0.08),
+        }).addTo(layer);
+      } else {
+        if (iconPath) {
+          const sizeScale = Math.max(0.5, Math.min(3, Number.isFinite(marker.sizeX) ? marker.sizeX : 1));
+          const iconPx = Math.round(52 * sizeScale);
+          const iconAnchor = Math.round(iconPx / 2);
+          L.marker(ll, {
+            pane: 'athena-relay-marker',
+            interactive: false,
+            icon: L.divIcon({
+              className: '',
+              iconSize: [iconPx, iconPx],
+              iconAnchor: [iconAnchor, iconAnchor],
+              html:
+                `<div style="width:${iconPx}px;height:${iconPx}px;background:${color};opacity:${alpha};` +
+                `-webkit-mask:url('${iconPath}') center / contain no-repeat;mask:url('${iconPath}') center / contain no-repeat;` +
+                `filter:drop-shadow(0 0 1px rgba(0,0,0,0.85));"></div>`,
+            }),
+          }).addTo(layer);
+        } else {
+          L.circleMarker(ll, {
+            pane: 'athena-relay-marker',
+            interactive: false,
+            radius: 5,
+            color: '#121418',
+            weight: 1,
+            fillColor: color,
+            fillOpacity: alpha,
+          }).addTo(layer);
+        }
+      }
+
+      const label = relayMarkerLabel(marker);
+      if (!label) return;
+
+      L.marker(ll, {
+        pane: 'athena-relay-marker',
+        interactive: false,
+        icon: L.divIcon({
+          className: '',
+          iconSize: [0, 0],
+          iconAnchor: [-6, 12],
+          html: `<div class="map-marker-label" style="color:${color};font-weight:700;white-space:nowrap;">${escapeHtml(label)}</div>`,
+        }),
+      }).addTo(layer);
+    });
+  }, [relayMarkers, worldSize]);
 
   return null;
 }
@@ -3884,7 +4151,7 @@ function StartupRecenterControl({ world, worldSize }: { world: string; worldSize
 
 export function AthenaMap({
   units, vehicles, groups,
-  firewillMarkers = [],
+  relayMarkers = [],
   lazes = [],
   firedEvents = [],
   firedImpacts = [],
@@ -3897,6 +4164,7 @@ export function AthenaMap({
   onRegisterPan,
   onUserInteraction,
   storedITgtTargets = [],
+  firewillITgtTargets = [],
   onStoreCursorITgt,
   isTouchInput = false,
 }: MapProps) {
@@ -3945,7 +4213,8 @@ export function AthenaMap({
       {onUserInteraction && <UserInteractionBridge onInteraction={onUserInteraction} />}
       <CursorCoordinateBridge worldSize={worldSize} elevLookup={elevLookup} onChange={setCursorCoords} />
       {onStoreCursorITgt && <ITgtCaptureBridge cursorCoords={cursorCoords} onStoreCursorITgt={onStoreCursorITgt} />}
-      <ITgtMarkerLayer targets={storedITgtTargets} firewillMarkers={firewillMarkers} worldSize={worldSize} />
+      <RelayMarkerLayer relayMarkers={layers.armaMarkers ? relayMarkers : []} worldSize={worldSize} />
+      <ITgtMarkerLayer targets={storedITgtTargets} firewillTargets={layers.firewillITgtMarkers ? firewillITgtTargets : []} worldSize={worldSize} />
       <LayerManager
         units={units}
         vehicles={vehicles}

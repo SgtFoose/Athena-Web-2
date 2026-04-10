@@ -41,6 +41,9 @@ Unblock-File -Path .\AthenaWeb-0.0.8.exe
 - Session hygiene hardening: tactical marker state cleanup remains consistent across live disconnects and world/map context changes
 - Packaged runtime sync: rebuilt EXE with latest embedded UI assets for v0.0.8 release parity
 
+![Athena Web 2 v0.0.8 Arma in-game markers](../Images/Athena%20Web%202%20v0.0.8%20Arma%20in-game%20markers.png)
+![Athena Web 2 v0.0.8 Arma in-game and I-TGT markers](../Images/Athena%20Web%202%20v0.0.8%20Arma%20in-game%20and%20I-TGT%20markers.png)
+
 ## Notes
 
 - SmartScreen prompts can appear for unsigned/new binaries downloaded from the internet.
