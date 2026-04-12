@@ -8,7 +8,8 @@
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/latest
 
-![Athena Web 2 v0.0.6 — I-TGT Workflow](Images/Athena%20Web%202%20v0.0.6.png)
+![Athena Web 2 v0.0.9 Active AO visible](Images/Athena%20Web%202%20v0.0.9%20Active%20AO%20visible.png)
+![Athena Web 2 v0.0.9 Active AO](Images/Athena%20Web%202%20v0.0.9%20Active%20AO.png)
 
 ## Latest Video
 
@@ -64,6 +65,10 @@ This is v0.0.9 — the current active Web2 release line. It focuses on live AO v
 - **Bottom-right overlay simplification** removed overlay copy icon button; copy action remains available per target in the right sidebar
 - **Cross-map airport overlay fix** removed unintended yellow taxi-strip overlays leaking to non-Malden cached maps while preserving gray runway/taxi surfaces
 - **iPad Safari landscape spacing fix** added top offset and dynamic viewport handling so browser chrome/favorites no longer overlap top UI controls
+
+### v0.0.6 highlights
+
+![Athena Web 2 v0.0.6 — I-TGT Workflow](Images/Athena%20Web%202%20v0.0.6.png)
 
 ### v0.0.5 highlights
 
