@@ -16,6 +16,10 @@ All notable changes to Athena Web 2 will be documented in this file.
 - Increased AO marker icon scale by approximately 25% for improved readability
 - Updated bottom coordinate HUD behavior: X/Y and I-TGT panel restored, visible, and collapsible from the map UI
 
+### Fixed
+
+- Restored Firewill I-TGT relay marker rendering in the UI by rebuilding the `TGT_*` live marker feed back into the dedicated I-TGT map layer
+
 ### Validated
 
 - Validated visible active AO selection/transition markers and side-mission visibility from live Domination relay marker payloads

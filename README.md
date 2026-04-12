@@ -31,6 +31,7 @@ This is v0.0.9 — the current active Web2 release line. It focuses on live AO v
 
 - **Active AO visible in-map** AO areas and AO objective marker families now render through dedicated AO ownership paths
 - **Marker ownership toggles** map layer controls now separate `Arma Markers`, `AO Markers`, and `Spawn Markers` (Spawn Markers default OFF)
+- **Firewill I-TGT rendering restored** live Firewill `TGT_*` relay markers are visible on-map again after the v0.0.9 marker-routing regression
 - **Side-mission visibility confirmed** side-mission marker icon and label flow now render in the AO marker path
 - **AO completion/selection marker visibility** AO-specific selection/transition flags remain visible in live mission flow
 - **Camp capture status visible** AO objective icon state changes (for example captured objective turning blue) are reflected in-map

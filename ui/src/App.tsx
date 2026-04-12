@@ -1,12 +1,13 @@
 import { Component, useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
-import { AthenaMap, type StoredITgtTarget }   from './components/AthenaMap'
+import { AthenaMap, type FirewillITgtTarget, type StoredITgtTarget }   from './components/AthenaMap'
 import { Sidebar }     from './components/Sidebar'
 import { MapCacheBanner } from './components/MapCacheBanner'
 import { useAthenHub } from './hooks/useAthenaHub'
 import { useStaticMap } from './hooks/useStaticMap'
 import { useAthenaLibrary } from './hooks/useAthenaLibrary'
 import { useHealthCheck } from './hooks/useHealthCheck'
+import type { RelayMarker } from './types/game'
 import { APP_VERSION } from './version'
 import './App.css'
 
@@ -76,6 +77,23 @@ class MapErrorBoundary extends Component<MapErrorBoundaryProps, MapErrorBoundary
   }
 }
 
+function firewillITgtMarkerLabel(marker: RelayMarker): string {
+  const text = String(marker.text || '').trim()
+  if (text) return text
+  return String(marker.name || '').trim()
+}
+
+function isFirewillITgtRelayMarker(marker: RelayMarker): boolean {
+  return firewillITgtMarkerLabel(marker).toUpperCase().startsWith('TGT_')
+}
+
+function isDeletedFirewillITgtMarker(marker: RelayMarker): boolean {
+  const text = String(marker.text || '').toLowerCase()
+  const name = String(marker.name || '').toLowerCase()
+  if (text.includes('delete') || name.includes('delete')) return true
+  return String(marker.color || '').toLowerCase().includes('red')
+}
+
 function App() {
   const {
     connected,
@@ -106,6 +124,18 @@ function App() {
   const groups   = hasLiveTelemetry ? (frame?.groups   ?? {}) : {}
   const relayMarkers = hasLiveTelemetry ? (frame?.markers ?? []) : []
   const lazes    = hasLiveTelemetry ? (frame?.lazes    ?? []) : []
+  const firewillITgtTargets = useMemo<FirewillITgtTarget[]>(() => (
+    relayMarkers
+      .filter(isFirewillITgtRelayMarker)
+      .map((marker, index) => ({
+        id: `${marker.name || marker.text || 'firewill-itgt'}:${index}`,
+        name: String(marker.name || '').trim(),
+        label: firewillITgtMarkerLabel(marker),
+        x: marker.posX,
+        y: marker.posY,
+        deletedInFirewill: isDeletedFirewillITgtMarker(marker),
+      }))
+  ), [relayMarkers])
   // User-selected world for pre-planning; auto-cleared when live game sends a world
   const [userSelectedWorld, setUserSelectedWorld] = useState('')
   const world     = liveWorld || userSelectedWorld || ''
@@ -516,6 +546,7 @@ function App() {
             onRegisterPan={(fn) => { mapPanRef.current = fn }}
             onUserInteraction={() => setFollowActivePlayer(false)}
             storedITgtTargets={storedITgtTargets}
+            firewillITgtTargets={firewillITgtTargets}
             onStoreCursorITgt={handleStoreCursorITgt}
             isTouchInput={isTouchInput}
           />

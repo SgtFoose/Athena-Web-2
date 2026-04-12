@@ -2,17 +2,17 @@
   {
     "name": "AthenaWeb-0.0.9.exe",
     "path": "bridge/dist/AthenaWeb-0.0.9.exe",
-    "sha": "02b31a0a47275cc691033aee188764191c50bd51",
-    "sha256": "c525e65a7bfc5b07a952e24f9fd8c89822bbc90b3c3e4c0b17e71b46a67fa447",
-    "size": 62153122,
+    "sha": "113a81ab369f665bf217d36c3eef786c21baa937",
+    "sha256": "89e725a49879c87247a34a5a9a35948af2cebed9ca551ebf5fc5c38d9f593d10",
+    "size": 62009456,
     "url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.9.exe?ref=main",
     "html_url": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.9.exe",
-    "git_url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/02b31a0a47275cc691033aee188764191c50bd51",
+    "git_url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/113a81ab369f665bf217d36c3eef786c21baa937",
     "download_url": "https://raw.githubusercontent.com/SgtFoose/Athena-Web-2/main/bridge/dist/AthenaWeb-0.0.9.exe",
     "type": "file",
     "_links": {
       "self": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.9.exe?ref=main",
-      "git": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/02b31a0a47275cc691033aee188764191c50bd51",
+      "git": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/113a81ab369f665bf217d36c3eef786c21baa937",
       "html": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.9.exe"
     }
   }

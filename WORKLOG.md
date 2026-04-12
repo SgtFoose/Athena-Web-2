@@ -15,6 +15,7 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - Arma Markers (general/player map markers)
   - AO Markers (active AO area/objective families)
   - Spawn Markers (spawn/support infrastructure families; default OFF)
+- Restored Firewill I-TGT relay marker visibility after the v0.0.9 routing pass dropped the client-side `TGT_*` -> I-TGT layer mapping.
 - Added and validated side-mission and AO-selection marker visibility in live Domination sessions.
 - Added and validated radiotower objective marker presence in AO marker flow.
 - Restored bottom cursor coordinate HUD with visible/collapsible X/Y + I-TGT panel.
