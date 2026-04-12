@@ -13,10 +13,11 @@
 
 ## Latest Video
 
-[![Athena Web 2 v0.0.8](Images/Athena%20Web%202%20v0.0.8%20Firewill%20I-TGT%20Interaction.png)](https://youtu.be/9CKiBNtlWgQ)
+[![Athena Web 2 v0.0.9](Images/Athena%20Web%202%20v0.0.9%20Active%20AO%20visible.png)](https://youtu.be/ZzBtH9vl0hM)
 
 ### Older Videos
 
+- [Athena Web 2 v0.0.8](https://youtu.be/9CKiBNtlWgQ)
 - [Athena Web 2 v0.0.6 I-TGT Tablet Demo](https://youtu.be/7SljQN0B0Qk)
 - [Athena Web 2 Early Demo](https://youtu.be/4-AioVt9iUQ)
 
@@ -156,6 +157,31 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 4. Open the right `I-TGT TARGETS` panel entry to rename/copy/delete as needed.
 5. Use `Delete All` to clear the target list for a new run (next new label restarts at `TGT_0`).
 6. Use the saved code in Firewill I-TGT strike workflow.
+
+## STEAM WORKSHOP
+
+The `@AthenaWeb2/` folder in this repo is the stub for a Steam Workshop item. It contains no Arma addons — it is purely a distribution vehicle so users can subscribe and have the launcher placed alongside their other Arma mods.
+
+**Publishing steps (one-time, requires Arma 3 Tools):**
+
+1. Copy the current `AthenaWeb-<version>.exe` from `bridge/dist/` into `@AthenaWeb2/`
+2. Open **Arma 3 Tools** → **Publisher**
+3. Select `@AthenaWeb2/` as the source folder
+4. Fill in title, description, preview image, and tags → click **Publish**
+5. Steam assigns a Workshop ID — paste it into `@AthenaWeb2/meta.cpp` as `publishedid = <id>;`
+
+**Updating an existing item:**
+
+1. Replace `AthenaWeb-<version>.exe` in `@AthenaWeb2/` with the new EXE
+2. Open Publisher, select the folder, and click **Update**
+
+**User instructions (after subscribing):**
+
+1. Find the mod in `steamapps/workshop/content/107410/<workshopid>/`
+2. Run `AthenaWeb.exe` from that folder
+3. Open `http://localhost:3000` in any browser on your local network
+
+> The mod does not inject into Arma 3 or modify the game. It requires the original **Athena** mod by Bus (Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736) to be active in-game.
 
 ## QUICK START
 
