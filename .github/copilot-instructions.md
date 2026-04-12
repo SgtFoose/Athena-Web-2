@@ -96,3 +96,8 @@ When shipping Web2 updates, update at minimum:
 - Before any `git commit`, `git push`, GitHub Release update, or GitHub API operation, Copilot must ask the user to confirm `GITHUB_TOKEN` is set for the current terminal/session.
 - If `GITHUB_TOKEN` is missing, Copilot must pause remote GitHub operations and ask the user to set/provide the token before continuing.
 - Re-check token availability for every new commit/release operation in the conversation (do not assume prior token state still applies).
+
+## GitHub Token Handling Rule
+- For GitHub API, release, and push operations, use the existing `GITHUB_TOKEN` from the active terminal/session environment.
+- Never hardcode, print, commit, or store GitHub personal access tokens in repository files, prompts, instructions, release notes, or source code.
+- If persistent local auth is needed, instruct the user to set `GITHUB_TOKEN` in their shell profile or local environment outside the repository.
