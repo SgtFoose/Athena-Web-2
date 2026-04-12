@@ -21,6 +21,8 @@ export interface LayerVisibility {
   locations:  boolean
   armaMarkers:boolean
   firewillITgtMarkers:boolean
+  aoMarkers:  boolean
+  spawnMarkers:boolean
   groups:     boolean
   waypoints:  boolean
   lazes:      boolean
@@ -184,6 +186,8 @@ function App() {
     locations:  true,
     armaMarkers: true,
     firewillITgtMarkers: true,
+    aoMarkers:  true,
+    spawnMarkers:false,
     groups:     true,
     waypoints:  true,
     lazes:      true,

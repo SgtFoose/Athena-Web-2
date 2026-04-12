@@ -3847,7 +3847,27 @@ function ITgtMarkerLayer({
 }
 
 function relayMarkerLabel(marker: RelayMarker): string {
-  return (marker.text || marker.name || '').trim();
+  const text = String(marker.text || '').trim();
+  if (text) return text;
+
+  // Area markers should only surface explicit marker text; falling back to
+  // names leaks mission-internal ids such as d_dommtmxe_8 into the UI.
+  if (relayMarkerShape(marker) !== 'icon') return '';
+
+  const name = String(marker.name || '').trim();
+  if (!name) return '';
+
+  const normalized = normalizeRelayMarkerKey(name);
+  // Mission/script-internal marker ids should not surface as user-facing labels.
+  if (
+    normalized.startsWith('xr_')
+    || normalized.startsWith('respawn_')
+    || normalized.startsWith('base_spawn_')
+  ) {
+    return '';
+  }
+
+  return name;
 }
 
 function normalizeRelayMarkerKey(value: string): string {
@@ -3915,6 +3935,54 @@ function shouldIgnoreRelayMarker(marker: RelayMarker): boolean {
       || candidate.includes('aws_laser')
       || candidate.includes('red_crystal')
   ));
+}
+
+function rawRelayMarkerName(marker: RelayMarker): string {
+  return normalizeRelayMarkerKey(String(marker.name || '').trim());
+}
+
+function rawRelayMarkerText(marker: RelayMarker): string {
+  return normalizeRelayMarkerKey(String(marker.text || '').trim());
+}
+
+function isAoNamedMarker(marker: RelayMarker): boolean {
+  const name = rawRelayMarkerName(marker);
+  const text = rawRelayMarkerText(marker);
+  return (
+    AO_NAME_RX.test(name)
+    || AO_NAME_RX.test(text)
+    || text === 'ao'
+    || /^d_camp(?:_|$)/.test(name)
+    || /^d_dummy(?:_|$)/.test(name)
+    || name.includes('xmission')
+    || text.includes('side_mission')
+    || name.includes('parajump')
+    || text.includes('parajump')
+    || name.includes('parajum')
+    || text.includes('parajum')
+    || name.includes('paradrop')
+    || text.includes('paradrop')
+    || name.includes('radiotower')
+    || text.includes('radiotower')
+  );
+}
+
+function isSpawnMarker(marker: RelayMarker): boolean {
+  const rawName = String(marker.name || '').trim().toLowerCase();
+  const name = normalizeRelayMarkerKey(rawName);
+  const text = rawRelayMarkerText(marker);
+  if (isAoNamedMarker(marker)) return false;
+  return (
+    name.startsWith('d_')
+    || /^d_smm\|\d+\|/.test(rawName)
+    || name === 'd_player_ammobox_pos'
+    || name === 'farp'
+    || name.includes('_farp')
+    || name === 'start'
+    || text === 'start'
+    || name.includes('service')
+    || text.includes('service')
+  );
 }
 
 function relayMarkerIconPath(marker: RelayMarker): string | null {
@@ -3990,9 +4058,13 @@ function rotatedMarkerEllipse(centerX: number, centerY: number, sizeX: number, s
 function RelayMarkerLayer({
   relayMarkers,
   worldSize,
+  showArmaMarkers,
+  showSpawnMarkers,
 }: {
   relayMarkers: RelayMarker[];
   worldSize: number;
+  showArmaMarkers: boolean;
+  showSpawnMarkers: boolean;
 }) {
   const map = useMap();
   const layerRef = useRef<L.LayerGroup | null>(null);
@@ -4022,6 +4094,13 @@ function RelayMarkerLayer({
       if (!Number.isFinite(marker.posX) || !Number.isFinite(marker.posY)) return;
       if (isRelayITgtMarker(marker)) return;
       if (shouldIgnoreRelayMarker(marker)) return;
+      if (isAoDisplayMarker(marker)) return;
+      const spawnMarker = isSpawnMarker(marker);
+      if (spawnMarker) {
+        if (!showSpawnMarkers) return;
+      } else if (!showArmaMarkers) {
+        return;
+      }
 
       const ll: [number, number] = [marker.posY * scale, marker.posX * scale];
       const color = relayMarkerColor(marker.color);
@@ -4097,6 +4176,232 @@ function RelayMarkerLayer({
         }),
       }).addTo(layer);
     });
+  }, [relayMarkers, showArmaMarkers, showSpawnMarkers, worldSize]);
+
+  return null;
+}
+
+// ─── AO Marker Layer ─────────────────────────────────────────────────────────
+// Detects AO area markers from the relay Markers[] stream and renders them
+// with a distinctive highlighted overlay (yellow border, semi-transparent fill).
+//
+// Detection heuristic:
+//   1. Shape must be RECTANGLE or ELLIPSE (area markers, not icon pins).
+//   2. Both sizeX and sizeY must be > 50 m (filters tiny placeholder markers).
+//   3. Name/text must not start with TGT_ (those are I-TGT, handled separately).
+//   4. If ANY marker with name/text matching an AO keyword exists, show only
+//      those.  Otherwise fall back to showing all qualifying area markers so
+//      missions with non-standard naming still get a useful AO overlay.
+//
+// Common AO naming patterns in A3 missions: "AO", "AO_1", "area_op", "zone",
+// "sector", "areaOp", "missionAO", "tf_ao", etc.
+
+const AO_NAME_RX = /\bao\b|area[_\s]?op|missionao|zone[_\s]?op|sector[_\s]?op|isledefense|isle[_\s]?defense|dommtm(?:xe)?/i;
+
+function isAoAreaMarker(marker: RelayMarker): boolean {
+  const shape = relayMarkerShape(marker);
+  if (shape === 'icon') return false;
+  if (!(Number.isFinite(marker.sizeX) && marker.sizeX > 50 &&
+        Number.isFinite(marker.sizeY) && marker.sizeY > 50)) return false;
+  if (isRelayITgtMarker(marker)) return false;
+  return true;
+}
+
+function isAoDisplayMarker(marker: RelayMarker): boolean {
+  if (relayMarkerShape(marker) === 'icon') return isAoNamedMarker(marker);
+  if (!isAoAreaMarker(marker)) return false;
+  return isAoNamedMarker(marker);
+}
+
+function filterAoMarkers(markers: RelayMarker[]): RelayMarker[] {
+  return markers.filter(isAoDisplayMarker);
+}
+
+function shouldRenderAoLabel(marker: RelayMarker): boolean {
+  const text = String(marker.text || '').trim();
+  if (!text) return false;
+  if (relayMarkerShape(marker) === 'icon') return true;
+  // Domination-style sector numbers like "4" are not useful enough to justify
+  // a dedicated AO overlay label once the area box itself is hidden.
+  return !/^\d+$/.test(text);
+}
+
+function aoMarkerLabelPresentation(marker: RelayMarker, label: string, color: string): {
+  iconAnchor: [number, number];
+  html: string;
+} {
+  const numericIconLabel = relayMarkerShape(marker) === 'icon' && /^\d+$/.test(label.trim());
+  if (numericIconLabel) {
+    return {
+      iconAnchor: [0, 0],
+      html: `<div class="map-marker-label" style="transform:translate(-50%,-52%);color:#F7F4EA;font-weight:900;font-size:15px;white-space:nowrap;text-shadow:0 0 2px #000,0 0 5px #000,1px 1px 0 #000,-1px -1px 0 #000;">${escapeHtml(label)}</div>`,
+    };
+  }
+
+  const labelColor = color.toLowerCase() === '#222222' ? '#F7F4EA' : color;
+  return {
+    iconAnchor: [-6, 12],
+    html: `<div class="map-marker-label" style="color:${labelColor};font-weight:800;font-size:13px;white-space:nowrap;text-shadow:0 0 4px #000,0 0 8px #000;">${escapeHtml(label)}</div>`,
+  };
+}
+
+function isNumericAoIconLabel(marker: RelayMarker, label: string): boolean {
+  return relayMarkerShape(marker) === 'icon' && /^\d+$/.test(label.trim());
+}
+
+function numericAoIconHtml(color: string, alpha: number, iconPx: number, label: string): string {
+  const shellW = iconPx;
+  const shellH = iconPx;
+  const cx = iconPx / 2;
+  const cy = iconPx / 2;
+  const radius = Math.max(10, (iconPx / 2) - 5);
+  const stroke = Math.max(2, Math.round(iconPx * 0.08));
+  const xInset = Math.max(6, Math.round(iconPx * 0.28));
+  const yInset = Math.max(6, Math.round(iconPx * 0.28));
+  const textSize = Math.max(14, Math.round(iconPx * 0.34));
+  const safeLabel = escapeHtml(label.trim().slice(0, 2));
+  const svg =
+    `<svg width="${iconPx}" height="${iconPx}" viewBox="0 0 ${iconPx} ${iconPx}" xmlns="http://www.w3.org/2000/svg">` +
+    `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${color}" stroke-width="${stroke}" opacity="${alpha}"/>` +
+    `<line x1="${xInset}" y1="${yInset}" x2="${iconPx - xInset}" y2="${iconPx - yInset}" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" opacity="${alpha}"/>` +
+    `<line x1="${iconPx - xInset}" y1="${yInset}" x2="${xInset}" y2="${iconPx - yInset}" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" opacity="${alpha}"/>` +
+    `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#F7F4EA" font-family="Segoe UI, Arial, sans-serif" font-weight="900" font-size="${textSize}" stroke="#000" stroke-width="2" paint-order="stroke">${safeLabel}</text>` +
+    `</svg>`;
+  return `<div style="position:relative;width:${shellW}px;height:${shellH}px;pointer-events:none;">` +
+    `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:${iconPx}px;height:${iconPx}px;filter:drop-shadow(0 0 1px rgba(0,0,0,0.85));">${svg}</div>` +
+    `</div>`;
+}
+
+function AoMarkerLayer({
+  relayMarkers,
+  worldSize,
+}: {
+  relayMarkers: RelayMarker[];
+  worldSize: number;
+}) {
+  const map = useMap();
+  const layerRef = useRef<L.LayerGroup | null>(null);
+  const labelLayerRef = useRef<L.LayerGroup | null>(null);
+
+  useEffect(() => {
+    const pane = map.getPane('athena-ao-marker') ?? map.createPane('athena-ao-marker');
+    pane.style.zIndex = '607';  // above relay-marker pane (605)
+    pane.style.pointerEvents = 'none';
+
+    const labelPane = map.getPane('athena-ao-label') ?? map.createPane('athena-ao-label');
+    labelPane.style.zIndex = '608';
+    labelPane.style.pointerEvents = 'none';
+
+    const layer = L.layerGroup().addTo(map);
+    const labelLayer = L.layerGroup().addTo(map);
+    layerRef.current = layer;
+    labelLayerRef.current = labelLayer;
+    return () => {
+      map.removeLayer(layer);
+      map.removeLayer(labelLayer);
+      layerRef.current = null;
+      labelLayerRef.current = null;
+    };
+  }, [map]);
+
+  useEffect(() => {
+    const layer = layerRef.current;
+    const labelLayer = labelLayerRef.current;
+    if (!layer || !labelLayer) return;
+    layer.clearLayers();
+    labelLayer.clearLayers();
+    if (!Number.isFinite(worldSize) || worldSize <= 0) return;
+
+    const scale = 100 / worldSize;
+    const aoMarkers = filterAoMarkers(relayMarkers);
+
+    aoMarkers.forEach((marker) => {
+      if (!Number.isFinite(marker.posX) || !Number.isFinite(marker.posY)) return;
+
+      const color = relayMarkerColor(marker.color);
+      const alpha = Math.max(0.05, Math.min(1, Number.isFinite(marker.alpha) ? marker.alpha : 1));
+      const dir = Number.isFinite(marker.dir) ? marker.dir : 0;
+      const shape = relayMarkerShape(marker);
+
+      const ll: [number, number] = [marker.posY * scale, marker.posX * scale];
+      if (shape === 'rectangle' || shape === 'ellipse') {
+        let points: [number, number][];
+        if (shape === 'rectangle') {
+          points = rotatedMarkerRect(
+            marker.posX * scale, marker.posY * scale,
+            marker.sizeX * scale, marker.sizeY * scale,
+            dir,
+          );
+        } else {
+          points = rotatedMarkerEllipse(
+            marker.posX * scale, marker.posY * scale,
+            marker.sizeX * scale, marker.sizeY * scale,
+            dir,
+          );
+        }
+
+        L.polygon(points, {
+          pane: 'athena-ao-marker',
+          interactive: false,
+          color,
+          weight: 1.2,
+          opacity: Math.max(alpha, 0.3),
+          fillColor: color,
+          fillOpacity: Math.max(alpha * 0.25, 0.08),
+        }).addTo(layer);
+      } else {
+        const iconPath = relayMarkerIconPath(marker);
+        if (iconPath) {
+          const sizeScale = Math.max(0.5, Math.min(3, Number.isFinite(marker.sizeX) ? marker.sizeX : 1));
+          const iconPx = Math.round(65 * sizeScale);
+          const iconAnchor = Math.round(iconPx / 2);
+          const label = relayMarkerLabel(marker);
+          const numericIconLabel = Boolean(label) && isNumericAoIconLabel(marker, label);
+          L.marker(ll, {
+            pane: 'athena-ao-marker',
+            interactive: false,
+            icon: L.divIcon({
+              className: '',
+              iconSize: [iconPx, iconPx],
+              iconAnchor: [iconAnchor, iconAnchor],
+              html: numericIconLabel
+                ? numericAoIconHtml(color, alpha, iconPx, label)
+                : `<div style="width:${iconPx}px;height:${iconPx}px;background:${color};opacity:${alpha};` +
+                  `-webkit-mask:url('${iconPath}') center / contain no-repeat;mask:url('${iconPath}') center / contain no-repeat;` +
+                  `filter:drop-shadow(0 0 1px rgba(0,0,0,0.85));"></div>`,
+            }),
+          }).addTo(layer);
+        } else {
+          L.circleMarker(ll, {
+            pane: 'athena-ao-marker',
+            interactive: false,
+            radius: 6.25,
+            color: '#121418',
+            weight: 1,
+            fillColor: color,
+            fillOpacity: alpha,
+          }).addTo(layer);
+        }
+      }
+
+      if (!shouldRenderAoLabel(marker)) return;
+      const label = relayMarkerLabel(marker);
+      if (!label) return;
+      if (isNumericAoIconLabel(marker, label)) {
+        return;
+      }
+      const labelPresentation = aoMarkerLabelPresentation(marker, label, color);
+      L.marker(ll, {
+        pane: 'athena-ao-label',
+        interactive: false,
+        icon: L.divIcon({
+          className: '',
+          iconSize: [0, 0],
+          iconAnchor: labelPresentation.iconAnchor,
+          html: labelPresentation.html,
+        }),
+      }).addTo(labelLayer);
+    });
   }, [relayMarkers, worldSize]);
 
   return null;
@@ -4171,6 +4476,7 @@ export function AthenaMap({
   const bounds: L.LatLngBoundsExpression = [[0, 0], [100, 100]];
   const [projectileDebugEntries, setProjectileDebugEntries] = useState<ProjectileDebugEntry[]>([]);
   const [cursorCoords, setCursorCoords] = useState<{ x: number; y: number; z: number | null } | null>(null);
+  const [cursorHudCollapsed, setCursorHudCollapsed] = useState(false);
   const elevLookup = useMemo(() => {
     if (!elevations || elevations.cells.length === 0) return null;
     const step = elevations.sampleSize;
@@ -4213,7 +4519,8 @@ export function AthenaMap({
       {onUserInteraction && <UserInteractionBridge onInteraction={onUserInteraction} />}
       <CursorCoordinateBridge worldSize={worldSize} elevLookup={elevLookup} onChange={setCursorCoords} />
       {onStoreCursorITgt && <ITgtCaptureBridge cursorCoords={cursorCoords} onStoreCursorITgt={onStoreCursorITgt} />}
-      <RelayMarkerLayer relayMarkers={layers.armaMarkers ? relayMarkers : []} worldSize={worldSize} />
+      <RelayMarkerLayer relayMarkers={relayMarkers} worldSize={worldSize} showArmaMarkers={layers.armaMarkers} showSpawnMarkers={layers.spawnMarkers} />
+      <AoMarkerLayer relayMarkers={layers.aoMarkers ? relayMarkers : []} worldSize={worldSize} />
       <ITgtMarkerLayer targets={storedITgtTargets} firewillTargets={layers.firewillITgtMarkers ? firewillITgtTargets : []} worldSize={worldSize} />
       <LayerManager
         units={units}
@@ -4319,50 +4626,101 @@ export function AthenaMap({
     )}
     <div
       style={{
-        position: 'absolute',
-        right: 12,
+        position: 'fixed',
+        left: '50%',
         bottom: 12,
-        zIndex: 1200,
+        transform: 'translateX(-50%)',
+        zIndex: 1300,
         pointerEvents: 'auto',
-        padding: '8px 10px',
-        borderRadius: 6,
-        background: 'rgba(10,10,12,0.72)',
-        border: '1px solid rgba(220,220,220,0.25)',
-        color: '#f2f2ec',
-        fontSize: 14,
-        fontFamily: 'Consolas, "Lucida Console", monospace',
-        fontVariantNumeric: 'tabular-nums',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 6,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span style={{ color: '#FFCD7E', fontSize: 16, fontWeight: 700, letterSpacing: 0.4 }}>I-TGT:{iTgtCoordinate}</span>
-      </div>
-      {cursorCoords
-        ? `X:${cursorCoords.x.toFixed(2)} Y:${cursorCoords.y.toFixed(2)}${cursorCoords.z !== null ? ` Z:${cursorCoords.z.toFixed(1)}` : ''}`
-        : 'X:-- Y:--'}
-      {isTouchInput && onStoreCursorITgt && (
-        <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <button
-            type="button"
-            onClick={storeCursorITgt}
-            disabled={!cursorCoords}
-            style={{
-              border: '1px solid rgba(183,196,222,0.6)',
-              borderRadius: 4,
-              background: cursorCoords ? 'rgba(31,58,116,0.92)' : 'rgba(55,55,60,0.65)',
-              color: cursorCoords ? '#EAF1FF' : '#A7ACB8',
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: 0.2,
-              padding: '5px 8px',
-              cursor: cursorCoords ? 'pointer' : 'not-allowed',
-            }}
-          >
-            SAVE TGT
-          </button>
-          <div style={{ color: '#B7C4DE', fontSize: 11 }}>
-            Tap map to set cursor, then Save.
+      {cursorHudCollapsed ? (
+        <button
+          type="button"
+          onClick={() => setCursorHudCollapsed(false)}
+          title="Expand cursor and I-TGT panel"
+          style={{
+            border: '1px solid rgba(220,220,220,0.28)',
+            borderRadius: 6,
+            background: 'rgba(10,10,12,0.82)',
+            color: '#f2f2ec',
+            fontSize: 15,
+            fontWeight: 700,
+            width: 34,
+            height: 28,
+            cursor: 'pointer',
+          }}
+        >
+          ^
+        </button>
+      ) : (
+        <div
+          style={{
+            padding: '8px 10px',
+            borderRadius: 6,
+            background: 'rgba(10,10,12,0.72)',
+            border: '1px solid rgba(220,220,220,0.25)',
+            color: '#f2f2ec',
+            fontSize: 14,
+            fontFamily: 'Consolas, "Lucida Console", monospace',
+            fontVariantNumeric: 'tabular-nums',
+            minWidth: 210,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+            <span style={{ color: '#FFCD7E', fontSize: 16, fontWeight: 700, letterSpacing: 0.4 }}>I-TGT:{iTgtCoordinate}</span>
+            <button
+              type="button"
+              onClick={() => setCursorHudCollapsed(true)}
+              title="Collapse cursor and I-TGT panel"
+              style={{
+                border: '1px solid rgba(220,220,220,0.20)',
+                borderRadius: 4,
+                background: 'rgba(22,22,28,0.85)',
+                color: '#d7d9df',
+                fontSize: 13,
+                fontWeight: 700,
+                width: 24,
+                height: 22,
+                cursor: 'pointer',
+                lineHeight: 1,
+              }}
+            >
+              v
+            </button>
           </div>
+          {cursorCoords
+            ? `X:${cursorCoords.x.toFixed(2)} Y:${cursorCoords.y.toFixed(2)}${cursorCoords.z !== null ? ` Z:${cursorCoords.z.toFixed(1)}` : ''}`
+            : 'X:-- Y:--'}
+          {isTouchInput && onStoreCursorITgt && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button
+                type="button"
+                onClick={storeCursorITgt}
+                disabled={!cursorCoords}
+                style={{
+                  border: '1px solid rgba(183,196,222,0.6)',
+                  borderRadius: 4,
+                  background: cursorCoords ? 'rgba(31,58,116,0.92)' : 'rgba(55,55,60,0.65)',
+                  color: cursorCoords ? '#EAF1FF' : '#A7ACB8',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: 0.2,
+                  padding: '5px 8px',
+                  cursor: cursorCoords ? 'pointer' : 'not-allowed',
+                }}
+              >
+                SAVE TGT
+              </button>
+              <div style={{ color: '#B7C4DE', fontSize: 11 }}>
+                Tap map to set cursor, then Save.
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

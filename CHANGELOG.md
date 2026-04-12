@@ -2,7 +2,31 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
-## [0.0.8] — 2026-04-10
+## [0.0.9] - 2026-04-12
+
+### Added
+
+- Added dedicated relay marker visibility controls in MAP LAYERS for Arma Markers, AO Markers, and Spawn Markers (Spawn Markers default OFF)
+- Added active AO screenshot coverage in docs (`Athena Web 2 v0.0.9 Active AO visible.png` and `Athena Web 2 v0.0.9 Active AO.png`)
+
+### Changed
+
+- Updated AO marker rendering/classification so active AO areas and AO objective marker families (for example camp/radiotower/dummy and side-mission objective paths) can be toggled independently of general Arma markers
+- Updated spawn-marker classification so mission support/spawn infrastructure marker families can be toggled independently from Arma map markers
+- Increased AO marker icon scale by approximately 25% for improved readability
+- Updated bottom coordinate HUD behavior: X/Y and I-TGT panel restored, visible, and collapsible from the map UI
+
+### Validated
+
+- Validated visible active AO selection/transition markers and side-mission visibility from live Domination relay marker payloads
+- Validated radiotower objective marker presence on-map under AO-controlled marker visibility
+- Validated camp capture-state icon color transitions (for example objective turning blue after capture)
+
+### Known Issue
+
+- AO camp objective number labels (`1..5`) are still not consistently visible in-map and remain tracked for follow-up in worklog/TODO
+
+## [0.0.8] - 2026-04-10
 
 ### Added
 

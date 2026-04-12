@@ -10,6 +10,22 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-12 — v0.0.9 Active AO + Marker Routing Pass
+- Implemented live AO visibility routing from relay marker stream with separate marker ownership buckets:
+  - Arma Markers (general/player map markers)
+  - AO Markers (active AO area/objective families)
+  - Spawn Markers (spawn/support infrastructure families; default OFF)
+- Added and validated side-mission and AO-selection marker visibility in live Domination sessions.
+- Added and validated radiotower objective marker presence in AO marker flow.
+- Restored bottom cursor coordinate HUD with visible/collapsible X/Y + I-TGT panel.
+- Increased AO marker icon scale for better readability in active objective zones.
+- Added v0.0.9 screenshot assets for release/readme coverage:
+  - `Images/Athena Web 2 v0.0.9 Active AO visible.png`
+  - `Images/Athena Web 2 v0.0.9 Active AO.png`
+
+#### TODO (carry into next patch)
+- AO camp objective number labels (`1..5`) still not consistently visible on top of camp icons in live sessions; keep open as a targeted rendering follow-up.
+
 ### 2026-04-10 — v0.0.8 Local Firewill I-TGT Marker Interop Validation
 - Investigated live Firewill I-TGT marker passthrough while in-game with relay active.
 - Verified relay/bridge frame ingestion included marker channel (`Children -> Markers`) in live v2 frames.

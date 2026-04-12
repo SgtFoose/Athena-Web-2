@@ -1510,7 +1510,7 @@ const httpServer = http.createServer((req, res) => {
 
   if (pathname === '/api/game/statedebug') {
     const markers = Array.isArray(gameState.markers) ? gameState.markers : [];
-    const markerSamples = markers.slice(0, 20).map((m) => ({
+      const markerSamples = markers.slice(0, 300).map((m) => ({
       name: m?.name || '',
       text: m?.text || '',
       type: m?.type || '',
@@ -1518,6 +1518,8 @@ const httpServer = http.createServer((req, res) => {
       color: m?.color || '',
       posX: Number.isFinite(Number(m?.posx ?? m?.posX)) ? Number(m?.posx ?? m?.posX) : null,
       posY: Number.isFinite(Number(m?.posy ?? m?.posY)) ? Number(m?.posy ?? m?.posY) : null,
+      sizeX: Number.isFinite(Number(m?.sizex ?? m?.sizeX)) ? Number(m?.sizex ?? m?.sizeX) : null,
+      sizeY: Number.isFinite(Number(m?.sizey ?? m?.sizeY)) ? Number(m?.sizey ?? m?.sizeY) : null,
     }));
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({

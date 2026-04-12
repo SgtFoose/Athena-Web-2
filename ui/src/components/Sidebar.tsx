@@ -350,6 +350,8 @@ function CommonPanel({
           { key: 'locations',  label: 'Locations' },
           { key: 'armaMarkers', label: 'Arma Markers' },
           { key: 'firewillITgtMarkers', label: 'Firewill I-TGT Markers' },
+          { key: 'aoMarkers',  label: 'AO Markers' },
+          { key: 'spawnMarkers', label: 'Spawn Markers' },
           { key: 'groups',     label: 'Groups' },
           { key: 'vehicles',   label: 'Vehicles' },
           { key: 'units',      label: 'Units' },
