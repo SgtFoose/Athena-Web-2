@@ -1,0 +1,20 @@
+Athena Web 2 - First Workshop Publish Checklist
+
+1. Build required stub PBO once:
+   - Open PowerShell in @AthenaWeb2
+   - Run: .\Build-StubPbo.ps1
+2. Open Arma 3 Tools -> Publisher
+3. Source folder: @AthenaWeb2
+4. Title: Athena Web 2
+5. Visibility: Public (or Hidden for dry run)
+6. Preview image: @AthenaWeb2/workshop-preview-v0.0.9.png
+7. Description text: paste from @AthenaWeb2/workshop-description.txt
+8. Tags (recommended): Tool, Utility
+9. Click Publish
+
+After successful publish:
+1. Copy the new Workshop ID
+2. Add it to @AthenaWeb2/meta.cpp as:
+   publishedid = <id>;
+3. Save meta.cpp
+4. Future releases: use @AthenaWeb2/Update-Workshop.ps1 -WorkshopId <id>

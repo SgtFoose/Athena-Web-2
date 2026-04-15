@@ -1,0 +1,29 @@
+Athena Web 2 turns Athena into a modern browser-based second screen for Arma 3.
+
+Plan routes, track squads, monitor live mission markers, and keep the tactical picture visible on desktop, tablet, or phone across your local network.
+
+What you get:
+- AthenaWeb.exe launcher (standalone bridge + web UI)
+- Full browser map experience served locally
+- Fast startup with no dev setup required
+
+Requirements:
+- Original Athena mod by Bus (Workshop ID 1181881736)
+- Relay-enabled Athena setup
+
+Quick start:
+1) Launch AthenaWeb.exe
+2) Open the local URL shown in the console (usually http://localhost:3000)
+3) Start Arma 3 with the original @Athena mod enabled
+4) Do not load @AthenaWeb2 in the Arma launcher mod list
+
+Important:
+- This Workshop item does not inject into Arma 3 and does not ship gameplay content.
+- It is a launcher/runtime distribution wrapper for Athena Web 2.
+- Server and clients do not need to load @AthenaWeb2 as a mod; only run AthenaWeb.exe.
+
+Related project (separate product/release line):
+- Athena Remastered Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3687225607
+
+Project repo and docs:
+https://github.com/SgtFoose/Athena-Web-2

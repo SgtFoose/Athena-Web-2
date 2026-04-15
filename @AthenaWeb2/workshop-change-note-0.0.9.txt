@@ -1,0 +1,17 @@
+Athena Web 2 v0.0.9
+
+This update improves live marker control and target workflow clarity during active missions.
+
+Highlights:
+- New MAP LAYERS controls for Arma Markers, AO Markers, and Spawn Markers (Spawn defaults OFF)
+- AO marker rendering/classification pass for cleaner mission-area visibility
+- AO icon scale increased for better readability at combat zoom levels
+- Bottom coordinate HUD restored (X/Y + I-TGT visible and collapsible)
+- Firewill I-TGT live relay marker rendering restored in dedicated I-TGT layer
+
+Validation notes:
+- Verified active AO/side-mission marker visibility from live Domination relay payloads
+- Verified objective-state marker transitions during live sessions
+
+Requirement:
+Requires the original Athena mod by Bus (Workshop ID 1181881736).

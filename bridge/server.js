@@ -948,7 +948,13 @@ function broadcast(obj) {
   const msg = JSON.stringify(obj);
   for (const ws of wsClients) {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(msg);
+      try {
+        ws.send(msg, (err) => {
+          if (err) wsClients.delete(ws);
+        });
+      } catch {
+        wsClients.delete(ws);
+      }
     }
   }
 }
@@ -1131,16 +1137,40 @@ function sendRelayCommand(command, data = '') {
   if (!relaySocket || !relayConnected) return false;
   pushOutboundRelayCommand(command, data);
   const frame = command + SEP + data + SEP + END;
-  relaySocket.write(frame);
-  return true;
+  try {
+    relaySocket.write(frame);
+    return true;
+  } catch (err) {
+    console.warn('[relay] Failed to send command:', err?.message || err);
+    return false;
+  }
 }
 
 function sendRelayCommandToSelf(command, data = '') {
   if (!relaySocket || !relayConnected) return false;
   pushOutboundRelayCommand(`${command}@self`, data);
   const frame = command + SEP + BRIDGE_GUID + SEP + data + SEP + END;
-  relaySocket.write(frame);
-  return true;
+  try {
+    relaySocket.write(frame);
+    return true;
+  } catch (err) {
+    console.warn('[relay] Failed to send self command:', err?.message || err);
+    return false;
+  }
+}
+
+function sendWsSafely(ws, payload) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+  const msg = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  try {
+    ws.send(msg, (err) => {
+      if (err) wsClients.delete(ws);
+    });
+    return true;
+  } catch {
+    wsClients.delete(ws);
+    return false;
+  }
 }
 
 function buildMapExportPayloads() {
@@ -1288,9 +1318,13 @@ function connectToRelay() {
     // Register as a relay client using the <ath_sep> protocol.
     // Format: {CommandType}<ath_sep>{ClientGUID}<ath_sep>{ContentData}<ath_sep>end
     const handshake = CONFIG.relayClientType + SEP + BRIDGE_GUID + SEP + SEP + END;
-    relaySocket.write(handshake);
-    console.log(`[relay] Sent registration handshake (${CONFIG.relayClientType})`);
-    startRelayFramePoll();
+    try {
+      relaySocket.write(handshake);
+      console.log(`[relay] Sent registration handshake (${CONFIG.relayClientType})`);
+      startRelayFramePoll();
+    } catch (err) {
+      console.warn('[relay] Failed to send registration handshake:', err?.message || err);
+    }
   });
 
   relaySocket.on('data', (chunk) => {
@@ -1753,9 +1787,9 @@ wss.on('connection', (ws, req) => {
   wsClients.add(ws);
 
   // Send current state immediately so late joiners catch up
-  ws.send(JSON.stringify({ type: 'state', data: buildClientState() }));
-  ws.send(JSON.stringify({ type: relayConnected ? 'relayConnected' : 'relayDisconnected' }));
-  ws.send(JSON.stringify({ type: 'mapImportStatus', data: {
+  sendWsSafely(ws, { type: 'state', data: buildClientState() });
+  sendWsSafely(ws, { type: relayConnected ? 'relayConnected' : 'relayDisconnected' });
+  sendWsSafely(ws, { type: 'mapImportStatus', data: {
     command: mapImportState.lastCommand,
     world: mapImportState.world,
     inProgress: mapImportState.inProgress,
@@ -1765,21 +1799,21 @@ wss.on('connection', (ws, req) => {
     completedAt: mapImportState.completedAt,
     hasPayload: false,
     payloadLength: 0,
-  }}));
+  }});
 
   ws.on('message', (raw) => {
     let msg;
     try {
       msg = JSON.parse(raw.toString('utf8'));
     } catch {
-      ws.send(JSON.stringify({ type: 'bridgeError', data: { message: 'Malformed client message' } }));
+      sendWsSafely(ws, { type: 'bridgeError', data: { message: 'Malformed client message' } });
       return;
     }
 
     if (msg?.type === 'startMapExport') {
       const ok = sendMapExportCommand();
       if (!ok) {
-        ws.send(JSON.stringify({ type: 'bridgeError', data: { message: 'Relay not connected' } }));
+        sendWsSafely(ws, { type: 'bridgeError', data: { message: 'Relay not connected' } });
         return;
       }
 
@@ -1807,7 +1841,7 @@ wss.on('connection', (ws, req) => {
       return;
     }
 
-    ws.send(JSON.stringify({ type: 'bridgeError', data: { message: 'Unknown client action' } }));
+    sendWsSafely(ws, { type: 'bridgeError', data: { message: 'Unknown client action' } });
   });
 
   ws.on('close', () => {
@@ -1823,7 +1857,9 @@ wss.on('connection', (ws, req) => {
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 function startHttpServer(preferredPort, maxRetries = 8) {
+  let listenAttemptSeq = 0;
   const tryListen = (port, retriesLeft) => {
+    const attemptSeq = ++listenAttemptSeq;
     const onError = (err) => {
       if (err && err.code === 'EADDRINUSE' && retriesLeft > 0) {
         console.warn(`[web] Port ${port} is in use. Trying ${port + 1} ...`);
@@ -1836,6 +1872,9 @@ function startHttpServer(preferredPort, maxRetries = 8) {
 
     httpServer.once('error', onError);
     httpServer.listen(port, '0.0.0.0', () => {
+      if (attemptSeq !== listenAttemptSeq) {
+        return;
+      }
       httpServer.removeListener('error', onError);
       activeWebPort = port;
 

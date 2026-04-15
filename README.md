@@ -8,15 +8,20 @@
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/latest
 
+**Athena Web 2 Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=3707444008
+
+**Install via Steam Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=3707444008
+
 ![Athena Web 2 v0.0.9 Active AO visible](Images/Athena%20Web%202%20v0.0.9%20Active%20AO%20visible.png)
 ![Athena Web 2 v0.0.9 Active AO](Images/Athena%20Web%202%20v0.0.9%20Active%20AO.png)
 
 ## Latest Video
 
-[![Athena Web 2 v0.0.9](Images/Athena%20Web%202%20v0.0.9%20Active%20AO%20visible.png)](https://youtu.be/ZzBtH9vl0hM)
+[![Athena Web 2 v0.0.9](Images/Athena%20Web%202%20v0.0.9%20Active%20AO%20visible.png)](https://youtu.be/BwCr86wAnSw)
 
 ### Older Videos
 
+- [Athena Web 2 v0.0.9 (previous video)](https://youtu.be/ZzBtH9vl0hM)
 - [Athena Web 2 v0.0.8](https://youtu.be/9CKiBNtlWgQ)
 - [Athena Web 2 v0.0.6 I-TGT Tablet Demo](https://youtu.be/7SljQN0B0Qk)
 - [Athena Web 2 Early Demo](https://youtu.be/4-AioVt9iUQ)
@@ -161,9 +166,18 @@ Use this flow to capture and manage Firewill-compatible I-TGT target codes:
 
 ## STEAM WORKSHOP
 
+Athena Web 2 Workshop page: https://steamcommunity.com/sharedfiles/filedetails/?id=3707444008
+
 The `@AthenaWeb2/` folder in this repo is the stub for a Steam Workshop item. It contains no Arma addons — it is purely a distribution vehicle so users can subscribe and have the launcher placed alongside their other Arma mods.
 
 **Publishing steps (one-time, requires Arma 3 Tools):**
+
+0. Build the required stub addon PBO (Publisher requires at least one `.pbo`):
+
+```powershell
+cd @AthenaWeb2
+.\Build-StubPbo.ps1
+```
 
 1. Copy the current `AthenaWeb-<version>.exe` from `bridge/dist/` into `@AthenaWeb2/`
 2. Open **Arma 3 Tools** → **Publisher**
@@ -176,15 +190,38 @@ The `@AthenaWeb2/` folder in this repo is the stub for a Steam Workshop item. It
 1. Replace `AthenaWeb-<version>.exe` in `@AthenaWeb2/` with the new EXE
 2. Open Publisher, select the folder, and click **Update**
 
+**Command-line update (Arma 3 Tools PublisherCmd):**
+
+1. Open PowerShell in `@AthenaWeb2/`
+2. Run:
+
+```powershell
+.\Update-Workshop.ps1 -WorkshopId <workshopid>
+```
+
+3. The script publishes folder contents from `@AthenaWeb2/` and uses `@AthenaWeb2/workshop-change-note-0.0.9.txt` as the changelog text
+
 **User instructions (after subscribing):**
 
 1. Find the mod in `steamapps/workshop/content/107410/<workshopid>/`
 2. Run `AthenaWeb.exe` from that folder
 3. Open `http://localhost:3000` in any browser on your local network
+4. Do **not** load `@AthenaWeb2` in the Arma 3 launcher/server mod list (only load the original `@Athena` mod)
 
 > The mod does not inject into Arma 3 or modify the game. It requires the original **Athena** mod by Bus (Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736) to be active in-game.
 
 ## QUICK START
+
+### Option 0: Steam Workshop (subscribe + run)
+
+Use this when you want Steam to deliver Athena Web 2 files.
+
+1. Subscribe on Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3707444008
+2. Find the installed folder: `steamapps/workshop/content/107410/3707444008/`
+3. Run `AthenaWeb.exe` from that folder
+4. Open `http://localhost:3000` in any browser on your local network
+5. Start Arma 3 with the original `@Athena` mod enabled
+6. Do **not** load `@AthenaWeb2` in your Arma launcher/server mod list
 
 ### Option A: Standalone EXE (recommended)
 
