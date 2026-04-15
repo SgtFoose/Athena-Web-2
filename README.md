@@ -203,7 +203,7 @@ cd @AthenaWeb2
 
 ## QUICK START
 
-### Option 0: Steam Workshop (subscribe + run)
+### Option A: Steam Workshop (subscribe + run)
 
 Use this when you want Steam to deliver Athena Web 2 files.
 
@@ -222,7 +222,7 @@ Note: depending on Steam/Arma alias behavior for this published item, the alias 
 
 > The mod does not inject into Arma 3 or modify the game. It requires the original **Athena** mod by Bus (Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736) to be active in-game.
 
-### Option A: Standalone EXE (recommended)
+### Option B: Standalone EXE (recommended)
 
 Use this when you want a one-file launcher with no dev setup.
 
