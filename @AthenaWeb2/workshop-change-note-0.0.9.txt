@@ -8,6 +8,7 @@ Highlights:
 - AO icon scale increased for better readability at combat zoom levels
 - Bottom coordinate HUD restored (X/Y + I-TGT visible and collapsible)
 - Firewill I-TGT live relay marker rendering restored in dedicated I-TGT layer
+- Workshop launch-path guidance updated: use `steamapps/workshop/content/107410/3707444008/` as canonical path (Steam alias under `!Workshop` may appear as `@AthenaWeb2` or `@@AthenaWeb2`)
 
 Validation notes:
 - Verified active AO/side-mission marker visibility from live Domination relay payloads

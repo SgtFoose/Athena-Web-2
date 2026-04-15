@@ -201,15 +201,6 @@ cd @AthenaWeb2
 
 3. The script publishes folder contents from `@AthenaWeb2/` and uses `@AthenaWeb2/workshop-change-note-0.0.9.txt` as the changelog text
 
-**User instructions (after subscribing):**
-
-1. Find the mod in `steamapps/workshop/content/107410/<workshopid>/`
-2. Run `AthenaWeb.exe` from that folder
-3. Open `http://localhost:3000` in any browser on your local network
-4. Do **not** load `@AthenaWeb2` in the Arma 3 launcher/server mod list (only load the original `@Athena` mod)
-
-> The mod does not inject into Arma 3 or modify the game. It requires the original **Athena** mod by Bus (Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736) to be active in-game.
-
 ## QUICK START
 
 ### Option 0: Steam Workshop (subscribe + run)
@@ -223,9 +214,19 @@ Use this when you want Steam to deliver Athena Web 2 files.
 5. Start Arma 3 with the original `@Athena` mod enabled
 6. Do **not** load `@AthenaWeb2` in your Arma launcher/server mod list
 
+Optional alias path: Steam may also expose the same content under `C:\Program Files (x86)\Steam\steamapps\common\Arma 3\!Workshop\@AthenaWeb2`.
+
+Note: depending on Steam/Arma alias behavior for this published item, the alias folder can appear as either `@AthenaWeb2` or `@@AthenaWeb2`. If in doubt, always launch from `steamapps/workshop/content/107410/3707444008/`.
+
+**Important:** this Workshop item is for quick downloading only. It is not a gameplay addon and must not be loaded on server or client mod lists.
+
+> The mod does not inject into Arma 3 or modify the game. It requires the original **Athena** mod by Bus (Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=1181881736) to be active in-game.
+
 ### Option A: Standalone EXE (recommended)
 
 Use this when you want a one-file launcher with no dev setup.
+
+Project page: https://github.com/SgtFoose/Athena-Web-2
 
 1. Open the latest release page: https://github.com/SgtFoose/Athena-Web-2/releases/latest
 2. Under **Assets**, download `AthenaWeb-0.0.9.exe`
@@ -295,7 +296,7 @@ Per new map, do this once:
 
 After export, Athena Web 2 can render roads, structures, trees, and other static layers for that map from local cache.
 
-### Option B: Development mode (Node.js)
+### Option C: Development mode (Node.js)
 
 Use this if you are developing or debugging the source code.
 
