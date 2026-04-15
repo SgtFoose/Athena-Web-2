@@ -10,6 +10,27 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-04-15 — v0.0.9 Workshop Publish + Distribution Messaging Pass
+- Applied bridge crash-hardening pass in `bridge/server.js`:
+  - wrapped relay write/send operations in guarded try/catch paths
+  - added safe WebSocket send helper with stale-client cleanup
+  - added listen-attempt guard to avoid stale startup callback races when port fallback occurs
+- Published Athena Web 2 Workshop item and linked published ID `3707444008` in `@AthenaWeb2/meta.cpp`.
+- Built/validated Arma 3 Publisher compatibility path for first publish:
+  - added no-op stub addon source `@AthenaWeb2/addons_src/athenaweb2_stub/config.cpp`
+  - added stub build helper `@AthenaWeb2/Build-StubPbo.ps1`
+  - generated required publisher-validation PBO `@AthenaWeb2/addons/athenaweb2_stub.pbo`
+- Added Workshop maintenance/update helpers:
+  - `@AthenaWeb2/Update-Workshop.ps1`
+  - `@AthenaWeb2/workshop-change-note-0.0.9.txt`
+  - `@AthenaWeb2/workshop-description.txt`
+  - `@AthenaWeb2/WORKSHOP-FIRST-PUBLISH-CHECKLIST.txt`
+- Updated Workshop preview asset for publish flow (`@AthenaWeb2/workshop-preview-v0.0.9.png`) from current v0.0.9 imagery.
+- Updated README for user-facing distribution clarity:
+  - added Athena Web 2 Workshop link and dedicated "Option 0: Steam Workshop" quick-start
+  - explicitly documented that users should not load `@AthenaWeb2` as server/client gameplay mod and should run `AthenaWeb.exe` only
+  - updated Latest Video to `https://youtu.be/BwCr86wAnSw` and moved prior latest to Older Videos
+
 ### 2026-04-12 — v0.0.9 Active AO + Marker Routing Pass
 - Implemented live AO visibility routing from relay marker stream with separate marker ownership buckets:
   - Arma Markers (general/player map markers)

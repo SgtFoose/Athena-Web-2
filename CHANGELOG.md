@@ -8,6 +8,8 @@ All notable changes to Athena Web 2 will be documented in this file.
 
 - Added dedicated relay marker visibility controls in MAP LAYERS for Arma Markers, AO Markers, and Spawn Markers (Spawn Markers default OFF)
 - Added active AO screenshot coverage in docs (`Athena Web 2 v0.0.9 Active AO visible.png` and `Athena Web 2 v0.0.9 Active AO.png`)
+- Added Steam Workshop distribution stub under `@AthenaWeb2/` including `meta.cpp` with published Workshop ID `3707444008`, Publisher helper scripts, and a required no-op stub PBO for Arma 3 Publisher validation
+- Added Steam Workshop quick-start/install path to README (subscribe flow + `AthenaWeb.exe` launch guidance)
 
 ### Changed
 
@@ -15,10 +17,13 @@ All notable changes to Athena Web 2 will be documented in this file.
 - Updated spawn-marker classification so mission support/spawn infrastructure marker families can be toggled independently from Arma map markers
 - Increased AO marker icon scale by approximately 25% for improved readability
 - Updated bottom coordinate HUD behavior: X/Y and I-TGT panel restored, visible, and collapsible from the map UI
+- Updated README media links so latest video points to `https://youtu.be/BwCr86wAnSw` and previous latest is retained under Older Videos
+- Updated Workshop-facing description text to explicitly state `@AthenaWeb2` should not be loaded as an Arma gameplay/server-client mod (run `AthenaWeb.exe` only)
 
 ### Fixed
 
 - Restored Firewill I-TGT relay marker rendering in the UI by rebuilding the `TGT_*` live marker feed back into the dedicated I-TGT map layer
+- Hardened bridge relay/WebSocket send paths to prevent process crashes on transient socket/send failures (safe send wrappers + guarded relay writes/listen startup)
 
 ### Validated
 
