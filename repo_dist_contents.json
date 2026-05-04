@@ -1,19 +1,19 @@
 [
   {
-    "name": "AthenaWeb-0.0.9.exe",
-    "path": "bridge/dist/AthenaWeb-0.0.9.exe",
-    "sha": "763cbc8590d705499db56e66cca6853c3c12b6b3",
-    "sha256": "8e25888af76e2beb38f858f4ab39bef2325a338d8a122fd4abc73b15258e2548",
-    "size": 62017000,
-    "url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.9.exe?ref=main",
-    "html_url": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.9.exe",
-    "git_url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/763cbc8590d705499db56e66cca6853c3c12b6b3",
-    "download_url": "https://raw.githubusercontent.com/SgtFoose/Athena-Web-2/main/bridge/dist/AthenaWeb-0.0.9.exe",
+    "name": "AthenaWeb-0.1.0.exe",
+    "path": "bridge/dist/AthenaWeb-0.1.0.exe",
+    "sha": "73b3d5eac363ff23d35f06e8a387cb16a1a40dd9",
+    "sha256": "ec123615d5c291004bf0f889321c4caa1907c49d2bb4f45659c3f9a3ebf88776",
+    "size": 62017964,
+    "url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.1.0.exe?ref=main",
+    "html_url": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.1.0.exe",
+    "git_url": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/73b3d5eac363ff23d35f06e8a387cb16a1a40dd9",
+    "download_url": "https://raw.githubusercontent.com/SgtFoose/Athena-Web-2/main/bridge/dist/AthenaWeb-0.1.0.exe",
     "type": "file",
     "_links": {
-      "self": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.0.9.exe?ref=main",
-      "git": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/763cbc8590d705499db56e66cca6853c3c12b6b3",
-      "html": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.0.9.exe"
+      "self": "https://api.github.com/repos/SgtFoose/Athena-Web-2/contents/bridge/dist/AthenaWeb-0.1.0.exe?ref=main",
+      "git": "https://api.github.com/repos/SgtFoose/Athena-Web-2/git/blobs/73b3d5eac363ff23d35f06e8a387cb16a1a40dd9",
+      "html": "https://github.com/SgtFoose/Athena-Web-2/blob/main/bridge/dist/AthenaWeb-0.1.0.exe"
     }
   }
 ]

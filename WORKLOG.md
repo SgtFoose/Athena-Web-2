@@ -10,6 +10,38 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-05-04 — v0.1.0 Release: Map Rendering Pass (Contours, Land Fill, Taxi)
+
+- Applied contour line smoothing: single Chaikin pass (after RDP) on elevation contours removes blocky stairstepping.
+- Applied coastline smoothing: two Chaikin passes on Z=0 coast rings for natural shoreline curves.
+- Fixed land fill / ocean fill edge bleed by aligning land polygon and coast polyline to identical Chaikin-smoothed point sets with `smoothFactor: 0` (disables Leaflet per-zoom re-simplification that caused polygon/polyline divergence, including Malden-specific bleed).
+- Loosened airport expansion second-pass threshold (`ringCount >= 2`, `cardinalCount >= 2`) to recover Tanoa sparse taxi connectors.
+- Hidden Trees row in MAP DATA panel when `treeCount === 0` (no data, avoids misleading "0 points" display).
+- Built `AthenaWeb-0.1.0.exe` via `@yao-pkg/pkg`, updated `bridge/dist`, updated `repo_dist_contents.json`.
+- Created `.github/release-notes-template-v0.1.0.md`.
+- Tagged `v0.1.0`, pushed to `main`, published GitHub Release with EXE asset.
+
+### 2026-05-04 — v0.1.0 Runway/Taxiway Parity Prep Pass
+- Investigated original Bus map cache exports directly from `C:\Users\jvdv2\Documents\Athena\Maps` to verify how airport surfaces are encoded across multiple worlds before changing Web2 rendering.
+- Verified multi-map cache pattern:
+  - Altis, Stratis, and Malden rely heavily on square `hide` roadway tiles for airport/apron/taxiway surfaces
+  - Tanoa mixes square `hide` tiles/models but still follows the same broad airport-surface encoding pattern
+  - original Bus caches for these worlds expose only `RoadType=1` and `RoadType=3` in `Roads.txt`, making bridge-side road-type preservation critical for parity
+- Applied bridge import fix in `bridge/server.js`:
+  - remapped `RoadType=3` to Web2 `main road`/concrete styling instead of collapsing it into generic `road`
+  - preserves gray concrete segment styling for airport-adjacent lines before UI rendering begins
+- Applied UI render fix in `ui/src/components/AthenaMap.tsx`:
+  - tightened `hide` tile classification so only explicit long/thin strips resolve to dirt-path rendering
+  - square 20x20 `hide` tiles now remain gray airport/taxiway surface geometry even when clusters are sparse or narrow
+- Validation:
+  - `node --check bridge/server.js` passed after the bridge road-type fix
+  - no editor errors reported for `ui/src/components/AthenaMap.tsx`
+  - full `npm --prefix ui run build` is still blocked by an existing nullability error in `ui/src/App.tsx` (`health` possibly `null`), outside the runway/taxiway changes
+- Release-prep docs updated for the pending `v0.1.0` publish path:
+  - `CHANGELOG.md`
+  - `WORKLOG.md`
+  - `AthenaWeb2/workshop-change-note-0.1.0.txt`
+
 ### 2026-04-15 — v0.0.9 Workshop Publish + Distribution Messaging Pass
 - Applied bridge crash-hardening pass in `bridge/server.js`:
   - wrapped relay write/send operations in guarded try/catch paths
@@ -27,8 +59,9 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - `@AthenaWeb2/WORKSHOP-FIRST-PUBLISH-CHECKLIST.txt`
 - Updated Workshop preview asset for publish flow (`@AthenaWeb2/workshop-preview-v0.0.9.png`) from current v0.0.9 imagery.
 - Updated README for user-facing distribution clarity:
-  - added Athena Web 2 Workshop link and dedicated "Option 0: Steam Workshop" quick-start
+  - added Athena Web 2 Workshop link and dedicated QUICK START flow with "Option A: Steam Workshop" and "Option B: Standalone EXE"
   - explicitly documented that users should not load `@AthenaWeb2` as server/client gameplay mod and should run `AthenaWeb.exe` only
+  - documented Steam/Arma alias behavior where `!Workshop` may show `@AthenaWeb2` or `@@AthenaWeb2`; canonical launch path remains `steamapps/workshop/content/107410/3707444008/`
   - updated Latest Video to `https://youtu.be/BwCr86wAnSw` and moved prior latest to Older Videos
 
 ### 2026-04-12 — v0.0.9 Active AO + Marker Routing Pass

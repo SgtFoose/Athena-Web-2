@@ -1,0 +1,16 @@
+Athena Web 2 v0.1.0
+
+This update improves map-render parity and release packaging consistency.
+
+Highlights:
+- Airport runway/taxiway parity improved across Altis, Stratis, Malden, and Tanoa
+- Concrete map segments from cached exports are preserved correctly (`RoadType=3`)
+- Coastline and contour rendering smoothed for more natural map lines
+- Land fill / ocean edge-bleed fixed (including Malden)
+- Trees MAP DATA row hidden when no tree data is available
+
+Known limitation:
+- Tanoa taxi coverage is approximately 95%; some isolated connector tiles may still be improved in a future update
+
+Requirement:
+Requires the original Athena mod by Bus (Workshop ID 1181881736).

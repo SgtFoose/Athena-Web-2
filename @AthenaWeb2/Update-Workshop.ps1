@@ -4,7 +4,7 @@ param(
 
   [string]$ContentPath = ".",
 
-  [string]$ChangeNoteFile = ".\workshop-change-note-0.0.9.txt"
+  [string]$ChangeNoteFile = ".\workshop-change-note-0.1.0.txt"
 )
 
 $publisherCmd = "C:\Program Files (x86)\Steam\steamapps\common\Arma 3 Tools\Publisher\PublisherCmd.exe"

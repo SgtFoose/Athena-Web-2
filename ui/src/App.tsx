@@ -405,6 +405,23 @@ function App() {
     hadLiveTelemetryRef.current = hasLiveTelemetry
   }, [hasLiveTelemetry])
 
+  const relayEndpoint = health?.relay
+    ? `${health.relay.host}:${health.relay.port}`
+    : '127.0.0.1:28800'
+  const relayOffline = !connected && Boolean(health?.relay) && !health?.relay?.connected
+  const welcomeStatusText = connected && exportStatus.phase !== 'idle'
+    ? 'Loading world data...'
+    : connected
+    ? 'Connected to server - waiting for game data...'
+    : relayOffline
+    ? `Bridge online, relay offline (${relayEndpoint})`
+    : 'Connecting to server...'
+  const relayStatusHint = relayOffline
+    ? `Start Athena relay and verify ${relayEndpoint} is listening.`
+    : (!connected && healthError)
+    ? `Bridge is unreachable: ${healthError}`
+    : ''
+
   return (
     <div className={`app-shell ${leftSidebarCollapsed ? 'left-collapsed' : ''} ${rightSidebarCollapsed ? 'right-collapsed' : ''}`}>
       <aside className={`sidebar ${leftSidebarCollapsed ? 'collapsed' : ''}`}>
@@ -426,7 +443,7 @@ function App() {
           connected={connected}
           onRequestWorld={handleRequestWorld}
           roadCount={roads.length}
-          treeCount={exportStatus.treeCount}
+          treeCount={exportStatus.treeCount > 0 ? exportStatus.treeCount : exportStatus.forestCount}
           forestCellCount={forests?.cells.length ?? 0}
           locationCount={locations.length}
           structureCount={structures.length}
@@ -477,12 +494,13 @@ function App() {
             <div className="welcome-banner">
               <div className="welcome-title">ATHENA REMASTERED</div>
               <div className="welcome-status">
-                {connected && exportStatus.phase !== 'idle'
-                  ? 'Loading world data...'
-                  : connected
-                  ? 'Connected to server - waiting for game data...'
-                  : 'Connecting to server...'}
+                {welcomeStatusText}
               </div>
+              {relayStatusHint && (
+                <div style={{ fontSize: 12, color: '#ffd166', marginTop: 6 }}>
+                  {relayStatusHint}
+                </div>
+              )}
               {connected && exportStatus.phase !== 'idle' ? (
                 <div className="welcome-export-progress">
                   {[

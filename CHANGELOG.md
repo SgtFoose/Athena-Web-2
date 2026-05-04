@@ -2,6 +2,29 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.1.0] - 2026-05-04
+
+### Changed
+
+- Updated cached Bus map road-type import so original `RoadType=3` entries now flow into Web2 as concrete/main-road segments instead of being collapsed into generic brown road styling
+- Updated runway/taxiway rendering logic to keep square `hide` tiles as airport surface geometry during render, rather than degrading sparse clusters into dirt-path lines
+- Improved elevation contour line smoothness: single Chaikin smoothing pass applied after RDP simplification removes blocky stairstepping without over-rounding lines
+- Improved coastline polyline smoothness: two Chaikin passes on Z=0 coast rings for natural shoreline curves
+- Airport expansion pass threshold loosened to recover sparse taxi connector strips missed on Tanoa and similar maps
+- Trees row hidden in MAP DATA panel when no tree data is available (avoids persistent "0 points" greyed-out display)
+
+### Fixed
+
+- Fixed cross-map runway and taxiway parity regression affecting cached Bus-rendered worlds such as Altis, Stratis, Malden, and Tanoa where airport-connected surfaces could render as brown thin strips instead of concrete-gray surfaces
+- Fixed loss of concrete airport-adjacent segment styling caused by bridge-side road-type mapping that previously discarded the concrete classification before the UI rendered it
+- Fixed land fill / ocean fill edge bleed where ivory land colour bled outside or inside the shoreline line across all maps: land polygon and coast polyline now use identical Chaikin-smoothed point sets with `smoothFactor: 0` to prevent Leaflet zoom-based divergence
+- Fixed Malden-specific edge bleed that persisted after initial land polygon alignment fix; root cause was Leaflet's per-zoom `smoothFactor` re-simplification diverging between polygon and polyline renderers
+
+### Known Limitations
+
+- Taxi/runway tile coverage is approximately 95% on Tanoa; a small number of isolated low-density connector tiles may still render as dirt; tracked for improvement in a future release
+- Contour line smoothness and coastline curve accuracy are dependent on the static Athena Desktop cache being present in the bridge data path
+
 ## [0.0.9] - 2026-04-12
 
 ### Added

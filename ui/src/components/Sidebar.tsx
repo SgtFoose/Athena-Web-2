@@ -402,7 +402,7 @@ function CommonPanel({
         <div style={sectionLabel}>MAP DATA</div>
         {[
           { label: 'Roads',      value: roadCount,          unit: 'segments' },
-          { label: 'Trees',      value: treeCount,          unit: 'points' },
+          ...(treeCount > 0 ? [{ label: 'Trees', value: treeCount, unit: 'points' }] : []),
           { label: 'Forest',     value: forestCellCount,    unit: 'cells' },
           { label: 'Locations',  value: locationCount,      unit: 'labels' },
           { label: 'Structures', value: structureCount,     unit: 'objects' },
@@ -411,7 +411,7 @@ function CommonPanel({
           <div key={g.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
             <span style={{ color: '#aaa' }}>{g.label}</span>
             <span style={{ color: g.value > 0 ? '#2ecc71' : '#555' }}>
-              {g.value > 0 ? `${g.value.toLocaleString()} ${g.unit}` : ''}
+              {`${g.value.toLocaleString()} ${g.unit}`}
             </span>
           </div>
         ))}

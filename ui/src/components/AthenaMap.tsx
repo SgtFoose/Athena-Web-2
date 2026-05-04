@@ -89,16 +89,7 @@ function hideSurfaceStyle(_road: Road): { fillColor: string; lineColor: string }
   return { fillColor: '#D3D3D3', lineColor: '#D3D3D3' };
 }
 
-function isPathLikeHideTile(road: Road): boolean {
-  const width = Number(road.width) || 0;
-  const length = Number(road.length) || 0;
-  const maxDim = Math.max(width, length);
-  const minDim = Math.max(0.001, Math.min(width, length));
-  const aspect = maxDim / minDim;
 
-  // Dirt-path hide exports are long/thin strips; runway/apron tiles are usually square.
-  return maxDim <= 40 && aspect >= 3;
-}
 
 function hidePathPoint(road: Road, scale: number): [number, number] {
   const cx = (road.posX ? road.posX : (road.beg1X + road.end2X) / 2) * scale;
@@ -368,20 +359,43 @@ function simplifyClosedRing(points: [number, number][], epsilon: number): [numbe
   return simplifiedOpen;
 }
 
+function smoothPolylineChaikin(points: [number, number][], iterations: number, closed: boolean): [number, number][] {
+  if (iterations <= 0 || points.length < (closed ? 4 : 3)) return points;
+  let current = points;
+  for (let iter = 0; iter < iterations; iter += 1) {
+    if (current.length < (closed ? 4 : 3)) break;
+    const next: [number, number][] = [];
+    const count = current.length;
+
+    if (!closed) next.push(current[0]);
+
+    const edgeCount = closed ? count : count - 1;
+    for (let i = 0; i < edgeCount; i += 1) {
+      const p0 = current[i];
+      const p1 = current[(i + 1) % count];
+      const q: [number, number] = [0.75 * p0[0] + 0.25 * p1[0], 0.75 * p0[1] + 0.25 * p1[1]];
+      const r: [number, number] = [0.25 * p0[0] + 0.75 * p1[0], 0.25 * p0[1] + 0.75 * p1[1]];
+      next.push(q, r);
+    }
+
+    if (!closed) next.push(current[count - 1]);
+    current = next;
+  }
+  return current;
+}
+
 function contourSimplifyEpsilon(worldSize: number): number {
-  // Keep contour detail higher on smaller worlds (for example Stratis)
-  // so offline lines retain smooth curvature instead of angular trimming.
-  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.012;
-  const normalized = (2.5 * 100) / worldSize;
-  return Math.max(0.004, Math.min(0.02, normalized));
+  // Preserve much more source detail to avoid blocky contour appearance.
+  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.002;
+  const normalized = (0.35 * 100) / worldSize;
+  return Math.max(0.0008, Math.min(0.004, normalized));
 }
 
 function coastlineSimplifyEpsilon(worldSize: number): number {
-  // Coastline rings need tighter tolerance than inland contours to avoid
-  // visible stair-step artifacts along shore edges.
-  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.007;
-  const normalized = (1.2 * 100) / worldSize;
-  return Math.max(0.0025, Math.min(0.012, normalized));
+  // Coastlines are visually critical: keep simplification very tight.
+  if (!Number.isFinite(worldSize) || worldSize <= 0) return 0.0012;
+  const normalized = (0.18 * 100) / worldSize;
+  return Math.max(0.0004, Math.min(0.0025, normalized));
 }
 
 interface TreeRecord {
@@ -1143,6 +1157,11 @@ function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, st
 
   const mapped = lookupVehicleCategoryFromMap(cls, vehicleMap);
   if (mapped) return mapped;
+
+  // Common relay/mod text labels can include names like "Huey Gunship" that are
+  // clearly helicopters but do not match exact class library entries.
+  if (/(huey|gunship|\buh[-_ ]?1\b|\bah[-_ ]?1\b|\buh1h\b|\buh1y\b|\bah1\b)/.test(text)) return 'Helicopters';
+
   // High-confidence Arma naming fallbacks for cases where class libraries are unavailable.
   if (/(wipeout|blackfish|neophron|buzzard|shikra|gryphon|to201|a149|falcon|black\s*wasp|caesar\s*btt|a[-_ ]?10|f[-_ ]?\d{2}|mig[-_ ]?\d{2}|su[-_ ]?\d{2})/.test(text)) return 'Planes';
   if (/(blackfoot|ghosthawk|mohawk|huron|orca|pawnee|taru|hellcat|ka60|ka62)/.test(text)) return 'Helicopters';
@@ -1150,7 +1169,7 @@ function resolveVehicleCategory(vehicleClass: string, vehicleMap: Map<string, st
   if (/(scorcher|sochor|sandstorm|mrls|mortar)/.test(text)) return 'Artillery';
   if (/(panther|mora|kamysh|marshall|marid|gorgon|ifv|apc)/.test(text)) return 'APCs';
   if (/(slammer|varsuk|kuma|mbt|tank|t140|t100|leopard|abrams|t72|t90|challenger)/.test(text)) return 'Tanks';
-  if (/(speedboat|assaultboat|rhib|motorboat|boat|ship|sdv|submarine)/.test(text)) return text.includes('sdv') || text.includes('sub') ? 'Submersibles' : 'Boats';
+  if (/(speedboat|assaultboat|rhib|motorboat|\bboat\b|\bship\b|sdv|submarine)/.test(text)) return text.includes('sdv') || text.includes('sub') ? 'Submersibles' : 'Boats';
   if (/(stomper|sentinel|drone|uav|ugv|pelican)/.test(text)) return 'Drones';
   if (/(offroad|hunter|ifrit|strider|van|truck|zamak|tempest|hemtt|quadbike|mrap|lsv)/.test(text)) return 'Cars';
   if (/(\buh[-_]?\d+|\bah[-_]?\d+|\bmh[-_]?\d+|\bmi[-_]?\d+|\bka[-_]?\d+|\bch[-_]?\d+|\bmv[-_]?\d+)/.test(text)) return 'Helicopters';
@@ -2095,13 +2114,21 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
               // [lat=Y, lng=X] in normalised 0..100 map space
               pts.push([flat[i + 1] * scale, flat[i] * scale]);
             }
-            return simplifyClosedRing(pts as [number, number][], coastEpsilon) as L.LatLngExpression[];
+            // Apply same Chaikin smoothing as coastline polyline so polygon edge
+            // and drawn shoreline line stay perfectly aligned (fixes fill bleed).
+            return smoothPolylineChaikin(
+              simplifyClosedRing(pts as [number, number][], coastEpsilon),
+              2, true
+            ) as L.LatLngExpression[];
           })
           .filter(r => r.length >= 3);
 
         if (rings.length > 0) {
           if (cancelled) return;
           landLayerRef.current.clearLayers();
+          // smoothFactor:0 so Leaflet doesn't re-simplify at each zoom level;
+          // our Chaikin+RDP pre-processing is the only simplification applied,
+          // keeping polygon edge pixel-perfect with the coast polyline above it.
           L.polygon(rings, {
             pane:        'athena-land',
             stroke:      true,
@@ -2112,7 +2139,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
             fillColor:   '#FFFFF0',
             fillOpacity: 1,
             fillRule:    'evenodd',
-            smoothFactor: 1,
+            smoothFactor: 0,
             interactive: false,
           }).addTo(landLayerRef.current);
           landCacheRef.current = { world, ready: true, source: 'z0' };
@@ -2310,7 +2337,8 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     const minZ10 = Math.ceil (minZ / 10) * 10;
     const maxZ10 = Math.floor(maxZ / 10) * 10;
 
-    for (let z = minZ10; z <= maxZ10; z += 10) {
+    // Do not render bathymetric (underwater) contour lines.
+    for (let z = Math.max(0, minZ10); z <= maxZ10; z += 10) {
       // Bus exact: uniform strokeThickness 0.75, full opacity
       // Colors: MediumBlue (Z=0), DodgerBlue (Z<0), RosyBrown (Z>0)
       if (z === 0) {
@@ -2462,24 +2490,32 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           for (let i = 0; i + 1 < flat.length; i += 2)
             pts.push([flat[i + 1] * scale, flat[i] * scale]); // [lat=Y, lng=X]
           if (cl.z === 0) return pts;
-          return simplifyPolylineRdp(pts, contourEpsilon);
+          // One Chaikin pass: removes blocky stairstepping without over-rounding.
+          return smoothPolylineChaikin(simplifyPolylineRdp(pts, contourEpsilon), 1, false);
         })
         .filter(p => p.length >= 2);
       if (latlngs.length === 0) return;
 
       // Sea-level coastline gets a dedicated pane in 2D mode so it stays visible
       // above forests and land fill, with a crisp outer + inner stroke.
+      if (cl.z < 0) {
+        return;
+      }
+
       if (cl.z === 0) {
         const coastLatLngs = latlngs
-          .map(line => simplifyClosedRing(line, coastEpsilon))
+          .map(line => smoothPolylineChaikin(simplifyClosedRing(line, coastEpsilon), 2, true))
           .filter(line => line.length >= 2);
         // Bus exact: Z=0 coastline = MediumBlue, stroke 0.75
+        // smoothFactor:0 disables Leaflet's own zoom-based simplification so the
+        // polyline pixels sit exactly on the land polygon edge (fixes edge bleed).
         L.polyline(coastLatLngs, {
           color:       '#0000CD',
           weight:      0.75,
           opacity:     1,
-          lineJoin:    'miter',
-          lineCap:     'butt',
+          lineJoin:    'round',
+          lineCap:     'round',
+          smoothFactor: 0,
           interactive: false,
           pane:        'athena-coast',
         }).addTo(coastLayerRef.current);
@@ -2488,8 +2524,9 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
           color:       style.color,
           weight:      style.weight,
           opacity:     style.opacity,
-          lineJoin:    'miter',
-          lineCap:     'butt',
+          lineJoin:    'round',
+          lineCap:     'round',
+          smoothFactor: 1,
           interactive: false,
           pane:        'athena-contour',
         }).addTo(contourLayerRef.current);
@@ -2594,8 +2631,6 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
 
     // Pass 1: airport surface tiles first (base layer)
     const snap = (v: number) => Math.round(v / 20) * 20;
-    const approxEq = (a: number, b: number, tol = 3.5) => Math.abs(a - b) <= tol;
-    const hasHideAt = (x: number, y: number) => hideCentersWorld.some(p => approxEq(p.x, x) && approxEq(p.y, y));
 
     const hideTileKeys = new Set<string>();
     const hideByKey = new Map<string, { x: number; y: number }>();
@@ -2622,22 +2657,11 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       [-20, -20],
     ] as const;
 
-    const neighborCardinalCountByKey = new Map<string, number>();
-    const neighborAnyCountByKey = new Map<string, number>();
-    hideByKey.forEach(({ x, y }, key) => {
-      const card = cardinalOffsets.reduce((sum, [ox, oy]) => (
-        sum + Number(hideTileKeys.has(`${x + ox}_${y + oy}`))
-      ), 0);
-      const any = allOffsets.reduce((sum, [ox, oy]) => (
-        sum + Number(hideTileKeys.has(`${x + ox}_${y + oy}`))
-      ), 0);
-      neighborCardinalCountByKey.set(key, card);
-      neighborAnyCountByKey.set(key, any);
-    });
-
     // Build hide-tile clusters so dense airfield/apron patches stay gray while sparse path chains become dirt.
     const clusterByKey = new Map<string, { isAirportSurface: boolean }>();
     const visited = new Set<string>();
+    const clusters: Array<{ keys: string[]; minX: number; maxX: number; minY: number; maxY: number; density: number }> = [];
+
     hideByKey.forEach(({ x, y }, startKey) => {
       if (visited.has(startKey)) return;
       const queue: string[] = [startKey];
@@ -2670,67 +2694,215 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const heightTiles = Math.max(1, Math.round((maxY - minY) / 20) + 1);
       const bboxAreaTiles = widthTiles * heightTiles;
       const density = keys.length / Math.max(1, bboxAreaTiles);
+      clusters.push({ keys, minX, maxX, minY, maxY, density });
+    });
 
-      // Airport/apron groups are usually large and dense. Sparse/linear clusters are path networks.
-      const isAirportSurface =
-        (keys.length >= 36 && density >= 0.32) ||
-        (keys.length >= 18 && density >= 0.58) ||
-        (keys.length >= 10 && density >= 0.82);
+    const primaryAirportClusters = new Set<number>();
+    clusters.forEach((cluster, index) => {
+      const isPrimaryAirport =
+        (cluster.keys.length >= 24 && cluster.density >= 0.22) ||
+        (cluster.keys.length >= 12 && cluster.density >= 0.38) ||
+        (cluster.keys.length >= 6 && cluster.density >= 0.62);
+      if (isPrimaryAirport) primaryAirportClusters.add(index);
+    });
 
-      keys.forEach((key) => {
-        clusterByKey.set(key, { isAirportSurface });
+    const bboxGap = (a: { minX: number; maxX: number; minY: number; maxY: number }, b: { minX: number; maxX: number; minY: number; maxY: number }): number => {
+      const dx = Math.max(0, Math.max(a.minX - b.maxX, b.minX - a.maxX));
+      const dy = Math.max(0, Math.max(a.minY - b.maxY, b.minY - a.maxY));
+      return Math.hypot(dx, dy);
+    };
+
+    const localTileMetrics = (x: number, y: number): { cardinalCount: number; ringCount: number } => {
+      let cardinalCount = 0;
+      cardinalOffsets.forEach(([ox, oy]) => {
+        if (hideTileKeys.has(`${x + ox}_${y + oy}`)) cardinalCount += 1;
+      });
+
+      let ringCount = 0;
+      for (let dx = -40; dx <= 40; dx += 20) {
+        for (let dy = -40; dy <= 40; dy += 20) {
+          if (dx === 0 && dy === 0) continue;
+          if (hideTileKeys.has(`${x + dx}_${y + dy}`)) ringCount += 1;
+        }
+      }
+      return { cardinalCount, ringCount };
+    };
+
+    const fallbackAirportKeys = new Set<string>();
+    const seedKeys: string[] = [];
+    hideByKey.forEach(({ x, y }, key) => {
+      const { cardinalCount, ringCount } = localTileMetrics(x, y);
+      // Strong local density indicates airport/apron pavement.
+      if (ringCount >= 6 && cardinalCount >= 1) {
+        fallbackAirportKeys.add(key);
+        seedKeys.push(key);
+      }
+    });
+
+    // Expand from dense seeds so connected runway/taxi strips inherit airport classification.
+    const queue = [...seedKeys];
+    while (queue.length > 0) {
+      const key = queue.pop()!;
+      const tile = hideByKey.get(key);
+      if (!tile) continue;
+
+      allOffsets.forEach(([ox, oy]) => {
+        const nextKey = `${tile.x + ox}_${tile.y + oy}`;
+        if (!hideTileKeys.has(nextKey) || fallbackAirportKeys.has(nextKey)) return;
+        const nextTile = hideByKey.get(nextKey);
+        if (!nextTile) return;
+
+        const { cardinalCount, ringCount } = localTileMetrics(nextTile.x, nextTile.y);
+        const isConnectedAirportStrip = (ringCount >= 4 && cardinalCount >= 1) || cardinalCount >= 2;
+        if (!isConnectedAirportStrip) return;
+
+        fallbackAirportKeys.add(nextKey);
+        queue.push(nextKey);
+      });
+    }
+
+    clusters.forEach((cluster, index) => {
+      let isAirportSurface = primaryAirportClusters.has(index);
+      if (!isAirportSurface && cluster.keys.length >= 3 && primaryAirportClusters.size > 0) {
+        for (const primaryIndex of primaryAirportClusters) {
+          const primary = clusters[primaryIndex];
+          if (bboxGap(cluster, primary) <= 240) {
+            isAirportSurface = true;
+            break;
+          }
+        }
+      }
+
+      cluster.keys.forEach((key) => {
+        if (isAirportSurface) {
+          clusterByKey.set(key, { isAirportSurface: true });
+          return;
+        }
+
+        if (fallbackAirportKeys.has(key)) {
+          clusterByKey.set(key, { isAirportSurface: true });
+          return;
+        }
+
+        clusterByKey.set(key, { isAirportSurface: false });
       });
     });
 
-    const isTaxiHideTile = (road: Road): boolean => {
+    // One additional relaxed expansion pass helps reconnect sparse taxi strips
+    // that are directly attached to known airport surfaces.
+    const airportSurfaceKeys = new Set<string>();
+    clusterByKey.forEach((value, key) => {
+      if (value.isAirportSurface) airportSurfaceKeys.add(key);
+    });
+
+    const expansionQueue = [...airportSurfaceKeys];
+    while (expansionQueue.length > 0) {
+      const key = expansionQueue.pop()!;
+      const tile = hideByKey.get(key);
+      if (!tile) continue;
+
+      allOffsets.forEach(([ox, oy]) => {
+        const nextKey = `${tile.x + ox}_${tile.y + oy}`;
+        if (!hideTileKeys.has(nextKey) || airportSurfaceKeys.has(nextKey)) return;
+        const nextTile = hideByKey.get(nextKey);
+        if (!nextTile) return;
+
+        const n = hideTileKeys.has(`${nextTile.x}_${nextTile.y + 20}`);
+        const s = hideTileKeys.has(`${nextTile.x}_${nextTile.y - 20}`);
+        const e = hideTileKeys.has(`${nextTile.x + 20}_${nextTile.y}`);
+        const w = hideTileKeys.has(`${nextTile.x - 20}_${nextTile.y}`);
+        const cardinalCount = Number(n) + Number(s) + Number(e) + Number(w);
+
+        let ringCount = 0;
+        for (let dx = -40; dx <= 40; dx += 20) {
+          for (let dy = -40; dy <= 40; dy += 20) {
+            if (dx === 0 && dy === 0) continue;
+            if (hideTileKeys.has(`${nextTile.x + dx}_${nextTile.y + dy}`)) ringCount += 1;
+          }
+        }
+
+        const axisLinked = (n && s) || (e && w);
+        // Relaxed threshold to capture final sparse taxi strips:
+        // any tile axis-aligned, or with 2+ ring neighbours and at least 1 cardinal.
+        const continuation = axisLinked || (ringCount >= 2 && cardinalCount >= 1) || cardinalCount >= 2;
+        if (!continuation) return;
+
+        airportSurfaceKeys.add(nextKey);
+        expansionQueue.push(nextKey);
+      });
+    }
+
+    const isAirportHideTile = (road: Road): boolean => {
       const cx = road.posX ? road.posX : (road.beg1X + road.end2X) / 2;
       const cy = road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2;
-      const sx = snap(cx);
-      const sy = snap(cy);
-      const key = `${sx}_${sy}`;
-      const inAirportCluster = clusterByKey.get(key)?.isAirportSurface ?? false;
-      if (!inAirportCluster) return false;
-      const n = hasHideAt(sx, sy + 20);
-      const s = hasHideAt(sx, sy - 20);
-      const e = hasHideAt(sx + 20, sy);
-      const w = hasHideAt(sx - 20, sy);
-      const count = Number(n) + Number(s) + Number(e) + Number(w);
-      // Lane-like strips are usually linear (1-2 neighbors), runway/apron masses have denser neighborhoods.
-      return count >= 1 && count <= 2;
+      const key = `${snap(cx)}_${snap(cy)}`;
+      return airportSurfaceKeys.has(key);
     };
 
     const isPathHideTile = (road: Road): boolean => {
-      if (isPathLikeHideTile(road)) return true;
+      // Keep airport/apron/taxi hide tiles gray first; only clearly path-like
+      // non-airport tiles are rendered as brown stitched paths.
       const cx = road.posX ? road.posX : (road.beg1X + road.end2X) / 2;
       const cy = road.posY ? road.posY : (road.beg1Y + road.end2Y) / 2;
       const sx = snap(cx);
       const sy = snap(cy);
       const key = `${sx}_${sy}`;
-      const inAirportCluster = clusterByKey.get(key)?.isAirportSurface ?? false;
-      if (inAirportCluster) return false;
+      if (clusterByKey.get(key)?.isAirportSurface ?? false) return false;
 
-      const card = neighborCardinalCountByKey.get(key) ?? 0;
-      const any = neighborAnyCountByKey.get(key) ?? 0;
-      // Off-airfield hide tiles with sparse neighbors are usually dirt paths/trails.
-      return card <= 2 && any <= 4;
+      const n = hideTileKeys.has(`${sx}_${sy + 20}`);
+      const s = hideTileKeys.has(`${sx}_${sy - 20}`);
+      const e = hideTileKeys.has(`${sx + 20}_${sy}`);
+      const w = hideTileKeys.has(`${sx - 20}_${sy}`);
+      const cardinalCount = Number(n) + Number(s) + Number(e) + Number(w);
+
+      let ringCount = 0;
+      for (let dx = -40; dx <= 40; dx += 20) {
+        for (let dy = -40; dy <= 40; dy += 20) {
+          if (dx === 0 && dy === 0) continue;
+          if (hideTileKeys.has(`${sx + dx}_${sy + dy}`)) ringCount += 1;
+        }
+      }
+
+      const width = Number(road.width) || 0;
+      const length = Number(road.length) || 0;
+      const maxDim = Math.max(width, length);
+      const minDim = Math.max(0.001, Math.min(width, length));
+      const aspect = maxDim / minDim;
+
+      // If local neighborhood is even moderately dense, treat as airport/taxi vicinity.
+      const airportVicinity = ringCount >= 7 || (ringCount >= 5 && cardinalCount >= 2);
+      if (airportVicinity) return false;
+
+      // Keep path rendering conservative to avoid runway/taxi false positives.
+      const geometryPathLike = maxDim <= 34 && aspect >= 2.8 && ringCount <= 4 && cardinalCount <= 2;
+      const sparseLinear = cardinalCount <= 1 && ringCount <= 3;
+      const allowNonAirportPathHide = false;
+      if (!allowNonAirportPathHide) return false;
+      return geometryPathLike || sparseLinear;
     };
 
     airportRoads.forEach(road => {
+      const airportHide = isAirportHideTile(road);
+      if (!airportHide) {
+        if (isPathHideTile(road)) {
+          pathHidePoints.push(hidePathPoint(road, scale));
+        }
+        return;
+      }
+
       if (isPathHideTile(road)) {
         pathHidePoints.push(hidePathPoint(road, scale));
         return;
       }
+
       const latlngs = rotatedRoadRect(road, scale);
-      const taxiLike = isTaxiHideTile(road);
-      const hideStyle = taxiLike
-        ? { fillColor: '#D4D4D4', lineColor: '#B8B8B8' }
-        : hideSurfaceStyle(road);
+      const hideStyle = hideSurfaceStyle(road);
       L.polygon(latlngs, {
         fillColor:   hideStyle.fillColor,
         fillOpacity: 1,
         color:       hideStyle.lineColor,
-        weight:      taxiLike ? 0.7 : 0,
-        stroke:      taxiLike,
+        weight:      0,
+        stroke:      false,
         opacity:     1,
         interactive: false,
         pane:        'athena-road',
