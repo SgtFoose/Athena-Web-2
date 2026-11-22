@@ -50,6 +50,10 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
     - Cause: `Backend/Services/GameStateService.cs:21-22` calls `LoadCachedWorld()` in the constructor ("Auto-load last-used world from disk cache so the map renders without the game", `:845`). The console confirms `Loaded cached world 'Malden'` before `Now listening`.
     - AR also reads the Athena Desktop cache (`StaticAthenaCacheService`), like Web2.
     - Planned AR fix (Phase 2): drop the startup auto-load and show the shared core's welcome screen until a mission arrives (Web2 behaviour since v0.0.4). Added to `docs/ui-core-sync.md` ("AR-side fixes planned for Phase 2").
+  - Owner then loaded a mission on Malden. AR showed "Rendering map for: Malden — This may take a few minutes…" and "Rendering map geometry for 'Malden'", and the game ran at ~16 FPS during the export, even though the backend had already loaded Malden from cache at startup. This confirms AR fix (2): skip the auto export for cached worlds.
+  - Owner's AR v1.1.6 (Steam Workshop) live view on Malden: huge square forest blocks not following the real forest, a stair-stepped coastline, sidebars that can't collapse, and no I-TGT.
+    - Noted in `docs/ui-core-sync.md`: the forest grid fix lives in Web2's bridge, so AR needs it in its C# backend too.
+    - Stored I-TGT is UI-only and comes with the core. Firewill I-TGT markers need AR to stream mission markers (optional AR feature via `allMapMarkers`).
   - The AR screenshot (Malden) shows the pre-fix rendering: forest blocks spilling over the coast, a stair-stepped coastline, opaque dark forest. That confirms the value of porting the shared core.
 
 ### 2026-11-22 — v0.1.1 Published + end-user start guide in release notes
