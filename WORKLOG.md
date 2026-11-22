@@ -10,6 +10,29 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — core: map-data status box hides itself after loading
+- Owner request (AR live test screenshot, Malden): hide the bottom-left "Loaded from cache" box (Roads/Trees/Forests/... counts) in both apps.
+- `ui/src/core/components/ExportStatusOverlay.tsx`:
+  - `exporting` stays visible for as long as the export runs (progress)
+  - `cached` / `complete` disappear after `FINISHED_STATUS_VISIBLE_MS` = 4000 ms
+  - every phase change shows the box again (reset during render, React's recommended pattern; avoids the set-state-in-effect lint rule)
+- Same branch `fix/header-version-label`; synced to AR.
+- Owner approved the push: branch `fix/header-version-label` pushed, PR #11 → `main`.
+- Validation: `npx eslint src/core/components/ExportStatusOverlay.tsx` clean, `npm --prefix ui run build` OK.
+
+### 2026-11-22 — core: version label no longer cut off in the header (live feedback from AR)
+- Owner's live test of AR `v1.2.0-test (e15e8a0)`: the header showed only "v1...." next to the two-line "ATHENA REMASTERED" name. Cause: `.header-right` had `min-width: 0`, so the flex layout shrank the right block, and `.version-label` truncated with an ellipsis at `max-width: 96px`.
+- Fix in `ui/src/core/styles/app.css`:
+  - `.header-right` now uses `flex-shrink: 0`
+  - `.logo-text` gets `min-width: 0` so the app name wraps instead
+  - `.version-label` loses the ellipsis and max width; the header shows the compact label (`v0.1.1` / `v0.1.1-test`), which always fits
+- Branch `fix/header-version-label`, stacked on `docs/log-test-builds` (PR #10 still open). Synced to AR with `scripts/sync-core-to-ar.ps1`.
+- Validation: `npm --prefix ui run build` OK.
+- Test EXE `C:\AthenaWeb2-test\AthenaWeb.exe` (`v0.1.1-test (1c81c87)`, SHA verified in the bundle; tracked `bridge/wwwroot` restored). The owner's D: drive was no longer present.
+- Note: the label `1c81c87` refers to a pre-amend commit. Its code is identical to `0d683f1`; only `WORKLOG.md` differs.
+- D: drive back: test EXE mirrored to `D:\AthenaWeb2-test` (hash verified).
+- Other feedback from the same test session (AR-only): duplicate Recent Shots entries and "P:" crew labels are fixed in AR (see AR WORKLOG). The Ground/Pilot map-style request is in the backlog below.
+
 ### 2026-11-22 — PRs merged; test builds of main on D:
 - Owner merged Web2 #8, #9 and AR #4–#8 (merge commits). Local `main` fast-forwarded in both repos (Web2 `d3278fb`, AR `e15e8a0`); merged local branches deleted.
 - AR test package `D:\AthenaRemastered-test` (`v1.2.0-test (e15e8a0)`):
@@ -1385,6 +1408,7 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 3. Anchors + Locate workflow (M)
 4. Tracking lines + bearing/distance (M)
 5. Session save/load for overlays (M)
+6. Map Style Ground / Pilot rework (shared core, both apps; owner request 2026-11-22, after AR live test on Malden) (M): 2D is fine. **Ground** should be a height map for ground troops (terrain relief readable at a glance). **Pilot** should be a black-and-white height map (dark = low, light = high, like a terrain-builder heightmap) so pilots instantly see peaks and valleys. Current Ground/Pilot render a green/pink wash with heavy blue coastline glow and do not meet that goal.
 
 ## Archived Source Notes (Bohemia Forum Thread)
 
