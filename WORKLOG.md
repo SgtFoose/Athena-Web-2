@@ -10,6 +10,36 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — Tooling: Move from GitHub Copilot to Claude Code + CLAUDE.md consolidation
+- Cloned `https://github.com/SgtFoose/Athena-Web-2` into the new workspace `C:\Athena-Web-2` (835 files, HEAD `c459a3f` "release: finalize v0.1.0 map rendering and dist/workshop sync").
+- Surveyed every markdown file in the repo (excluding `node_modules`):
+  - `.github/copilot-instructions.md` (Copilot rules), `README.md`, `CHANGELOG.md`, `WORKLOG.md`
+  - `.github/release-notes-template-v0.0.4` … `v0.1.0.md`, `.github/release-changelog-v0.0.8.md`
+  - `ui/icon-mapping.md` (vehicle class → icon table)
+- Created `CLAUDE.md` at repo root as the canonical Claude Code context, merging:
+  - all Copilot rules (product identity, repo/capability boundaries, safety check, release/dist/doc/packaged-UI sync rules, GitHub release distribution, token handling), reworded for Claude
+  - architecture, repo layout, commands, and bridge env vars from `README.md` + `bridge/package.json` + `ui/package.json`
+  - distilled technical knowledge from `WORKLOG.md`: relay protocol (`<ath_sep>` framing, `General` registration, `next` polling, `mapexport`), bridge REST/diagnostic endpoints, cache import rules, Bus-exact rendering values, v0.1.0 smoothing/airport rules, UI behaviors to preserve
+  - release-notes template requirements and open items/backlog pointers
+- New top-priority rule in `CLAUDE.md`: every step must be logged in `WORKLOG.md` (newest-first timeline, what/why/files/validation, failed attempts included).
+- Updated the stale "current status" (Copilot file said v0.0.8) to v0.1.0 in `CLAUDE.md`; noted that older WORKLOG paths (`C:\Users\jvdv2\...`) are from the previous machine.
+- Left `.github/copilot-instructions.md` and the other source `.md` files untouched (history/reference); `CLAUDE.md` takes precedence for process rules.
+- Validation: docs-only change; no code, build, or dist artifacts touched. Nothing committed yet.
+
+#### 2026-11-22 follow-up — Language, commenting, and GitHub account rules
+- Added three new non-negotiable rules to `CLAUDE.md`:
+  - **Rule #2:** everything written into the repo is English (code, comments, UI text, logs, commits, docs), even though the owner usually gives instructions in Dutch.
+  - **Rule #3:** all written or touched code must be well commented for outside collaborators (file headers, JSDoc/TSDoc, explain why for protocol quirks, Bus-exact constants, coordinate transforms, map-specific workarounds; named constants for magic numbers).
+  - **Rule #4:** account separation. This repo belongs to the personal `SgtFoose` GitHub account, which is not the owner's work account.
+- Found that no git identity was configured on this machine (global and local `user.name`/`user.email` were empty).
+- Checked commit history: every past commit is authored as `Sgt.Foose <17387175+SgtFoose@users.noreply.github.com>`.
+- Set the **repo-local** git config (only affects this repo):
+  - `user.name = Sgt.Foose`
+  - `user.email = 17387175+SgtFoose@users.noreply.github.com`
+  - `credential.username = SgtFoose` (Git Credential Manager had only a different account stored, so pushes are now pinned to SgtFoose)
+- Noted that the `gh` CLI is not installed on this machine.
+- Validation: `git config --local --list` shows the three values above.
+
 ### 2026-05-04 — v0.1.0 Release: Map Rendering Pass (Contours, Land Fill, Taxi)
 
 - Applied contour line smoothing: single Chaikin pass (after RDP) on elevation contours removes blocky stairstepping.
