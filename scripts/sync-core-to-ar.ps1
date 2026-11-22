@@ -58,8 +58,28 @@ if (-not (Test-Path $SourceDir)) { throw "Web2 core not found: $SourceDir" }
 if (-not (Test-Path (Join-Path $ArRepo 'Frontend'))) { throw "AR Frontend not found under: $ArRepo" }
 
 <#
-  Returns a hashtable of relative path (forward slashes) -> lowercase SHA-256
-  for every file under $Root, excluding the manifest itself.
+  SHA-256 of a file's content with CRLF normalised to LF.
+  Why: Git for Windows (core.autocrlf) rewrites line endings on checkout, so
+  the same committed file can be LF in one working tree and CRLF in another.
+  Hashing raw bytes would then report every core file as "modified in AR".
+  All core files are text (TS/TSX/CSS/MD), so normalising is safe.
+#>
+function Get-NormalizedHash([string]$Path) {
+  $bytes = [IO.File]::ReadAllBytes($Path)
+  $list = New-Object System.Collections.Generic.List[byte] ($bytes.Length)
+  for ($i = 0; $i -lt $bytes.Length; $i++) {
+    # Drop the CR of every CRLF pair.
+    if ($bytes[$i] -eq 13 -and $i + 1 -lt $bytes.Length -and $bytes[$i + 1] -eq 10) { continue }
+    $list.Add($bytes[$i])
+  }
+  $sha = [Security.Cryptography.SHA256]::Create()
+  try { return ([BitConverter]::ToString($sha.ComputeHash($list.ToArray())) -replace '-', '').ToLowerInvariant() }
+  finally { $sha.Dispose() }
+}
+
+<#
+  Returns a hashtable of relative path (forward slashes) -> line-ending
+  normalised SHA-256 for every file under $Root, excluding the manifest itself.
 #>
 function Get-FileHashMap([string]$Root) {
   $map = @{}
@@ -67,7 +87,7 @@ function Get-FileHashMap([string]$Root) {
   Get-ChildItem $Root -Recurse -File | ForEach-Object {
     $rel = $_.FullName.Substring($Root.Length + 1).Replace('\', '/')
     if ($rel -ne $ManifestName) {
-      $map[$rel] = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+      $map[$rel] = Get-NormalizedHash $_.FullName
     }
   }
   return $map
