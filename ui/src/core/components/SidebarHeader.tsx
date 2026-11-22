@@ -12,7 +12,7 @@ export function SidebarHeader() {
     <div className="sidebar-header">
       <span className="logo-text">{APP_NAME.toUpperCase()}</span>
       <span className="header-right">
-        <span className="version-label" title={APP_BUILD_TOOLTIP}>{APP_VERSION_LABEL}</span>
+        <span className="version-label" title={`${APP_VERSION_LABEL} - ${APP_BUILD_TOOLTIP}`}>{APP_VERSION_LABEL}</span>
         <a
           className="donate-link"
           href={DONATE_URL}
