@@ -10,6 +10,19 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — Pushed branches and opened stacked PRs
+- Owner approved the push. `gh auth status`: SgtFoose; commit identity is the SgtFoose noreply address in both repos.
+- Web2:
+  - PR #8 `fix/version-label-overflow` → `main`
+  - PR #9 `fix/vehicle-nato-markers` → `fix/version-label-overflow`
+- AR:
+  - PR #4 `fix/backend-startup-export-stale` → `main`
+  - PR #5 `fix/vehicle-nato-markers` → #4
+  - PR #6 `fix/persistent-map-cache` → #5
+  - PR #7 `fix/forest-desktop-cache` → #6
+  - PR #8 `fix/fired-feed-duplicates` → #7
+- Merge in order (base first). GitHub retargets the next PR to `main` when its merged base branch is deleted.
+- Still open: live checks with the test package `C:\AthenaRemastered-test` (`test (a93dde8)` + new PBO): one shot = one entry, Eden/main-menu guard RPT lines, cache reuse, forest density.
 ### 2026-11-22 — Core: upright NATO vehicle markers + real crew seat labels
 - **Owner report (AR v1.2.0-test, Malden, zoom 2.5x):** "vehicle icons look weird". Two vehicles showed as large tilted light-blue rectangles with a dot, crew labelled `P: Liam Wilson` / `P: Colin Williams`.
 - **Investigation:**
