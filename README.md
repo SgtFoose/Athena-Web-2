@@ -414,7 +414,7 @@ Arma 3 → Athena Extension → Relay (TCP 28800) → Bridge (Node.js) → Brows
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `3000` | Bridge HTTP/WS port |
+| `WEB_PORT` | `3000` | Bridge HTTP/WS port (tries the next free port if busy) |
 | `RELAY_HOST` | `127.0.0.1` | Athena relay host |
 | `RELAY_PORT` | `28800` | Athena relay TCP port |
 | `ATHENA_MAPS_DIR` | `~/Documents/Athena/Maps` | Path to Athena Desktop map cache |

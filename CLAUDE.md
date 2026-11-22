@@ -147,7 +147,7 @@ Notes: port 3000 falls back to 3001, 3002… if busy (console `Local:` line show
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `PORT` | `3000` | HTTP/WS port |
+| `WEB_PORT` | `3000` | HTTP/WS port (falls back to 3001, 3002… if busy). Note: the variable is `WEB_PORT`, not `PORT` (`server.js:29`) |
 | `RELAY_HOST` / `RELAY_PORT` | `127.0.0.1` / `28800` | Relay endpoint |
 | `ATHENA_MAPS_DIR` | `~/Documents/Athena/Maps` | Desktop map cache |
 | `WORLD_SELECTION_MODE` | `fresh` | `fresh` (latest updated incl. `Rows`/`Roads` dirs) or `stable` (core files only) |

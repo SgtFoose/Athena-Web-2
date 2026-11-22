@@ -47,7 +47,16 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
       - **before** (fix temporarily stashed; Vite hot-reloaded the old code): island in the **bottom-left** of the view, the rest is water. The UI used a 10240 m extent, so the 5120 m world landed in the lower-left quarter. This reproduces the Workshop report.
       - **after** (fix restored): island fills the view, centred, with symmetric water corners. The UI used the cache size, 5120 m.
     - The owner also checked the fixed build in their own browser: the player "Tester" renders at the map centre (with the Units layer on).
-- Not done yet: real Arma validation on a world that isn't in the size table (e.g. VR), and a release build (EXE/wwwroot sync).
+- Owner confirmed in their own browser at zoom 0.1: the island is centred in the map, with the player in the middle. Also noticed (not caused by this fix, added to the backlog):
+  - a small gap in the coastline stroke at the ring start/end (closed-ring smoothing doesn't close the ring)
+  - "Exporting world data…" stays visible during the simulation
+- Committed `99129f8`, pushed `fix/unknown-world-size`, and opened PR #2: https://github.com/SgtFoose/Athena-Web-2/pull/2. Identity checked first (noreply email, `gh` user SgtFoose).
+- **Test EXE for live validation** (not a release, nothing committed):
+  - `npm --prefix ui run build` → `robocopy ui\dist bridge\wwwroot /MIR` → `npx @yao-pkg/pkg . --targets node22-win-x64 --compress GZip --output <scratchpad>\AthenaWeb-0.1.1-test-worldsize.exe` (62 MB)
+  - then `git restore bridge/wwwroot` + `git clean -fd bridge/wwwroot`, so tracked `wwwroot` and `bridge/dist` are unchanged
+  - smoke test: the EXE served the fixed bundle `index-j0ipix27.js` and connected to the fake relay
+- **Doc bug found during the smoke test:** the EXE ignored `PORT=3005` and auto-selected 3001. The bridge reads **`WEB_PORT`** (`server.js:13,29`), but `README.md` and `CLAUDE.md` listed `PORT`. Fixed the env-var tables in both.
+- Remaining: owner runs the test EXE live in Arma on a world that isn't in the size table (e.g. VR). Then the v0.1.1 release steps (version sync, wwwroot/dist sync, CHANGELOG, release notes, GitHub Release).
 
 ### 2026-11-22 — Tooling: Move from GitHub Copilot to Claude Code + CLAUDE.md consolidation
 - Cloned `https://github.com/SgtFoose/Athena-Web-2` into the new workspace `C:\Athena-Web-2` (835 files, HEAD `c459a3f` "release: finalize v0.1.0 map rendering and dist/workshop sync").
@@ -1102,6 +1111,7 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 - [ ] UI: drop the unused `@microsoft/signalr` dependency; sync `ui/package.json` version with `APP_VERSION`.
 - [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
 - [ ] Review `npm audit` advisories in `ui/`.
+- [ ] UI: closed-ring coastline smoothing leaves a small gap in the stroke at the ring start/end (seen in the 2026-11-22 simulation).
 
 ## Next Tasks (Immediate)
 1. Connection diagnostics panel (S)
