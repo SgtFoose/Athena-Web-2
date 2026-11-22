@@ -8,8 +8,14 @@
  */
 import { APP_VERSION, APP_BUILD, APP_BUILD_DATE } from '../../appConfig'
 
-/** e.g. "v1.2.0" (release) or "v1.2.0-test (a1b2c3d)" (test build). */
+/** e.g. "v1.2.0" (release) or "v1.2.0-test (a1b2c3d)" (test build). Shown in the sidebar footer. */
 export const APP_VERSION_LABEL = APP_BUILD ? `v${APP_VERSION}-${APP_BUILD}` : `v${APP_VERSION}`
+
+/**
+ * Compact form for the narrow sidebar header: "v1.2.0-test" on test builds
+ * (the commit is in the tooltip and the footer), "v1.2.0" on releases.
+ */
+export const APP_VERSION_SHORT_LABEL = APP_BUILD ? `v${APP_VERSION}-test` : `v${APP_VERSION}`
 
 /** Tooltip text with the build timestamp, e.g. "Built 2026-11-22 14:05 UTC". */
 export const APP_BUILD_TOOLTIP = `Built ${APP_BUILD_DATE.replace('T', ' ').slice(0, 16)} UTC`
