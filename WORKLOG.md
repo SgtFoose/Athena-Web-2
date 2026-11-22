@@ -10,6 +10,38 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — Pushed branches and opened stacked PRs
+- Owner approved the push. `gh auth status`: SgtFoose; commit identity is the SgtFoose noreply address in both repos.
+- Web2:
+  - PR #8 `fix/version-label-overflow` → `main`
+  - PR #9 `fix/vehicle-nato-markers` → `fix/version-label-overflow`
+- AR:
+  - PR #4 `fix/backend-startup-export-stale` → `main`
+  - PR #5 `fix/vehicle-nato-markers` → #4
+  - PR #6 `fix/persistent-map-cache` → #5
+  - PR #7 `fix/forest-desktop-cache` → #6
+  - PR #8 `fix/fired-feed-duplicates` → #7
+- Merge in order (base first). GitHub retargets the next PR to `main` when its merged base branch is deleted.
+- Still open: live checks with the test package `C:\AthenaRemastered-test` (`test (a93dde8)` + new PBO): one shot = one entry, Eden/main-menu guard RPT lines, cache reuse, forest density.
+### 2026-11-22 — Core: upright NATO vehicle markers + real crew seat labels
+- **Owner report (AR v1.2.0-test, Malden, zoom 2.5x):** "vehicle icons look weird". Two vehicles showed as large tilted light-blue rectangles with a dot, crew labelled `P: Liam Wilson` / `P: Colin Williams`.
+- **Investigation:**
+  - `ui/public/icons/vehicles` is identical in both repos (79 files, same SHA-256), and the library JSON files are present. Old AR rendered vehicles the same way, so this was not a sync regression.
+  - All Bus silhouettes (car, truck, APC, tank, heli, plane, ship, static weapons) render correctly in a headless-Chrome test page.
+  - Rendering every `icons/nato/b_*.png` showed that the rectangle is `b_art` (frame + dot). `natoVehicleMarkerPath()` returns it for static naval turrets (Mk41 VLS `B_Ship_MRLS_01_F`, Mk45 Hammer `B_Ship_Gun_01_F`) plus SAM/AAA. These are crewed by UAV AI, which explains the AI names.
+  - Root causes:
+    - (1) `vehicleIconHtml()` rotated the NATO frame with the turret heading and drew it in the 80 px silhouette box.
+    - (2) The crew role prefix came from the unit class name (`B_UAV_AI` has no role, so it became `P`, cargo) instead of the vehicle's `fullCrew` seat.
+- **Fix** (branch `fix/vehicle-nato-markers`, stacked on `fix/version-label-overflow`, commit `94c4f28`), `ui/src/core/components/AthenaMap.tsx`:
+  - NATO vehicle markers stay upright at `VEHICLE_NATO_MARKER_SIZE_PX = 48` (same as group markers), centred in the 80 px icon box. Silhouettes still rotate.
+  - Crew labels prefer `vehicle.crew[].role` (sent by AR) and fall back to the unit class name (Web2's relay data has no crew list).
+  - Doc comment added to `vehicleIconHtml()`.
+- Synced to AR (1 file + manifest) on AR branch `fix/vehicle-nato-markers` (`a744c43`).
+- **Validation:**
+  - `npm --prefix ui run build` passed.
+  - `npm --prefix ui run lint`: 11 problems, the same 11 before and after the change (pre-existing).
+  - AR end-to-end simulation (publish build `test (a744c43)`, put-API mission on Malden with a VLS and a Hammer, each with a UAV-AI gunner; follow-player max zoom): upright 48 px `b_art` markers, labels `G: Liam Wilson` / `G: Colin Williams`.
+
 ### 2026-11-22 — Core: version label fits the sidebar header
 - Web2 PR #7 (build label) and AR PR #3 (version 1.2.0) merged by the owner (Web2 `4aaf479`, AR `eac69b7`).
 - The owner's live AR test (v1.2.0-test on Malden) showed the long label `v1.2.0-test (299e25b)` pushing "Donate" out of the sidebar header (horizontal scrollbar). The same happened in the AR simulation with `-dirty` labels.
