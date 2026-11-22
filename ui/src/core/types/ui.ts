@@ -53,4 +53,10 @@ export interface AppCapabilities {
   killFeed: boolean
   /** Mission markers streamed by the data source (Web2: relay `Markers`). */
   relayMarkers: boolean
+  /**
+   * Show the "Waypoints" layer toggle in the sidebar. The waypoint layer itself
+   * renders whenever group waypoint data (`wpx`/`wpy`) arrives; this flag only
+   * controls whether the user can switch it off.
+   */
+  waypointToggle: boolean
 }

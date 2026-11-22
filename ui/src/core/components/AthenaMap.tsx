@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, FiredEvent, FiredImpactEvent, ActiveLaze, RelayMarker } from '../types/game';
-import { API_BASE } from '../../appConfig';
+import { API_BASE, CAPABILITIES } from '../../appConfig';
 import 'leaflet/dist/leaflet.css';
 
 // Arma uses a square world coordinate system [0..worldSize].
@@ -1912,8 +1912,10 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     showPane('athena-peak',      layers.locations);
     showPane('athena-group',     layers.groups);
     showPane('athena-waypoint',  layers.waypoints);
-    showPane('athena-laze',      layers.lazes);
-    showPane('athena-projectile', layers.projectiles);
+    // Laze/projectile layers only exist in apps whose data source provides that
+    // telemetry (AR's extension DLL); see CAPABILITIES in appConfig.ts.
+    showPane('athena-laze',      CAPABILITIES.lazes && layers.lazes);
+    showPane('athena-projectile', CAPABILITIES.projectiles && layers.projectiles);
     showPane('athena-vehicle',   layers.vehicles);
     showPane('athena-unit',      layers.units);
     // objects are always visible
@@ -4718,7 +4720,8 @@ export function AthenaMap({
         onProjectileDebugChange={setProjectileDebugEntries}
       />
     </MapContainer>
-    {projectileDebugEntries.length > 0 && (
+    {/* Fire Control panel: projectile telemetry is AR-only (CAPABILITIES.projectiles). */}
+    {CAPABILITIES.projectiles && projectileDebugEntries.length > 0 && (
       <div
         style={{
           position: 'absolute',

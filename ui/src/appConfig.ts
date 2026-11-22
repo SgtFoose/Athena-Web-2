@@ -30,4 +30,6 @@ export const CAPABILITIES: AppCapabilities = {
   projectiles: false,
   killFeed: false,
   relayMarkers: true,
+  // Web2 has shown waypoints without a sidebar toggle since v0.0.x; kept as-is.
+  waypointToggle: false,
 }
