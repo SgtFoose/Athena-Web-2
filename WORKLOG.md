@@ -10,6 +10,15 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — Core: version label fits the sidebar header
+- Web2 PR #7 (build label) and AR PR #3 (version 1.2.0) merged by the owner (Web2 `4aaf479`, AR `eac69b7`).
+- The owner's live AR test (v1.2.0-test on Malden) showed the long label `v1.2.0-test (299e25b)` pushing "Donate" out of the sidebar header (horizontal scrollbar). The same happened in the AR simulation with `-dirty` labels.
+- Fixes (branch `fix/version-label-overflow`):
+  - `459bc81`: `.version-label` truncates with an ellipsis (`max-width: 96px`, `.header-right { min-width: 0 }`); the tooltip shows the full label plus build time
+  - `b2c5ae8`: new `APP_VERSION_SHORT_LABEL`. The header shows `v1.2.0-test` (fits); the footer and tooltip keep the full `v1.2.0-test (<commit>)` label. Releases show `v<version>` everywhere.
+- Synced to AR (2 + 2 files) as part of AR's backend-fix branch (stale-mission expiry, no startup world, Eden/main-menu guard; details in AR's WORKLOG).
+- Validation: `npm --prefix ui run build` passed. AR simulation header crop showed the truncation; the compact label replaces it.
+
 ### 2026-11-22 — Build label for test builds (both apps) + AR test build on D:
 - Web2 PR #6 and AR PR #2 merged by the owner (Web2 `b3e083d`, AR `c1a790e`). Both `main`s updated, branches deleted. Sync check: 18 core files, 0 differences.
 - At the owner's request, built an AR test build with `publish.ps1` (first run on the flattened layout: OK, with 2 non-existent wwwroot targets skipped) and copied it to `D:\AthenaRemastered-test\` (`Server\AthenaRemastered.Server.exe`, SHA256 `882C1830…`, plus `TEST-INSTRUCTIONS.txt`).
