@@ -20,6 +20,7 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Validation: `npm --prefix ui run build` OK.
 - Test EXE `C:\AthenaWeb2-test\AthenaWeb.exe` (`v0.1.1-test (1c81c87)`, SHA verified in the bundle; tracked `bridge/wwwroot` restored). The owner's D: drive was no longer present.
 - Note: the label `1c81c87` refers to a pre-amend commit. Its code is identical to `0d683f1`; only `WORKLOG.md` differs.
+- D: drive back: test EXE mirrored to `D:\AthenaWeb2-test` (hash verified).
 - Other feedback from the same test session (AR-only): duplicate Recent Shots entries and "P:" crew labels are fixed in AR (see AR WORKLOG). The Ground/Pilot map-style request is in the backlog below.
 
 ### 2026-11-22 — PRs merged; test builds of main on D:
