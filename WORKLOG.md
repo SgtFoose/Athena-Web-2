@@ -122,6 +122,11 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Before pushing, checked `git config user.email` → SgtFoose noreply, and `gh api user` → `SgtFoose`.
 - The owner approved the push. `git push -u origin chore/claude-setup-toolchain` succeeded from Claude's shell; no login prompt was needed now that `gh` stores the credential.
 - Opened PR #1 → `main`: https://github.com/SgtFoose/Athena-Web-2/pull/1 ("chore: Claude Code setup: CLAUDE.md rules, toolchain, workflow and audit notes"). The owner reviews and merges.
+- PR #1 was blocked: "at least 1 approving review is required". GitHub doesn't let authors approve their own PRs, so on this solo repo every PR would need a bypass.
+  - Checked the rules (read-only). There's no classic branch protection. Ruleset `Protect Master` (id 27794164, active) has `deletion`, `non_fast_forward`, and `pull_request` with `required_approving_review_count: 1`; the admin role can bypass.
+  - Owner decision: set required approvals to 0. Applied via `gh api -X PUT repos/SgtFoose/Athena-Web-2/rulesets/27794164`, sending all three rules so only the approval count changed.
+  - Validation: re-read the ruleset → `deletion`, `non_fast_forward`, `pull_request approvals=0`, still `active`. `gh pr view 1` → `mergeStateStatus: CLEAN`.
+- Side note: the local working copy had been switched to `main` and the local PR branch removed (outside Claude). I recreated the branch from `origin/chore/claude-setup-toolchain` (`06a75d1`); nothing was lost.
 
 ### 2026-05-04 — v0.1.0 Release: Map Rendering Pass (Contours, Land Fill, Taxi)
 
