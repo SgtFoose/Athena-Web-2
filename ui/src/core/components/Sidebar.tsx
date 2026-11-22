@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import type { GameFrame, Group, Unit, MapLocation, ServerSettings } from '../types/game';
 import type { LayerVisibility, RenderMode } from '../types/ui';
-import { APP_VERSION, CAPABILITIES } from '../../appConfig';
+import { CAPABILITIES } from '../../appConfig';
+import { APP_VERSION_LABEL, APP_BUILD_TOOLTIP } from '../utils/version';
 
 //  Helpers 
 
@@ -242,9 +243,9 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Footer  version */}
-      <div style={{ padding: '6px 16px', borderTop: '1px solid #222', color: '#444', fontSize: 10, textAlign: 'center' }}>
-        v{APP_VERSION}
+      {/* Footer: version (with build label on test builds) */}
+      <div title={APP_BUILD_TOOLTIP} style={{ padding: '6px 16px', borderTop: '1px solid #222', color: '#444', fontSize: 10, textAlign: 'center' }}>
+        {APP_VERSION_LABEL}
       </div>
     </div>
   );

@@ -11,6 +11,11 @@ import { API_BASE } from './apiBase'
 export { API_BASE }
 export { APP_NAME, APP_VERSION } from './version'
 
+/** Build label from vite.config.ts: "" for releases, "test (<sha>)" otherwise. */
+export const APP_BUILD = __ATHENA_BUILD__
+/** ISO-8601 UTC build timestamp from vite.config.ts. */
+export const APP_BUILD_DATE = __ATHENA_BUILD_DATE__
+
 /**
  * Donate link shown in the sidebar header (the owner's public PayPal.Me page).
  *

@@ -222,7 +222,8 @@ Notes: port 3000 falls back to 3001, 3002… if busy (console `Local:` line show
 A release is not complete until every item below is done in the same batch:
 
 1. **Version sync:** `ui/src/version.ts` (`APP_VERSION`), `README.md` (version line, tracked EXE line, Quick Start EXE names, highlights), `CHANGELOG.md` top entry (Keep a Changelog style: Added/Changed/Fixed/Known Limitations), `WORKLOG.md` timeline entry.
-2. **Packaged UI sync:** build UI → `robocopy ui\dist bridge\wwwroot /MIR` → verify `index.html` asset hashes.
+2. **Packaged UI sync:** build the UI **as a release build**: `$env:ATHENA_RELEASE='1'; npm --prefix ui run build`. Then `robocopy ui\dist bridge\wwwroot /MIR` and verify the `index.html` asset hashes.
+   - Every build without `ATHENA_RELEASE=1` is a **test build**. The UI then shows `v<version>-test (<git sha>[-dirty])`, with the build time on hover (`ui/vite.config.ts`, `core/utils/version.ts`). Test EXEs handed to the owner are always test builds, so they're traceable to a commit.
 3. **Dist parity:** `bridge/dist/AthenaWeb-<version>.exe` and `bridge/dist/AthenaWeb.exe` are the same build; remove the previous-version tracked EXE; update `repo_dist_contents.json` (path/size/blob SHA).
 4. **Release notes:** create/update `.github/release-notes-template-vX.Y.Z.md` with the same version + filename. Written for **end users of the EXE**. **No Node.js/dev-mode instructions** in release notes; those stay in the README. Copy the structure of `release-notes-template-v0.1.1.md`:
    - **Quick Start (Windows EXE):** what you need (Arma 3, Bus Athena mod Workshop `1181881736`, Athena Desktop Workshop `668999292` for the one-time export, optional phone/tablet); start steps (download from Assets, run, keep the console open, allow the firewall on private networks, `Local:` vs `Network:` address, start Arma)
