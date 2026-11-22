@@ -10,6 +10,21 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — Build label for test builds (both apps) + AR test build on D:
+- Web2 PR #6 and AR PR #2 merged by the owner (Web2 `b3e083d`, AR `c1a790e`). Both `main`s updated, branches deleted. Sync check: 18 core files, 0 differences.
+- At the owner's request, built an AR test build with `publish.ps1` (first run on the flattened layout: OK, with 2 non-existent wwwroot targets skipped) and copied it to `D:\AthenaRemastered-test\` (`Server\AthenaRemastered.Server.exe`, SHA256 `882C1830…`, plus `TEST-INSTRUCTIONS.txt`).
+  - Smoke test: serves the new UI, and the SignalR negotiate returns 200.
+  - Restored the AR repo afterwards (`publish.ps1` also writes the tracked `@AthenaRemastered/Server/wwwroot`).
+- Owner feedback: the test build showed **v1.1.6**, the same as the Workshop release, so it couldn't be told apart.
+  - Owner decisions: AR version → **1.2.0**; all test builds show **version + "test" + commit** as standard, in both apps.
+  - The owner's screenshot also showed "Disconnected / Connecting to server…"; asked whether it stays like that during a mission.
+- Implementation (branch `feat/build-version-label`):
+  - `ui/vite.config.ts`: `define` `__ATHENA_BUILD__` = `"test (<short sha>[-dirty])"`, or `""` when `ATHENA_RELEASE=1`; plus `__ATHENA_BUILD_DATE__`. The file stays identical to AR's.
+  - New `ui/src/build-info.d.ts` (declarations); `appConfig.ts` exports `APP_BUILD` and `APP_BUILD_DATE`.
+  - New core `core/utils/version.ts` (`APP_VERSION_LABEL`, `APP_BUILD_TOOLTIP`). `SidebarHeader` and the sidebar footer use it, with the build time on hover.
+  - `CLAUDE.md` release step 2: release builds use `ATHENA_RELEASE=1`. `docs/ui-core-sync.md` updated.
+  - Validation: a test build bundle contains `test (b3e083d-dirty)`; a release build (`ATHENA_RELEASE=1`) has no label.
+
 ### 2026-11-22 — UI core sync: Phase 1 merged, AR Phase 2 step 1 merged, sync script (Phase 3)
 - Web2 PR #5 (Phase 1, shared UI core) merged by the owner as `de9953a`. Local `main` updated, branch deleted, sanity build passed.
 - AR repo (logged in detail in AR's own `WORKLOG.md`):

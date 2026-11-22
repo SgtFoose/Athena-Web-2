@@ -49,6 +49,11 @@ Each app provides its own `appConfig.ts` with the **same exports**. The core imp
 | `MAP_DATA.landmaskGridSize` | `1536` | `1024` (AR's previous value, to be verified) |
 | `MAP_DATA.landmaskRowOrder` | `south-first` (bridge: row 0 = worldY 0) | **`north-first`**: AR's `StaticMapController.cs:65` documents "row 0 = north (image top)". Without this, AR's land fill would render upside down. |
 
+Build label (both apps):
+- `APP_BUILD` / `APP_BUILD_DATE` come from `vite.config.ts` `define`. That file is identical in both apps, and `src/build-info.d.ts` declares the constants.
+- Releases set `ATHENA_RELEASE=1`, which gives an empty label. Test builds get `test (<sha>[-dirty])`.
+- The core shows `APP_VERSION_LABEL` (`core/utils/version.ts`) in the sidebar header and footer.
+
 ### Core components and hooks
 
 - **Map and sidebar:** `AthenaMap`, `Sidebar`
