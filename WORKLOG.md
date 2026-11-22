@@ -10,6 +10,16 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — PRs merged; test builds of main on D:
+- Owner merged Web2 #8, #9 and AR #4–#8 (merge commits). Local `main` fast-forwarded in both repos (Web2 `d3278fb`, AR `e15e8a0`); merged local branches deleted.
+- AR test package `D:\AthenaRemastered-test` (`v1.2.0-test (e15e8a0)`):
+  - `publish.ps1` (test build, run via `powershell -NoProfile -ExecutionPolicy Bypass -File`), `publish/` mirrored to `Server\`; tracked `@AthenaRemastered/Server/wwwroot` restored afterwards.
+  - `athena.pbo` packed from `@AthenaRemastered/addons/athena` with `pack-pbo.ps1` (28 files, 74.4 KB, unsigned; `-noBE` only).
+  - `TEST-INSTRUCTIONS.txt` rewritten for PRs #4–#8 (main-menu guard, persistent map cache, Desktop forest cells, NATO markers, one feed entry per shot).
+- Web2 test EXE `D:\AthenaWeb2-test\AthenaWeb.exe` (`v0.1.1-test (d3278fb)`): `npm --prefix ui run build` (no `ATHENA_RELEASE`), `robocopy ui\dist bridge\wwwroot /MIR`, pkg output straight to D:; tracked `bridge/wwwroot` restored so `bridge/dist` and the repo stay unchanged. `TEST-INSTRUCTIONS.txt` added.
+- Validation: both builds exit 0; the embedded commit SHA was found in each bundle; `git status` clean in both repos.
+- Pending: owner live test in Arma.
+
 ### 2026-11-22 — Pushed branches and opened stacked PRs
 - Owner approved the push. `gh auth status`: SgtFoose; commit identity is the SgtFoose noreply address in both repos.
 - Web2:
