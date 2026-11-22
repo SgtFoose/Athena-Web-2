@@ -62,6 +62,61 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - `node --check bridge/server.js` passed.
   - The build left no tracked files changed (`ui/dist` is ignored, and `bridge/wwwroot` wasn't touched).
 - Small finding: `ui/package.json` still reports `"version": "0.0.2"` (`frontend@0.0.2`), while `APP_VERSION` is `0.1.0`. Not changed yet; worth syncing at the next release.
+- Committed `1ee3a0c` on `chore/claude-setup-toolchain` (not pushed yet; waiting for the owner to run `gh auth login` as SgtFoose).
+
+#### 2026-11-22 follow-up — Workspace layout question: Web2 + Athena Remastered (AR)
+- The owner asked whether to work from two folders on `C:\` or one combined folder for Web2 and Athena Remastered (now called **AR**).
+- Context from the owner:
+  - AR is older and is missing bug fixes that Web2 has.
+  - AR has capabilities Web2 can't use (it isn't relay-only), so feature flow is one-way: Web2 → AR is fine, AR → Web2 is not.
+- Spawned a sub-agent to clone `https://github.com/SgtFoose/AthenaRemastered` into `C:\AthenaRemastered` (read-only survey, no commits) and compare its structure and shared code with Web2.
+- Sub-agent results (key items re-checked by hand):
+  - AR cloned (631 files, last commit `4d916a9`, 2026-04-05). Repo-local identity set to the SgtFoose noreply address, same as all AR history.
+  - AR's frontend (`Frontend/`) uses React, Vite, Leaflet and a SignalR client. Its backend and extension are outside Web2's scope.
+  - Frontend comparison: 14 files in common, 5 byte-identical. `AthenaMap.tsx` is +1942/-295 in Web2, and `useAthenaHub.ts` is essentially a rewrite. The data layers have split (AR uses a SignalR hub, Web2 uses a raw WebSocket plus REST hydration). Build configs, all of AR's `public/` assets, and `icon-mapping.md` are identical.
+  - Releases/Workshop are fully separate (Web2 has 7 GitHub releases plus Workshop item 3707444008; AR has Workshop item 3687225607). Neither repo has CI workflows.
+- AR leftovers found in Web2 (verified):
+  - `ui/src/App.tsx` lines 429, 434, 492, 495 still show "ATHENA REMASTERED" branding and an AR PayPal donate link.
+  - `ui/package.json` still depends on `@microsoft/signalr` and reports version `0.0.2`.
+  - `AthenaMap.tsx` still contains laze/projectile code inherited from AR (needs review against Web2's capability boundary).
+  - Not fixed yet; to be planned as a separate cleanup branch.
+- Updated `CLAUDE.md`: the AR repo URL and local path `C:\AthenaRemastered` replace the stale old-machine path, and the one-way Web2 → AR feature-flow rule is now written down.
+
+#### 2026-11-22 follow-up — Codebase architecture overview (read-only)
+- The owner asked for an architecture overview. Checked the code-level wiring: bridge HTTP routes and WebSocket handler (`bridge/server.js` ~1378–1845), UI data entry points (`ui/src/apiBase.ts`, `hooks/useAthenaHub.ts`, `useStaticMap.ts`, `useHealthCheck.ts`, and direct fetches in `AthenaMap.tsx`).
+- WebSocket contract confirmed:
+  - bridge → UI: `state`, `relayConnected`, `relayDisconnected`, `mapImportStatus`, `mapImportDataReady`, `bridgeError`
+  - UI → bridge: only `startMapExport`
+- No code changes.
+
+#### 2026-11-22 follow-up — Question: where are uploaded file types validated? (read-only audit)
+- Result: there are **no file uploads** in Web2. No multipart parsing, no upload route, no `<input type="file">`, no `FileReader` in `bridge/` or `ui/src`. So there's nothing that validates file types.
+- The only request body the bridge reads is the JSON body of `POST /api/game/cachemode` (`bridge/server.js:1397-1421`): capped at 64 KB, invalid JSON → 400, `mode` coerced to `fresh|stable`.
+- **Security finding (low severity, not fixed yet):** user-supplied world names in the bridge's map-cache routes aren't validated strictly enough before they're used as disk paths. Exact details are deliberately kept out of this public log until the fix ships. They'll be described in the fix PR (`fix/validate-world-names`).
+- Planned fix: one helper that accepts only names of folders that actually exist in `ATHENA_MAPS_DIR`, used by every route that takes a world name, and make cache-mode changes POST-only.
+- Static file serving (`server.js:1750-1752`) checked: it stays inside `wwwroot`.
+
+#### 2026-11-22 follow-up — Claude Code session health check (`/debug`)
+- The owner ran `/debug` without naming a specific issue. No session debug log or daemon log exists. User `settings.json` has only notification flags, and there's no project `.claude/settings*.json`.
+- Problems seen during this session, and their status:
+  1. The Bash tool crashed once at session start (`bash.exe: *** fatal error - add_item ... errno 1`). Resolved: it works again later in the session (`echo` test passed). No action needed.
+  2. `git push` was blocked by Claude Code's auto-mode classifier (credential-prompt risk). Open: there's an optional project-local allow rule (`.claude/settings.local.json`, not committed) for `git push` / `gh pr create`, pending the owner's decision.
+  3. Git Credential Manager couldn't show its first-time login prompt. Resolved: the owner pushed once, and the SgtFoose credential is stored.
+  4. `node`/`npm`/`gh` were missing from shells opened before the winget install. Fix: restart VS Code.
+  5. `gh auth status` → "not logged into any GitHub hosts". Resolved: the owner ran `gh auth login` (device flow; terminal opened before install needed a PATH reload). `gh auth status` → logged in as `SgtFoose` (keyring, HTTPS, scopes `repo`, `workflow`, `gist`, `read:org`).
+- Plan saved and approved; no settings were changed.
+
+#### 2026-11-22 follow-up — `/code-review` + `/simplify` on the docs branch
+- The owner ran `/code-review` (9 findings) and `/simplify` on `chore/claude-setup-toolchain`. The diff is docs only (`CLAUDE.md`, `WORKLOG.md`), so I did the simplify pass inline instead of spawning four review agents.
+- Fixed:
+  - Removed exploit-level detail about the unfixed bridge security issue from this public log. A neutral description stays; details go in the fix PR.
+  - Removed the owner's work account name from `CLAUDE.md` Rule #4. It's still in public history (commit `04c71da` on `main`). **Owner decision: leave history as is** (only an account name, no email or secrets; a force-push would break the PR ruleset on `main`).
+  - Settled the contradiction between the "no v1.x/BattlEye/DLL text" rule and the AR boundary notes. `CLAUDE.md` now allows short factual AR references only where they explain the boundary. AR version, stack, and BattlEye details are trimmed from these entries.
+  - One install command: `CLAUDE.md` Commands now uses `npm ci`. The duplicate in the toolchain notes is gone, and the Node note explains README's "18+" (dev minimum) vs Node 22 (EXE build target).
+  - Moved the newly found open problems into `CLAUDE.md` Open items and the backlog at the bottom of this file.
+  - Corrected the stale Bash-tool status above.
+- Note: VS Code's C# Dev Kit logs `Failed to load project 'Athena Desktop dnSpy/Athena Desktop/Athena Desktop.csproj'` (old-style .NET Framework project). It's harmless: the folder is decompiled reference material, never built, and Web2 has no C# code. Suggested to the owner: disable C# Dev Kit for this workspace only (no repo change). Possible follow-up: mark `Athena Desktop dnSpy/` as `linguist-vendored` in `.gitattributes`, so GitHub stops reporting the repo as 62% C#.
+- Skipped (outside this docs diff, needs a code change): an unhandled `URIError` path in the bridge's request handling, which can crash the process. Logged as an open item for the hardening branch.
 
 ### 2026-05-04 — v0.1.0 Release: Map Rendering Pass (Contours, Land Fill, Taxi)
 
@@ -990,6 +1045,14 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 - [ ] Add room access controls (passworded rooms), explicit disconnect flow, and connection status notifications.
 - [ ] Add presence/session list improvements with user display names and active world context.
 - [ ] Add optional internet-safe deployment profile for remote collaboration (auth, rate limits, persistence boundaries).
+
+### Cleanup / Hardening (found 2026-11-22)
+- [ ] Bridge: validate world names in map-cache routes; make cache-mode changes POST-only (`fix/validate-world-names`; details withheld until fixed).
+- [ ] Bridge: catch malformed URL encoding in the request handler so a bad request can't crash the process.
+- [ ] UI: remove leftover AR branding ("ATHENA REMASTERED") and AR's donate link from `ui/src/App.tsx`.
+- [ ] UI: drop the unused `@microsoft/signalr` dependency; sync `ui/package.json` version with `APP_VERSION`.
+- [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
+- [ ] Review `npm audit` advisories in `ui/`.
 
 ## Next Tasks (Immediate)
 1. Connection diagnostics panel (S)
