@@ -854,22 +854,51 @@ function isAIGenericVehicleClass(vehicleClass?: string): boolean {
   return cls === 'b_uav_ai' || cls === 'o_uav_ai' || cls === 'i_uav_ai' || cls.endsWith('_uav_ai') || cls.endsWith('_ugv_ai') || /(^|[_\-])ai($|[_\-])/.test(cls);
 }
 
+/**
+ * On-screen size (px) of a NATO marker drawn for a vehicle (drones, static
+ * turrets, radars, VLS). Same as the group NATO markers in `groupIcon()`, so
+ * these symbols read as map symbols instead of oversized 80 px vehicle blobs.
+ */
+const VEHICLE_NATO_MARKER_SIZE_PX = 48;
+
+/**
+ * Builds the HTML of a vehicle marker: a side-coloured PNG silhouette (Bus
+ * Desktop vehicle icons) masked onto a coloured div, rotated with the heading.
+ *
+ * Vehicles that resolve to a NATO marker (`natoVehicleMarkerPath`) are drawn
+ * upright and at `VEHICLE_NATO_MARKER_SIZE_PX`: a NATO frame is a symbol, not a
+ * top-down silhouette, so rotating it with the turret heading made e.g. a Mk41
+ * VLS / Mk45 Hammer show up as a large tilted blue rectangle (reported on
+ * Malden, AR v1.2.0-test).
+ *
+ * @param category     vehicle category from `resolveVehicleCategory()`
+ * @param color        side colour (CSS colour string)
+ * @param dir          heading in degrees (0 = north), only used for silhouettes
+ * @param size         silhouette box size in px (the NATO marker is centred in it)
+ * @param vehicleClass Arma class name, used for icon subtype and NATO lookup
+ * @param side         unit side (west/east/guer/civ) for the NATO file prefix
+ * @returns HTML string for an `L.divIcon`
+ */
 function vehicleIconHtml(category: string, color: string, dir: number, size: number, vehicleClass?: string, side = 'unknown'): string {
   const icon = categoryToIconFile(category, vehicleClass);
   const natoMarkerPath = natoVehicleMarkerPath(vehicleClass, side, category);
   const maskPath = natoMarkerPath ?? `/icons/vehicles/${icon}.png`;
+  // NATO symbols stay upright and use the group-marker size; silhouettes rotate.
+  const markerSize = natoMarkerPath ? VEHICLE_NATO_MARKER_SIZE_PX : size;
+  const rotation = natoMarkerPath ? 0 : dir;
+  const inset = (size - markerSize) / 2;
   const aiBadge = isAIGenericVehicleClass(vehicleClass)
     ? `<div style="position:absolute;right:-2px;bottom:-4px;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,0.82);border:1px solid rgba(255,255,255,0.55);color:#fff;font-size:9px;font-weight:800;line-height:1;letter-spacing:0.3px;">AI</div>`
     : '';
   return `<div style="position:relative;width:${size}px;height:${size}px;">` +
-    `<div style="width:${size}px;height:${size}px;` +
+    `<div style="position:absolute;left:${inset}px;top:${inset}px;width:${markerSize}px;height:${markerSize}px;` +
     `background-color:${color};` +
     `-webkit-mask-image:url(${maskPath});` +
     `mask-image:url(${maskPath});` +
     `-webkit-mask-size:contain;mask-size:contain;` +
     `-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;` +
     `-webkit-mask-position:center;mask-position:center;` +
-    `transform:rotate(${dir}deg);transform-origin:center;` +
+    `transform:rotate(${rotation}deg);transform-origin:center;` +
     `filter:drop-shadow(1px 0 0 rgba(0,0,0,0.6)) drop-shadow(-1px 0 0 rgba(0,0,0,0.6)) drop-shadow(0 1px 0 rgba(0,0,0,0.6)) drop-shadow(0 -1px 0 rgba(0,0,0,0.6));` +
     `"></div>` +
     aiBadge +
@@ -2754,13 +2783,22 @@ function LayerManager({ units, vehicles, groups, pulseUnitIds, world, worldSize,
       if (showCrew && occupants.length > 0) {
         const rolePrefix: Record<string, string> = { driver: 'D', gunner: 'G', commander: 'C', turret: 'T', cargo: 'P' };
         const roleOrder = Object.keys(rolePrefix);
+        // Prefer the real seat from the vehicle's crew list (Arma `fullCrew` role,
+        // sent by AR). Web2's relay data has no crew list, so fall back to the
+        // unit class name (e.g. "B_crew_F" has no role → cargo). Without this,
+        // UAV-AI gunners of a Mk41 VLS were labelled "P:" (passenger).
+        const crewRoleByUnit = new Map(veh.crew.map(c => [c.unitId, (c.role ?? '').toLowerCase()]));
+        const roleKeyOf = (u: Unit): string | undefined => {
+          const seat = crewRoleByUnit.get(u.id);
+          return roleOrder.find(r => seat?.includes(r)) ?? roleOrder.find(r => u.type.toLowerCase().includes(r));
+        };
         const sorted = [...occupants].sort((a, b) => {
-          const ai = roleOrder.findIndex(r => a.type.toLowerCase().includes(r));
-          const bi = roleOrder.findIndex(r => b.type.toLowerCase().includes(r));
+          const ai = roleOrder.indexOf(roleKeyOf(a) ?? '');
+          const bi = roleOrder.indexOf(roleKeyOf(b) ?? '');
           return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
         });
         const lines = sorted.map(u => {
-          const rKey = roleOrder.find(r => u.type.toLowerCase().includes(r)) ?? 'cargo';
+          const rKey = roleKeyOf(u) ?? 'cargo';
           const prefix = rolePrefix[rKey] ?? 'P';
           const name = u.playerName?.trim() || u.name || '';
           return `${prefix}: ${escapeHtml(name)}`;
