@@ -36,9 +36,39 @@ ui/src/
 
 Each app provides its own `appConfig.ts` with the **same exports**. The core imports app-specific values only from there.
 
+### `appConfig.ts` contract
+
+| Export | Web2 value | AR value (planned) |
+|---|---|---|
+| `API_BASE` | bridge, `:3000` in dev | AR server, `:5000` |
+| `APP_NAME`, `APP_VERSION` | `Athena Web 2`, `0.x` | `Athena Remastered`, `1.x` |
+| `DONATE_URL` | `https://paypal.me/jeroenvdvelden` | same PayPal.Me link (AR's old `donate/?business=` link fails for this account) |
+| `CAPABILITIES` | see below | see below |
+| `MAP_DATA.treesUrl` | `/api/game/trees` | `/api/game/trees` (same endpoint) |
+| `MAP_DATA.landmaskUrl` | `/api/staticmap/{world}/landmask?gridSize=` | same endpoint |
+| `MAP_DATA.landmaskGridSize` | `1536` | `1024` (AR's previous value, to be verified) |
+| `MAP_DATA.landmaskRowOrder` | `south-first` (bridge: row 0 = worldY 0) | **`north-first`**: AR's `StaticMapController.cs:65` documents "row 0 = north (image top)". Without this, AR's land fill would render upside down. |
+
+### Core components and hooks
+
+- **Map and sidebar:** `AthenaMap`, `Sidebar`, `EventFeed`
+- **App shell:** `AppShell` (collapsible sidebars), `SidebarHeader`, `ITgtTargetsPanel`, `WelcomeOverlay` (texts and steps supplied by the app), `ExportStatusOverlay`, `MapErrorBoundary`
+- **Hooks:** `useStaticMap`, `useAthenaLibrary`, `useITgtTargets`, `useFollowActivePlayer`, `useTouchInput`
+- **Utils:** `utils/firewillITgt.ts`
+
+`App.tsx` stays per app. It composes the core with the app's own data hook and its texts.
+
 ## Capabilities
 
 AR has data that Web2 never gets: active lazes, projectile tracking, and killed/fired events. Shared core code for those features is switched on or off through `CAPABILITIES` in `appConfig.ts`, not by whether data happens to arrive.
+
+| Flag | Gates | Web2 | AR (planned) |
+|---|---|---|---|
+| `lazes` | laze map layer + "Active Lazes" toggle | off | on |
+| `projectiles` | projectile layer, Fire Control panel, "Projectile Tracking" toggle | off | on |
+| `killFeed` | killed/fired event feed (`EventFeed`, used by the app's own `App.tsx`) | off | on |
+| `relayMarkers` | Arma / Firewill I-TGT / AO / Spawn marker toggles | on | off, until AR streams mission markers |
+| `waypointToggle` | "Waypoints" toggle (the layer itself renders whenever waypoint data arrives) | off | on |
 
 ## Phases
 
@@ -84,3 +114,10 @@ Found during the owner's live AR test on 2026-11-22. These are AR repo changes, 
 ## Status
 
 - 2026-11-22: analysis done, approach approved by the owner. Phase 1 started on branch `refactor/ui-core-split`.
+- 2026-11-22: Phase 1 done on that branch:
+  - step 1: core/adapter split
+  - step 2: app shell into the core
+  - step 3: capabilities
+  - step 4: glyph repair
+  - step 5: `MAP_DATA`
+  - Verified with build, lint and before/after screenshots in the fake-relay simulation. Next: Phase 1 PR, then Phase 2 in the AR repo.

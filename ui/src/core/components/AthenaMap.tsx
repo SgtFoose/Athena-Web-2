@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, FiredEvent, FiredImpactEvent, ActiveLaze, RelayMarker } from '../types/game';
-import { API_BASE, CAPABILITIES } from '../../appConfig';
+import { CAPABILITIES, MAP_DATA } from '../../appConfig';
 import 'leaflet/dist/leaflet.css';
 
 // Arma uses a square world coordinate system [0..worldSize].
@@ -1979,7 +1979,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       staticCacheRef.current.treesWorld = world;
     };
 
-    const fetchTrees = () => fetch(`${API_BASE}/api/game/trees`)
+    const fetchTrees = () => fetch(MAP_DATA.treesUrl())
       .then(r => {
         console.log(`[Trees] Runtime API response status: ${r.status}`);
         return r.ok ? r.json() : null;
@@ -2152,8 +2152,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       // Path 1 (fallback): static raster land mask for fully solid land/ocean fill.
       if (world) {
         try {
-          const resp = await fetch(
-            `${API_BASE}/api/staticmap/${encodeURIComponent(world)}/landmask?gridSize=1536`);
+          const resp = await fetch(MAP_DATA.landmaskUrl(world, MAP_DATA.landmaskGridSize));
           if (!cancelled && resp.ok) {
             const data: { width: number; height: number; worldSize: number; mask: string } =
               await resp.json();
@@ -2167,9 +2166,12 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
             const ctx = cvs.getContext('2d')!;
             const img = ctx.createImageData(data.width, data.height);
             for (let gy = 0; gy < data.height; gy++) {
-              // Mask row 0 = worldY0 (south). Canvas row 0 = top of image = north.
-              // Flip vertically so south maps to bottom of overlay.
-              const srcRow = (data.height - 1 - gy) * data.width;
+              // Canvas row 0 = top of image = north. With a south-first mask
+              // (row 0 = worldY 0, Web2 bridge) flip vertically so south maps to
+              // the bottom of the overlay; a north-first mask is already in image order.
+              const srcRow = (MAP_DATA.landmaskRowOrder === 'south-first'
+                ? (data.height - 1 - gy)
+                : gy) * data.width;
               for (let gx = 0; gx < data.width; gx++) {
                 if (grown[srcRow + gx]) {
                   const o = (gy * data.width + gx) * 4;

@@ -5,9 +5,10 @@
  * app-specific value from this module only. Athena Remastered has its own
  * appConfig.ts with the same exports and its own values.
  */
-import type { AppCapabilities } from './core/types/ui'
+import type { AppCapabilities, MapDataConfig } from './core/types/ui'
+import { API_BASE } from './apiBase'
 
-export { API_BASE } from './apiBase'
+export { API_BASE }
 export { APP_NAME, APP_VERSION } from './version'
 
 /**
@@ -32,4 +33,16 @@ export const CAPABILITIES: AppCapabilities = {
   relayMarkers: true,
   // Web2 has shown waypoints without a sidebar toggle since v0.0.x; kept as-is.
   waypointToggle: false,
+}
+
+/**
+ * Endpoints served by the Node bridge (`bridge/server.js`). The bridge builds
+ * the land mask from the cached Z=0 coastline with row 0 = south (worldY 0).
+ */
+export const MAP_DATA: MapDataConfig = {
+  treesUrl: () => `${API_BASE}/api/game/trees`,
+  landmaskUrl: (world, gridSize) =>
+    `${API_BASE}/api/staticmap/${encodeURIComponent(world)}/landmask?gridSize=${gridSize}`,
+  landmaskGridSize: 1536,
+  landmaskRowOrder: 'south-first',
 }

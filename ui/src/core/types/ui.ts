@@ -38,6 +38,26 @@ export interface LayerVisibility {
 }
 
 /**
+ * How the map component loads the two datasets it fetches itself (instead of
+ * receiving them as props). Both Web2's bridge and AR's backend serve these
+ * endpoints, but parameters and row order can differ per backend.
+ */
+export interface MapDataConfig {
+  /** URL of the runtime tree list (`/api/game/trees` in both backends). */
+  treesUrl: () => string
+  /** URL of the raster land mask for a world at the given grid size. */
+  landmaskUrl: (world: string, gridSize: number) => string
+  /** Requested land-mask resolution in cells per side (Web2: 1536, AR used 1024). */
+  landmaskGridSize: number
+  /**
+   * Row order of the decoded mask. `south-first`: row 0 is the southern edge
+   * (worldY = 0), as Web2's bridge returns it. `north-first`: row 0 is the
+   * northern edge, which is image order and needs no flip.
+   */
+  landmaskRowOrder: 'south-first' | 'north-first'
+}
+
+/**
  * Which optional data/features the app's data source can provide.
  *
  * Shared core code for these features is switched on or off by these flags,

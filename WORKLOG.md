@@ -72,6 +72,22 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
     - Simulation (fake relay + fake 5120 m Kunduz cache), headless Chrome:
       - live view identical to the pre-refactor screenshot (layout, centred island, sidebar, I-TGT panel, both collapse buttons); only the branding is the new v0.1.1 one
       - with the relay stopped, the welcome screen shows "Bridge online, relay offline (127.0.0.1:28801)", the hint and the Web2 steps
+  - Committed `75296b6`.
+- **Phase 1 step 3: capabilities** (`b6a97af`):
+  - `CAPABILITIES` now gates the laze/projectile panes and the Fire Control panel in `AthenaMap`, plus the sidebar toggles: marker toggles need `relayMarkers`; Waypoints / Active Lazes / Projectile Tracking need `waypointToggle` / `lazes` / `projectiles`, in AR's original order.
+  - New flag `waypointToggle`: Web2 keeps rendering waypoints without a toggle, as before.
+  - Web2 UI is unchanged (same toggle list; those layers never had data in Web2).
+- **Phase 1 step 4: glyph repair** (`4487532`):
+  - restored characters deleted in the earlier mojibake cleanup: zoom slider `−` and `{scale}×`, unit tooltip `side · rank`, Fire Control `shooter · weapon`, ORBAT group `position · count`
+  - AR has these as mojibake (`Â·`), so they were restored by intent rather than copied
+  - kept the readable ASCII replacements (`--`, `Time:`)
+  - verified no `Â`/`â€` remain in `ui/src`; headless screenshot of the slider shows `+`, `−`, `0.5×`
+- **Phase 1 step 5: `MAP_DATA`:**
+  - new `MapDataConfig` type plus `MAP_DATA` in `appConfig.ts` (`treesUrl`, `landmaskUrl`, `landmaskGridSize` 1536, `landmaskRowOrder` `south-first`)
+  - `AthenaMap` no longer builds URLs or hard-codes the flip
+  - Found in AR: `Backend/Controllers/StaticMapController.cs:65` returns the land mask with **row 0 = north**, the opposite of Web2's bridge. AR's appConfig must use `north-first`, or its land fill would render upside down. Documented in `docs/ui-core-sync.md` (appConfig contract table).
+  - Validation: build passed; simulation screenshot identical to step 2 (island centred), slider glyphs visible.
+- Docs: `docs/ui-core-sync.md` now has the appConfig contract, the core component list, the capabilities table and status. `CLAUDE.md` repository layout updated, and new "Shared UI core rules" added to the working rules.
   - Found: the welcome background `ui/public/athena-default-bg.png` contains the text "ATHENA REMASTERED – LOADING BATTLEFIELD INTEL…" (inherited from AR). Backlog: make the welcome image per-app via `appConfig`.
   - The AR screenshot (Malden) shows the pre-fix rendering: forest blocks spilling over the coast, a stair-stepped coastline, opaque dark forest. That confirms the value of porting the shared core.
 
