@@ -10,6 +10,9 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — Follow-up PR after an early merge
+- Web2 #11 was merged before `dacfb3c` (silhouettes) and `b25de55` (`.gitignore`) were pushed. Follow-up PR #12 → `main`.
+
 ### 2026-11-22 — chore: ignore secrets and signing keys
 - The owner keeps a local secrets folder in the repo root. It showed as untracked (`??`), so a `git add -A` could have committed it. Checked `git log --all`: nothing was ever committed from it.
 - `.gitignore`: added `.env`, `.env/`, `.env.*` and `*.biprivatekey`.
