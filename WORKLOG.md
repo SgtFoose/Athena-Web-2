@@ -10,6 +10,19 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — v0.1.1 Published + end-user start guide in release notes
+- PR #3 (`release/v0.1.1`) merged by the owner as `7a697ed`. Local `main` updated, release branch deleted.
+- Published the GitHub Release (owner approved): `gh release create v0.1.1 bridge/dist/AthenaWeb-0.1.1.exe --target main --title "Athena Web 2 v0.1.1" --notes-file .github/release-notes-template-v0.1.1.md --latest`.
+  - Validation: `gh release list` → v0.1.1 **Latest**, not a draft or pre-release. `releases/latest` → v0.1.1. Tag `v0.1.1` → `7a697ed`.
+  - **Asset parity:** release asset `AthenaWeb-0.1.1.exe` digest `sha256:513722d8f49859628fc7b1378622ef5c76df06a7b7d97deb71a0cc4ac2eb6ec4` = local `bridge/dist/AthenaWeb-0.1.1.exe`. Size 62,044,389.
+  - The owner briefly saw v0.1.0 as latest; that was before the create call finished.
+- Drafted a Steam reply for the Kunduz reporter (owner posts it).
+- Owner request: add clear start instructions for EXE users to the release notes, without the Node.js dev guide.
+  - Rewrote `.github/release-notes-template-v0.1.1.md` for end users: Quick Start (what you need, start steps, `Local:` vs `Network:` address, firewall, keep the console open), first time on a new map (Athena Desktop Export → restart), troubleshooting table, SmartScreen, What's New, Known Limitations. Dropped the dev-only `WEB_PORT` line.
+  - Facts checked in code first: the Athena Desktop Workshop link comes from `MapCacheBanner.tsx:98` (id `668999292`); the console output `Local:` / `Network: … ← open on your phone` comes from `server.js:1889-1890`.
+  - Updated the live release body with `gh release edit v0.1.1 --notes-file …`. Verified: it has Quick Start, first-time map and troubleshooting sections, no `npm`/`node server` mentions, and the asset is still attached.
+  - `CLAUDE.md` release step 4 now requires this end-user structure, with no Node.js instructions, for future releases.
+
 ### 2026-11-22 — v0.1.1 Release: custom map world-size fix
 - PR #2 (`fix/unknown-world-size`) merged by the owner as `365addc`. Local `main` updated, merged branch deleted.
 - Stopped the local simulation (fake relay, bridge, Vite dev server); ports 3000, 3001, 5173 and 28801 confirmed free.

@@ -212,7 +212,13 @@ A release is not complete until every item below is done in the same batch:
 1. **Version sync:** `ui/src/version.ts` (`APP_VERSION`), `README.md` (version line, tracked EXE line, Quick Start EXE names, highlights), `CHANGELOG.md` top entry (Keep a Changelog style: Added/Changed/Fixed/Known Limitations), `WORKLOG.md` timeline entry.
 2. **Packaged UI sync:** build UI → `robocopy ui\dist bridge\wwwroot /MIR` → verify `index.html` asset hashes.
 3. **Dist parity:** `bridge/dist/AthenaWeb-<version>.exe` and `bridge/dist/AthenaWeb.exe` are the same build; remove the previous-version tracked EXE; update `repo_dist_contents.json` (path/size/blob SHA).
-4. **Release notes:** create/update `.github/release-notes-template-vX.Y.Z.md` with the same version + filename. Must include: download path (release → Assets → `AthenaWeb-<version>.exe`), open `http://localhost:3000` (port fallback note), SmartScreen workaround (`More info` → `Run anyway`), fallback `Properties` → `Unblock`, PowerShell `Unblock-File -Path .\AthenaWeb-<version>.exe`, What Is Included, Highlights, Known Limitations. Keep README Quick Start wording consistent.
+4. **Release notes:** create/update `.github/release-notes-template-vX.Y.Z.md` with the same version + filename. Written for **end users of the EXE**. **No Node.js/dev-mode instructions** in release notes; those stay in the README. Copy the structure of `release-notes-template-v0.1.1.md`:
+   - **Quick Start (Windows EXE):** what you need (Arma 3, Bus Athena mod Workshop `1181881736`, Athena Desktop Workshop `668999292` for the one-time export, optional phone/tablet); start steps (download from Assets, run, keep the console open, allow the firewall on private networks, `Local:` vs `Network:` address, start Arma)
+   - **First time on a new map:** Athena Desktop Export, then restart the EXE
+   - **Troubleshooting** table (page not loading, port fallback, relay not connected / `ath_launch_relay=true`, phone can't connect, empty/squeezed map, Workshop: don't load `@AthenaWeb2`)
+   - **SmartScreen workaround** (`More info` → `Run anyway`, `Properties` → `Unblock`, `Unblock-File -Path .\AthenaWeb-<version>.exe`)
+   - **What's New** and **Known Limitations**
+   - Keep README Quick Start wording consistent.
 5. **GitHub Release** (only with user go-ahead): tag `vX.Y.Z`, attach `AthenaWeb-<version>.exe` under Assets; after any asset replacement, compare local SHA256 with the release asset digest.
 6. **Workshop** (optional, user-driven): copy EXE into `@AthenaWeb2/`, write `@AthenaWeb2/workshop-change-note-<version>.txt`, run `.\Update-Workshop.ps1 -WorkshopId 3707444008` (needs Arma 3 Tools). `@AthenaWeb2` must never be loaded as a gameplay mod.
 
