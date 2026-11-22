@@ -10,6 +10,15 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — core: map-data status box hides itself after loading
+- Owner request (AR live test screenshot, Malden): hide the bottom-left "Loaded from cache" box (Roads/Trees/Forests/... counts) in both apps.
+- `ui/src/core/components/ExportStatusOverlay.tsx`:
+  - `exporting` stays visible for as long as the export runs (progress)
+  - `cached` / `complete` disappear after `FINISHED_STATUS_VISIBLE_MS` = 4000 ms
+  - every phase change shows the box again (reset during render, React's recommended pattern; avoids the set-state-in-effect lint rule)
+- Same branch `fix/header-version-label`; synced to AR.
+- Validation: `npx eslint src/core/components/ExportStatusOverlay.tsx` clean, `npm --prefix ui run build` OK.
+
 ### 2026-11-22 — core: version label no longer cut off in the header (live feedback from AR)
 - Owner's live test of AR `v1.2.0-test (e15e8a0)`: the header showed only "v1...." next to the two-line "ATHENA REMASTERED" name. Cause: `.header-right` had `min-width: 0`, so the flex layout shrank the right block, and `.version-label` truncated with an ellipsis at `max-width: 96px`.
 - Fix in `ui/src/core/styles/app.css`:
