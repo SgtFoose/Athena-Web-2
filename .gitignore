@@ -24,3 +24,9 @@ Temp/
 
 # Never commit original Athena mod distribution folder
 @Athena - An Arma 2nd Screen Application/
+
+# Secrets and signing keys (never commit)
+.env
+.env/
+.env.*
+*.biprivatekey

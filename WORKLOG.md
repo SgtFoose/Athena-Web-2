@@ -10,6 +10,11 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — chore: ignore secrets and signing keys
+- The owner keeps a local secrets folder in the repo root. It showed as untracked (`??`), so a `git add -A` could have committed it. Checked `git log --all`: nothing was ever committed from it.
+- `.gitignore`: added `.env`, `.env/`, `.env.*` and `*.biprivatekey`.
+- Validation: `git status --ignored` now shows the folder as ignored (`!!`).
+
 ### 2026-11-22 — core: vehicles always use Bus silhouettes (no NATO squares)
 - Owner live test (AR `788d6f4`, Malden): the vehicles at Saint Martin still showed as blue squares. These were the NATO frames that `natoVehicleMarkerPath` drew for drones, turrets, radars, MLRS (`_mlrs_`, e.g. the M5 Sandstorm) and VLS. The earlier fix only stopped them rotating.
 - `ui/src/core/components/AthenaMap.tsx`:
