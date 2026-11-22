@@ -1,0 +1,10 @@
+Athena Web 2 v0.1.1
+
+Fixed:
+- Custom, community and CDLC maps (for example Kunduz and VR) no longer show all map content squeezed into the bottom-left corner during live sessions. The map now uses the real world size from the Athena Desktop map cache.
+- Relay and cache map names are matched case-insensitively.
+- Donate link repaired; header and welcome screen now read "ATHENA WEB 2".
+
+Reminder: each new map needs a one-time Export in the original Athena Desktop before Athena Web 2 can show it correctly.
+
+Run AthenaWeb.exe from the Workshop folder and open http://localhost:3000. Do not load @AthenaWeb2 as a gameplay mod.

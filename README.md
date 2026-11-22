@@ -2,9 +2,9 @@
 
 > Tactical second-screen web companion for Arma 3 — powered by the original Athena relay
 
-**Version: v0.1.0**
+**Version: v0.1.1**
 
-**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.1.0.exe`
+**Tracked bridge build in repo:** `bridge/dist/AthenaWeb-0.1.1.exe`
 
 **Latest release download:** https://github.com/SgtFoose/Athena-Web-2/releases/latest
 
@@ -30,7 +30,14 @@
 
 Athena Web 2 is a browser-based second-screen tactical map for Arma 3. It connects to the original **Athena** mod relay (by Bus) and renders a full military cartography map with live unit tracking — straight from your browser, on any device on your local network.
 
-This is v0.1.0 — the current active Web2 release line. It focuses on runway/taxiway surface parity on cached Bus-rendered worlds while preserving Web2 relay compatibility.
+This is v0.1.1 — the current active Web2 release line. It fixes live map scaling on custom, community and CDLC maps while preserving Web2 relay compatibility.
+
+### v0.1.1 highlights
+
+- **Custom map scaling fix** on maps outside the built-in vanilla list (for example Kunduz, VR, CDLC and community terrains), live sessions no longer squeeze all map content into the bottom-left corner; the map now uses the real world size from the Athena Desktop cache
+- **World name matching** the relay world name and the cached map name are now matched case-insensitively (for example `kunduz` vs `Kunduz`)
+- **Donate link and branding fixed** the Donate link works again, and the header and welcome screen now read "ATHENA WEB 2"
+- **Docs:** the bridge port variable is `WEB_PORT` (the README previously listed `PORT`)
 
 ### v0.1.0 highlights
 
@@ -205,7 +212,7 @@ cd @AthenaWeb2
 .\Update-Workshop.ps1 -WorkshopId <workshopid>
 ```
 
-3. The script publishes folder contents from `@AthenaWeb2/` and uses `@AthenaWeb2/workshop-change-note-0.1.0.txt` as the changelog text
+3. The script publishes folder contents from `@AthenaWeb2/` and uses `@AthenaWeb2/workshop-change-note-0.1.1.txt` as the changelog text
 
 ## QUICK START
 
@@ -235,8 +242,8 @@ Use this when you want a one-file launcher with no dev setup.
 Project page: https://github.com/SgtFoose/Athena-Web-2
 
 1. Open the latest release page: https://github.com/SgtFoose/Athena-Web-2/releases/latest
-2. Under **Assets**, download `AthenaWeb-0.1.0.exe`
-3. Run `AthenaWeb-0.1.0.exe`
+2. Under **Assets**, download `AthenaWeb-0.1.1.exe`
+3. Run `AthenaWeb-0.1.1.exe`
 4. Open the `Local:` URL printed in the console (usually `http://localhost:3000`)
 5. Start Arma 3 with the original Athena mod running (relay path)
 
@@ -258,7 +265,7 @@ If Windows blocks the EXE on first launch:
 
 If **Run anyway** is missing or still blocked:
 
-1. Right-click `AthenaWeb-0.1.0.exe` -> **Properties**
+1. Right-click `AthenaWeb-0.1.1.exe` -> **Properties**
 2. In the **General** tab, check **Unblock** (if shown)
 3. Click **Apply** then **OK**
 4. Launch the EXE again
@@ -266,7 +273,7 @@ If **Run anyway** is missing or still blocked:
 PowerShell alternative:
 
 ```powershell
-Unblock-File -Path .\AthenaWeb-0.1.0.exe
+Unblock-File -Path .\AthenaWeb-0.1.1.exe
 ```
 
 Notes:
@@ -279,8 +286,8 @@ Notes:
 When publishing a new Web2 release, attach the EXE in the GitHub release so users can download it directly:
 
 1. Build the executable in `bridge/dist`
-2. Create a GitHub release tag (example: `v0.1.0`)
-3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.1.0.exe`)
+2. Create a GitHub release tag (example: `v0.1.1`)
+3. In the release editor, upload the EXE under **Assets** (example: `AthenaWeb-0.1.1.exe`)
 4. In release notes, include the Quick Start URL from this README and the SmartScreen workaround above
 5. Copy and adapt the current `.github/release-notes-template-vX.Y.Z.md` template into the GitHub release description
 
@@ -298,7 +305,7 @@ Per new map, do this once:
 2. Join a server running the target map.
 3. Open Athena Desktop and connect.
 4. Click `Export` in Athena Desktop.
-5. Restart `AthenaWeb-0.1.0.exe` and reopen the `Local:` URL shown in the bridge console.
+5. Restart `AthenaWeb-0.1.1.exe` and reopen the `Local:` URL shown in the bridge console.
 
 After export, Athena Web 2 can render roads, structures, trees, and other static layers for that map from local cache.
 
