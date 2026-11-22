@@ -22,6 +22,7 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - Facts checked in code first: the Athena Desktop Workshop link comes from `MapCacheBanner.tsx:98` (id `668999292`); the console output `Local:` / `Network: … ← open on your phone` comes from `server.js:1889-1890`.
   - Updated the live release body with `gh release edit v0.1.1 --notes-file …`. Verified: it has Quick Start, first-time map and troubleshooting sections, no `npm`/`node server` mentions, and the asset is still attached.
   - `CLAUDE.md` release step 4 now requires this end-user structure, with no Node.js instructions, for future releases.
+  - The first combined commit+push+PR command was blocked by Claude Code's auto-mode check, because the push wasn't explicitly requested yet; nothing ran. Committed locally (`c4c605b`), asked the owner, then pushed `docs/release-start-instructions` and opened PR #4: https://github.com/SgtFoose/Athena-Web-2/pull/4.
 
 ### 2026-11-22 — v0.1.1 Release: custom map world-size fix
 - PR #2 (`fix/unknown-world-size`) merged by the owner as `365addc`. Local `main` updated, merged branch deleted.
