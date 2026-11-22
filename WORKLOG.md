@@ -48,7 +48,10 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
     - page title `Athena Web 2`, bundle `assets/index-CQGC_xb4.js`
     - bundle contains `https://paypal.me/jeroenvdvelden`, "Athena Web 2" and `0.1.1`; the old PayPal ID and "ATHENA REMASTERED" are gone
     - `/api/health` returns 503 by design when no map cache exists (this machine has none; `server.js:493`)
-- Next: owner merges the release PR. Then, with the owner's go-ahead: tag `v0.1.1` and a GitHub Release with `AthenaWeb-0.1.1.exe`, verifying the asset SHA256 against local. Optional Workshop update.
+- Owner noted `paypal.com/paypalme/jeroenvdvelden` also works. Kept the official short form `paypal.me/jeroenvdvelden`, which redirects there; no rebuild needed.
+- Owner approved the push. Checked identity first (noreply email, `gh` user SgtFoose). Pushed `release/v0.1.1` (`dfb40fa`, `c74dbb1`) and opened PR #3: https://github.com/SgtFoose/Athena-Web-2/pull/3.
+  - GitHub warned `GH001: Large files detected` for the ~59 MB EXEs: over the recommended 50 MB, under the hard 100 MB limit. Same as earlier releases. Possible future improvement: Git LFS, or stop tracking EXEs in the repo and rely on Release assets.
+- Next: owner merges PR #3. Then, with the owner's go-ahead: tag `v0.1.1` and a GitHub Release with `AthenaWeb-0.1.1.exe`, verifying the asset SHA256 against local. Optional Workshop update.
 
 ### 2026-11-22 — v0.1.x Investigation: custom maps render squeezed into the bottom-left corner (Workshop report)
 - PR #1 (`chore/claude-setup-toolchain`) was merged by the owner as `c197289`. Local `main` updated, merged branch deleted. Created `fix/unknown-world-size` from `main` for this investigation.
@@ -1152,6 +1155,7 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 - [x] UI: sync `ui/package.json` version with `APP_VERSION` (done in v0.1.1).
 - [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
 - [ ] Review `npm audit` advisories in `ui/`.
+- [ ] Repo: tracked ~59 MB EXEs trigger GitHub's large-file warning on every release. Consider Git LFS, or keeping EXEs only as Release assets.
 - [ ] UI: closed-ring coastline smoothing leaves a small gap in the stroke at the ring start/end (seen in the 2026-11-22 simulation).
 
 ## Next Tasks (Immediate)
