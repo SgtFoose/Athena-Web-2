@@ -10,6 +10,23 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — Follow-up PR after an early merge
+- Web2 #11 was merged before `dacfb3c` (silhouettes) and `b25de55` (`.gitignore`) were pushed. Follow-up PR #12 → `main`.
+
+### 2026-11-22 — chore: ignore secrets and signing keys
+- The owner keeps a local secrets folder in the repo root. It showed as untracked (`??`), so a `git add -A` could have committed it. Checked `git log --all`: nothing was ever committed from it.
+- `.gitignore`: added `.env`, `.env/`, `.env.*` and `*.biprivatekey`.
+- Validation: `git status --ignored` now shows the folder as ignored (`!!`).
+
+### 2026-11-22 — core: vehicles always use Bus silhouettes (no NATO squares)
+- Owner live test (AR `788d6f4`, Malden): the vehicles at Saint Martin still showed as blue squares. These were the NATO frames that `natoVehicleMarkerPath` drew for drones, turrets, radars, MLRS (`_mlrs_`, e.g. the M5 Sandstorm) and VLS. The earlier fix only stopped them rotating.
+- `ui/src/core/components/AthenaMap.tsx`:
+  - removed `natoVehicleMarkerPath` and `VEHICLE_NATO_MARKER_SIZE_PX`
+  - `vehicleIconHtml` always masks the Bus PNG silhouette, rotated with the heading, as Athena Desktop does (drones: plane icon)
+  - `categoryToIconFile` maps turret subtypes: mortar `iconstaticmortar`; SAM/AAA `iconstaticaa`; naval/MLRS/VLS `iconstaticcannon`; radar and others `iconstaticmg` (matches `ui/icon-mapping.md`: M5 Sandstorm, M4 Scorcher and Mk41 VLS = static cannon, AN/MPQ-105 radar = static MG)
+  - group NATO markers are unchanged
+- Validation: `npm run build` OK. `eslint` on `AthenaMap.tsx` reports the same 5 pre-existing problems as `HEAD` (unused var line 87, two `no-useless-escape`, `react-hooks/refs`); nothing new.
+
 ### 2026-11-22 — core: map-data status box hides itself after loading
 - Owner request (AR live test screenshot, Malden): hide the bottom-left "Loaded from cache" box (Roads/Trees/Forests/... counts) in both apps.
 - `ui/src/core/components/ExportStatusOverlay.tsx`:
