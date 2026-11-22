@@ -49,13 +49,19 @@ body {
 .sidebar { background: #161b22; border-right: 1px solid #21262d; overflow-y: auto; display: flex; flex-direction: column; }
 .sidebar.collapsed { width: 0; min-width: 0; border-right: none; overflow: hidden; }
 .sidebar-header { background: #0d1117; padding: 10px 16px; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.logo-text { font-weight: 800; font-size: 14px; letter-spacing: 2px; color: #2ecc71; text-transform: uppercase; }
+/* min-width: 0 lets a long app name ("ATHENA REMASTERED") wrap onto two lines
+   instead of squeezing the version label and donate link on the right. */
+.logo-text { font-weight: 800; font-size: 14px; letter-spacing: 2px; color: #2ecc71; text-transform: uppercase; min-width: 0; }
 .donate-link { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #f0a500; text-decoration: none; opacity: 0.75; white-space: nowrap; transition: opacity 0.15s; }
 .donate-link:hover { opacity: 1; }
-.header-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
-/* Test-build labels like "v1.2.0-test (a1b2c3d-dirty)" are long: truncate with an
-   ellipsis instead of widening the sidebar; the full label is in the tooltip. */
-.version-label { font-size: 9px; font-weight: 600; letter-spacing: 0.5px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 96px; }
+/* flex-shrink: 0 keeps the version label and donate link at full width; the
+   app name on the left wraps instead (with min-width: 0 the right block used to
+   shrink, and in Athena Remastered the label was cut down to "v1..."). */
+.header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+/* The header shows the compact label ("v1.2.0" or "v1.2.0-test", see
+   core/utils/version.ts), which is short enough to show in full. The commit and
+   build time are in the tooltip and the sidebar footer. */
+.version-label { font-size: 9px; font-weight: 600; letter-spacing: 0.5px; color: #555; white-space: nowrap; }
 .map-area { position: relative; background: #1a2a1a; }
 .map-area > div:first-child { width: 100%; height: 100%; }
 .sidebar-toggle {
