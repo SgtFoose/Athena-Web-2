@@ -815,37 +815,17 @@ function categoryToIconFile(category: string, vehicleClass?: string): string {
     case 'AAs':           return 'iconapc';  // Desktop: AAs inherit tank/APC, show as APC
     case 'Submersibles':  return 'iconship';
     case 'Drones':        return 'iconplane'; // Desktop: drones use plane icon
-    case 'Turrets':       return cl.includes('ship_mrls') || cl.includes('mrls') ? 'iconstaticcannon' : 'iconstaticmg';
+    case 'Turrets': {
+      // Pick the closest Bus static-weapon silhouette per turret type
+      // (matches ui/icon-mapping.md: Mk41 VLS = static cannon, radar = static MG).
+      const sub = resolveTurretSubtype(cl);
+      if (sub === 'mortar') return 'iconstaticmortar';
+      if (sub === 'sam' || sub === 'aaa') return 'iconstaticaa';
+      if (sub === 'naval' || cl.includes('mrls') || cl.includes('vls')) return 'iconstaticcannon';
+      return 'iconstaticmg';
+    }
     default:              return 'iconcar';
   }
-}
-
-function natoVehicleMarkerPath(vehicleClass: string | undefined, side: string, category: string): string | null {
-  const cls = (vehicleClass ?? '').toLowerCase();
-  const sidePrefix = natoSidePrefix(side);
-
-  // Arma/Athena Desktop style: all drones use dedicated UAV NATO marker.
-  if (category === 'Drones' || /\buav_\d+|\bugv_\d+|greyhawk|sentinel|stomper|falcon|pelican/.test(cls)) {
-    return `/icons/nato/${sidePrefix}_uav.png`;
-  }
-
-  // Arma/Athena Desktop style: turret-like assets use NATO-style installation/support/art symbols.
-  if (category === 'Turrets') {
-    const subtype = resolveTurretSubtype(cls);
-    if (subtype === 'radar') return `/icons/nato/${sidePrefix}_installation.png`;
-    if (subtype === 'mortar') return `/icons/nato/${sidePrefix}_mortar.png`;
-    if (subtype === 'naval' || subtype === 'sam' || subtype === 'aaa') return `/icons/nato/${sidePrefix}_art.png`;
-    return `/icons/nato/${sidePrefix}_support.png`;
-  }
-
-  if (cls.includes('radar_system') || cls.includes('_radar_') || cls.includes('radar')) {
-    return `/icons/nato/${sidePrefix}_installation.png`;
-  }
-  if (cls.includes('ship_mrls') || cls.includes('_mrls_') || cls.includes('vls')) {
-    return `/icons/nato/${sidePrefix}_art.png`;
-  }
-
-  return null;
 }
 
 function isAIGenericVehicleClass(vehicleClass?: string): boolean {
@@ -855,50 +835,37 @@ function isAIGenericVehicleClass(vehicleClass?: string): boolean {
 }
 
 /**
- * On-screen size (px) of a NATO marker drawn for a vehicle (drones, static
- * turrets, radars, VLS). Same as the group NATO markers in `groupIcon()`, so
- * these symbols read as map symbols instead of oversized 80 px vehicle blobs.
- */
-const VEHICLE_NATO_MARKER_SIZE_PX = 48;
-
-/**
  * Builds the HTML of a vehicle marker: a side-coloured PNG silhouette (Bus
  * Desktop vehicle icons) masked onto a coloured div, rotated with the heading.
  *
- * Vehicles that resolve to a NATO marker (`natoVehicleMarkerPath`) are drawn
- * upright and at `VEHICLE_NATO_MARKER_SIZE_PX`: a NATO frame is a symbol, not a
- * top-down silhouette, so rotating it with the turret heading made e.g. a Mk41
- * VLS / Mk45 Hammer show up as a large tilted blue rectangle (reported on
- * Malden, AR v1.2.0-test).
+ * Every vehicle uses a silhouette, as in Bus's Athena Desktop (drones use the
+ * plane icon, static weapons the static-weapon icons). Earlier versions drew
+ * NATO frames for drones, turrets, radars, MLRS and VLS. On the map those read
+ * as plain blue squares, first tilted and then upright, so the owner rejected
+ * them (Malden, AR v1.2.0-test, 2026-11-22).
  *
  * @param category     vehicle category from `resolveVehicleCategory()`
  * @param color        side colour (CSS colour string)
- * @param dir          heading in degrees (0 = north), only used for silhouettes
- * @param size         silhouette box size in px (the NATO marker is centred in it)
- * @param vehicleClass Arma class name, used for icon subtype and NATO lookup
- * @param side         unit side (west/east/guer/civ) for the NATO file prefix
+ * @param dir          heading in degrees (0 = north)
+ * @param size         silhouette box size in px
+ * @param vehicleClass Arma class name, used for the icon subtype and the AI badge
  * @returns HTML string for an `L.divIcon`
  */
-function vehicleIconHtml(category: string, color: string, dir: number, size: number, vehicleClass?: string, side = 'unknown'): string {
+function vehicleIconHtml(category: string, color: string, dir: number, size: number, vehicleClass?: string): string {
   const icon = categoryToIconFile(category, vehicleClass);
-  const natoMarkerPath = natoVehicleMarkerPath(vehicleClass, side, category);
-  const maskPath = natoMarkerPath ?? `/icons/vehicles/${icon}.png`;
-  // NATO symbols stay upright and use the group-marker size; silhouettes rotate.
-  const markerSize = natoMarkerPath ? VEHICLE_NATO_MARKER_SIZE_PX : size;
-  const rotation = natoMarkerPath ? 0 : dir;
-  const inset = (size - markerSize) / 2;
+  const maskPath = `/icons/vehicles/${icon}.png`;
   const aiBadge = isAIGenericVehicleClass(vehicleClass)
     ? `<div style="position:absolute;right:-2px;bottom:-4px;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,0.82);border:1px solid rgba(255,255,255,0.55);color:#fff;font-size:9px;font-weight:800;line-height:1;letter-spacing:0.3px;">AI</div>`
     : '';
   return `<div style="position:relative;width:${size}px;height:${size}px;">` +
-    `<div style="position:absolute;left:${inset}px;top:${inset}px;width:${markerSize}px;height:${markerSize}px;` +
+    `<div style="position:absolute;left:0;top:0;width:${size}px;height:${size}px;` +
     `background-color:${color};` +
     `-webkit-mask-image:url(${maskPath});` +
     `mask-image:url(${maskPath});` +
     `-webkit-mask-size:contain;mask-size:contain;` +
     `-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;` +
     `-webkit-mask-position:center;mask-position:center;` +
-    `transform:rotate(${rotation}deg);transform-origin:center;` +
+    `transform:rotate(${dir}deg);transform-origin:center;` +
     `filter:drop-shadow(1px 0 0 rgba(0,0,0,0.6)) drop-shadow(-1px 0 0 rgba(0,0,0,0.6)) drop-shadow(0 1px 0 rgba(0,0,0,0.6)) drop-shadow(0 -1px 0 rgba(0,0,0,0.6));` +
     `"></div>` +
     aiBadge +
@@ -1251,7 +1218,7 @@ function vehicleIcon(vehicle: Vehicle, units: Record<string, Unit>, category: st
     className:  '',
     iconSize:   [size, size],
     iconAnchor: [size / 2, size / 2],
-    html: vehicleIconHtml(category, color, dir, size, vehicle.class, side),
+    html: vehicleIconHtml(category, color, dir, size, vehicle.class),
   });
 }
 
