@@ -18,8 +18,8 @@ import type {
   Mission,
   GameTime,
   RelayMarker,
-} from '../types/game';
-import { API_BASE } from '../apiBase';
+} from '../core/types/game';
+import { API_BASE } from '../appConfig';
 
 const BRIDGE_WS_URL = import.meta.env.VITE_RELAY_BRIDGE_WS || `ws://${window.location.hostname}:3000`;
 

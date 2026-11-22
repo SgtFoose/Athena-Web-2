@@ -10,6 +10,36 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — UI core sync (Web2 → AR): analysis + Phase 1 step 1
+- PR #4 merged by the owner (`8c06673`); local `main` updated.
+- **Owner request:** investigate the differences between AR (`C:\AthenaRemastered`) and Web2 and bring them into sync, keeping in mind that AR has more functionality because of its custom DLL.
+- Analysis (two read-only sub-agents plus my own checks):
+  - Frontends differ by +3435/−579 lines (`AthenaMap.tsx` ~2200, `useAthenaHub.ts` ~800). `types/game.ts` is still the same contract (Web2 adds only `RelayMarker`/`GameFrame.markers`).
+  - Identical in both repos: build configs, tsconfigs, ESLint config, dependencies, and all 169 shared `public/` assets. Web2 adds 12 `icons/handdrawn`.
+  - About 80% of the `AthenaMap.tsx` changes are pure rendering and portable to AR. Web2's props are a superset of AR's. Both backends serve the two endpoints the map fetches directly (`/api/game/trees`, `/api/staticmap/{world}/landmask`).
+  - Web2-only: the bridge/WebSocket data layer, cache picker, health banner, relay marker layers (AO/Spawn/Firewill).
+  - AR-only (custom DLL): lazes, projectiles, killed/fired events, the EVENTS panel. Web2 still carries that code inert. `EventFeed.tsx` is unused in Web2.
+  - Data-specific tuning to verify against AR data: landmask Y-flip/dilation, `hide`-roads-as-dirt, airport thresholds.
+  - Glyphs `−`, `×`, `·` were deleted (not repaired) during an earlier mojibake cleanup in Web2.
+  - AR history has a reverted earlier port (`7941dbf` → `1e3be1a`).
+- **Owner decisions:**
+  - approach "shared UI core + one-way sync (Web2 → AR)"
+  - AR gets the same process as Web2 (CLAUDE.md with rules #1–#4, WORKLOG, branch + PR)
+- Plan documented in the new `docs/ui-core-sync.md`:
+  - Phase 1: Web2 core/adapter split
+  - Phase 2: AR adoption with its own SignalR adapter + capabilities
+  - Phase 3: sync script + checksum manifest
+- **Phase 1 step 1** (branch `refactor/ui-core-split`, no functional changes):
+  - `git mv` into `ui/src/core/` (AthenaMap, Sidebar, EventFeed, useStaticMap, useAthenaLibrary, types/game) and `ui/src/adapter/` (useAthenaHub, useHealthCheck, MapCacheBanner)
+  - new `core/types/ui.ts` with `RenderMode` and `LayerVisibility` (moved out of `App.tsx`, which core components used to import), plus a new `AppCapabilities` type
+  - new `ui/src/appConfig.ts`: the single source of app-specific values for the core (`API_BASE`, `APP_NAME`, `APP_VERSION`, `DONATE_URL` moved from `App.tsx`, and `CAPABILITIES`: lazes/projectiles/killFeed off, relayMarkers on)
+  - relative imports updated
+  - Validation: `npm --prefix ui run build` passed. No core file imports `adapter/` or `App`; core reads app values only via `appConfig`.
+- **AR live test by the owner** (AR mod without BattlEye): the game seems to freeze right after "Athena Remastered: Connected. Requesting map data…".
+  - Code reading: AR's backend auto-enqueues a full `world` export on every mission start (`Backend/Services/GameStateService.cs:102-103`). The Arma side then runs `ATH_fnc_World` (roads/structures/trees/forests/elevations exported in-game). This is likely the stall on larger maps.
+  - Asked the owner for the map, whether it recovers after a few minutes, the backend console and the RPT `Athena Queue:` lines.
+  - Candidate AR fix for Phase 2: skip the export when the world is already cached.
+
 ### 2026-11-22 — v0.1.1 Published + end-user start guide in release notes
 - PR #3 (`release/v0.1.1`) merged by the owner as `7a697ed`. Local `main` updated, release branch deleted.
 - Published the GitHub Release (owner approved): `gh release create v0.1.1 bridge/dist/AthenaWeb-0.1.1.exe --target main --title "Athena Web 2 v0.1.1" --notes-file .github/release-notes-template-v0.1.1.md --latest`.

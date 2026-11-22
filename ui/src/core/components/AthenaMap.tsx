@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, FiredEvent, FiredImpactEvent, ActiveLaze, RelayMarker } from '../types/game';
-import { API_BASE } from '../apiBase';
+import { API_BASE } from '../../appConfig';
 import 'leaflet/dist/leaflet.css';
 
 // Arma uses a square world coordinate system [0..worldSize].
@@ -1684,7 +1684,7 @@ function contourStyle(z: number): { color: string; weight: number; opacity: numb
   return              { color: '#BC8F8F', weight: 0.75, opacity: 1 };  // RosyBrown
 }
 
-import type { LayerVisibility, RenderMode } from '../App';
+import type { LayerVisibility, RenderMode } from '../types/ui';
 
 // Elevation colour ramp helpers  Bus Athena Desktop palette.
 // HeatMap 1 (ground forces): green #0A7002  red smooth transition

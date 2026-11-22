@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { GameFrame, Group, Unit, MapLocation, ServerSettings } from '../types/game';
-import type { LayerVisibility, RenderMode } from '../App';
-import { APP_VERSION } from '../version';
+import type { LayerVisibility, RenderMode } from '../types/ui';
+import { APP_VERSION } from '../../appConfig';
 
 //  Helpers 
 

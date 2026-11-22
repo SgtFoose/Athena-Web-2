@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { API_BASE } from '../apiBase';
+import { API_BASE } from '../appConfig';
 
 export interface MapCacheWorld {
   name: string;

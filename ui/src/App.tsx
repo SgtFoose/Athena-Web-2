@@ -1,47 +1,19 @@
 import { Component, useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
-import { AthenaMap, type FirewillITgtTarget, type StoredITgtTarget }   from './components/AthenaMap'
-import { Sidebar }     from './components/Sidebar'
-import { MapCacheBanner } from './components/MapCacheBanner'
-import { useAthenHub, isSameWorld } from './hooks/useAthenaHub'
-import { useStaticMap } from './hooks/useStaticMap'
-import { useAthenaLibrary } from './hooks/useAthenaLibrary'
-import { useHealthCheck } from './hooks/useHealthCheck'
-import type { RelayMarker } from './types/game'
-import { APP_VERSION, APP_NAME } from './version'
-
-/**
- * Donate link shown in the sidebar header (the owner's public PayPal.Me page).
- *
- * Why PayPal.Me: before v0.1.1 this was a `paypal.com/donate/?business=...`
- * link inherited from Athena Remastered. That donate page only works for
- * PayPal accounts with donations enabled; for this account PayPal answered
- * "this organization can't accept donations at the moment". PayPal.Me works
- * with a personal account and needs no extra parameters.
- */
-const DONATE_URL = 'https://paypal.me/jeroenvdvelden'
+// Shared UI core (copied to Athena Remastered; see docs/ui-core-sync.md)
+import { AthenaMap, type FirewillITgtTarget, type StoredITgtTarget }   from './core/components/AthenaMap'
+import { Sidebar }     from './core/components/Sidebar'
+import { useStaticMap } from './core/hooks/useStaticMap'
+import { useAthenaLibrary } from './core/hooks/useAthenaLibrary'
+import type { RelayMarker } from './core/types/game'
+import type { LayerVisibility, RenderMode } from './core/types/ui'
+// Web2-only data layer (bridge WebSocket/REST, cache health)
+import { MapCacheBanner } from './adapter/MapCacheBanner'
+import { useAthenHub, isSameWorld } from './adapter/useAthenaHub'
+import { useHealthCheck } from './adapter/useHealthCheck'
+// App-specific values (name, version, donate link)
+import { APP_VERSION, APP_NAME, DONATE_URL } from './appConfig'
 import './App.css'
-
-export type RenderMode = '2d' | 'heatmap1' | 'heatmap2'
-
-export interface LayerVisibility {
-  contours:   boolean
-  forest:     boolean
-  trees:      boolean
-  roads:      boolean
-  structures: boolean
-  locations:  boolean
-  armaMarkers:boolean
-  firewillITgtMarkers:boolean
-  aoMarkers:  boolean
-  spawnMarkers:boolean
-  groups:     boolean
-  waypoints:  boolean
-  lazes:      boolean
-  projectiles:boolean
-  vehicles:   boolean
-  units:      boolean
-}
 
 interface MapErrorBoundaryProps {
   children: ReactNode
