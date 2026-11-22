@@ -72,6 +72,17 @@ So this code is **not** part of the shared core. The core offers extension point
 | Reserved panes `athena-laze` (z 716) and `athena-projectile` (z 717) | created by the core | AR's layers use these panes. Their visibility follows `layers.lazes` / `layers.projectiles` when the matching capability is on. |
 | App-level slot | each app's own `App.tsx` / `AppShell` `rightPanel` | AR renders `EventFeed` itself |
 
+### Projectile tracking bugs observed live (AR v1.1.6, Malden, 2026-11-22)
+
+| Weapon | Observed | Likely cause (from AR code; to verify in Phase 2) |
+|---|---|---|
+| M5 Sandstorm MLRS, `rockets_230mm_GAT` / `R_230mm_HE`, fired at grid 066047 (DIST 3014 m, ETA 33 s) | Shots appear in "Recent Shots", but there is no track on the map and no Fire Control entry. | The weapon *is* recognised (`rocket` profile, AR `AthenaMap.tsx:393`). Probably the track is dropped because there is no target data and the allowed track angle is narrow (`maxTrackAngleDeg: 22`). |
+| M4 Scorcher, `mortar_155mm…` / `Sh_155mm…` | Fire Control shows Lock FREE, Src **HDG**, ETA 5 s, target 5180,11729; a dashed line runs straight north from the vehicle. | No target data for indirect fire (`targetSource` missing), so it falls back to the **vehicle (hull) heading** instead of the gun/turret azimuth and the artillery computer's target. The ETA and target are computed along that wrong line. |
+
+Additional code smell: the missile profile matches `text.includes('at')` (AR `AthenaMap.tsx:405`), which also hits "gat", "battery" and "artillery". It only works today because the rocket and artillery checks run first.
+
+Planned AR fix direction: send the projectile's initial velocity vector (azimuth + elevation) from the `Fired` event through AR's SQF/DLL, compute the ballistic impact point from it, and keep `fired_impact` as the correction. Replace the substring weapon matching with explicit, ordered rules.
+
 The removed Web2 copy of that code is still in git history: commit `966b6bc` (`ui/src/core/components/AthenaMap.tsx`, and `EventFeed.tsx`). AR's current frontend also has its own copy. In Phase 2, AR builds its extension from those sources and fixes the projectile tracking bug there, with live testing.
 
 ## Capabilities
