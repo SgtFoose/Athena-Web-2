@@ -44,8 +44,6 @@ function App() {
   const {
     connected,
     frame,
-    recentFired,
-    recentFiredImpacts,
     worldInfo,
     geometryWorld,
     roads,
@@ -69,7 +67,6 @@ function App() {
   const vehicles = hasLiveTelemetry ? (frame?.vehicles ?? {}) : {}
   const groups   = hasLiveTelemetry ? (frame?.groups   ?? {}) : {}
   const relayMarkers = hasLiveTelemetry ? (frame?.markers ?? []) : []
-  const lazes    = hasLiveTelemetry ? (frame?.lazes    ?? []) : []
   const firewillITgtTargets = useMemo<FirewillITgtTarget[]>(
     () => toFirewillITgtTargets(relayMarkers),
     [relayMarkers],
@@ -303,9 +300,6 @@ function App() {
           vehicles={vehicles}
           groups={groups}
           relayMarkers={relayMarkers}
-          lazes={lazes}
-          firedEvents={recentFired}
-          firedImpacts={recentFiredImpacts}
           worldSize={worldSize}
           world={world}
           roads={mapRoads}

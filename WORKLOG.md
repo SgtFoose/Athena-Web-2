@@ -87,6 +87,25 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - `AthenaMap` no longer builds URLs or hard-codes the flip
   - Found in AR: `Backend/Controllers/StaticMapController.cs:65` returns the land mask with **row 0 = north**, the opposite of Web2's bridge. AR's appConfig must use `north-first`, or its land fill would render upside down. Documented in `docs/ui-core-sync.md` (appConfig contract table).
   - Validation: build passed; simulation screenshot identical to step 2 (island centred), slider glyphs visible.
+  - Committed `966b6bc`.
+- **AR live test, projectile tracking** (owner, AR v1.1.6, Malden): M5 Sandstorm MLRS fired 230 mm rockets at grid 066047 (artillery computer: DIST 3014, MIN 2846, MAX 3829, ETA 33 s). AR's "Recent Shots" received both rockets (`rockets_230mm_GAT · R_230mm_HE`), but the AR map showed no projectile track or Fire Control panel. Owner: "there are also bugs in Projectile tracking, a function Web 2 can't have." Exact expected vs. actual behaviour to be clarified and fixed in AR Phase 2 with live testing.
+- **Owner decision:** AR-only features (lazes, projectile tracking, Fire Control, kill/shot feed) move out of the shared core into the AR repo. The core offers extension slots instead.
+- **Phase 1 step 6: AR-only code out of the core:**
+  - `ui/src/core/components/AthenaMap.tsx` (4906 → 3984 lines). A one-off node script (scratchpad, not committed) removed blocks only via unique start/end markers and aborts without writing on any mismatch; the first run aborted on a CRLF-sensitive marker and wrote nothing. Removed:
+    - projectile/laze types and helpers (`normDeg` … `buildPredictedPath`; kept `clamp` and `toITgt8`, which other code uses)
+    - `ProjectileDebugEntry`
+    - the laze rendering and projectile prediction effects in `LayerManager`
+    - the projectile refs and the 1 s `clockMs` timer
+    - the Fire Control panel
+  - Firing pulse kept as a generic feature: `recentShooterIds` now comes from the new optional prop `pulseUnitIds` (stable empty default `NO_PULSE_UNITS`).
+  - New `AthenaMap` extension slots: `mapExtensions` (inside `MapContainer`) and `overlayExtensions` (over the map). Panes `athena-laze` / `athena-projectile` stay reserved for AR.
+  - Removed props `lazes` / `firedEvents` / `firedImpacts`; `App.tsx` no longer passes them. Deleted the unused `core/components/EventFeed.tsx`.
+  - The removed Web2 copy remains in git history at `966b6bc` for AR Phase 2. Documented in `docs/ui-core-sync.md` ("AR-only features live in the AR repo"), with the capabilities table updated. `CLAUDE.md` core rules updated.
+  - Validation:
+    - build passed
+    - ESLint: same 11 findings as before, no new ones
+    - simulation screenshot identical to step 5
+    - One run logged a Leaflet console error `Cannot read properties of undefined (reading '_leaflet_pos')`, on the first cold page load right after starting the Vite dev server. Not reproduced in 8 further runs of the new code (0/8). Baseline without step 6 (stashed): 0/4. Most likely Vite's first-load dependency optimisation reload, which the production build doesn't do. Logged as unconfirmed; watch for it.
 - Docs: `docs/ui-core-sync.md` now has the appConfig contract, the core component list, the capabilities table and status. `CLAUDE.md` repository layout updated, and new "Shared UI core rules" added to the working rules.
   - Found: the welcome background `ui/public/athena-default-bg.png` contains the text "ATHENA REMASTERED – LOADING BATTLEFIELD INTEL…" (inherited from AR). Backlog: make the welcome image per-app via `appConfig`.
   - The AR screenshot (Malden) shows the pre-fix rendering: forest blocks spilling over the coast, a stair-stepped coastline, opaque dark forest. That confirms the value of porting the shared core.

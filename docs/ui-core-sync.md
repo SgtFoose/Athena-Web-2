@@ -51,22 +51,38 @@ Each app provides its own `appConfig.ts` with the **same exports**. The core imp
 
 ### Core components and hooks
 
-- **Map and sidebar:** `AthenaMap`, `Sidebar`, `EventFeed`
+- **Map and sidebar:** `AthenaMap`, `Sidebar`
 - **App shell:** `AppShell` (collapsible sidebars), `SidebarHeader`, `ITgtTargetsPanel`, `WelcomeOverlay` (texts and steps supplied by the app), `ExportStatusOverlay`, `MapErrorBoundary`
 - **Hooks:** `useStaticMap`, `useAthenaLibrary`, `useITgtTargets`, `useFollowActivePlayer`, `useTouchInput`
 - **Utils:** `utils/firewillITgt.ts`
 
 `App.tsx` stays per app. It composes the core with the app's own data hook and its texts.
 
+## AR-only features live in the AR repo (owner decision 2026-11-22)
+
+Active lazes, projectile tracking/prediction, the Fire Control panel and the killed/fired event feed (`EventFeed`) need AR's extension DLL. Web2 can neither use nor test them, and they need live AR testing to fix bugs. For example, during the owner's MLRS test the AR map showed no projectile track even though "Recent Shots" received the rockets.
+
+So this code is **not** part of the shared core. The core offers extension points instead:
+
+| Extension point | Where | What AR plugs in |
+|---|---|---|
+| `AthenaMap` prop `mapExtensions` | rendered inside the Leaflet `MapContainer` (children can use `useMap()`) | laze layer, projectile prediction layer |
+| `AthenaMap` prop `overlayExtensions` | rendered over the map area, outside Leaflet | Fire Control panel |
+| `AthenaMap` prop `pulseUnitIds` | `Set` of unit ids | units that fired recently (computed by AR from its fired events); drives the existing firing pulse on unit/vehicle/group markers |
+| Reserved panes `athena-laze` (z 716) and `athena-projectile` (z 717) | created by the core | AR's layers use these panes. Their visibility follows `layers.lazes` / `layers.projectiles` when the matching capability is on. |
+| App-level slot | each app's own `App.tsx` / `AppShell` `rightPanel` | AR renders `EventFeed` itself |
+
+The removed Web2 copy of that code is still in git history: commit `966b6bc` (`ui/src/core/components/AthenaMap.tsx`, and `EventFeed.tsx`). AR's current frontend also has its own copy. In Phase 2, AR builds its extension from those sources and fixes the projectile tracking bug there, with live testing.
+
 ## Capabilities
 
-AR has data that Web2 never gets: active lazes, projectile tracking, and killed/fired events. Shared core code for those features is switched on or off through `CAPABILITIES` in `appConfig.ts`, not by whether data happens to arrive.
+`CAPABILITIES` in `appConfig.ts` tells the core what the app's data source provides. Since the AR-only code moved out, the flags only control UI the core still owns: sidebar toggles and pane visibility.
 
-| Flag | Gates | Web2 | AR (planned) |
+| Flag | Gates (in the core) | Web2 | AR (planned) |
 |---|---|---|---|
-| `lazes` | laze map layer + "Active Lazes" toggle | off | on |
-| `projectiles` | projectile layer, Fire Control panel, "Projectile Tracking" toggle | off | on |
-| `killFeed` | killed/fired event feed (`EventFeed`, used by the app's own `App.tsx`) | off | on |
+| `lazes` | "Active Lazes" toggle + `athena-laze` pane visibility | off | on |
+| `projectiles` | "Projectile Tracking" toggle + `athena-projectile` pane visibility | off | on |
+| `killFeed` | nothing in the core; documents that the app has a kill/shot feed (AR renders `EventFeed` itself) | off | on |
 | `relayMarkers` | Arma / Firewill I-TGT / AO / Spawn marker toggles | on | off, until AR streams mission markers |
 | `waypointToggle` | "Waypoints" toggle (the layer itself renders whenever waypoint data arrives) | off | on |
 
@@ -120,4 +136,5 @@ Found during the owner's live AR test on 2026-11-22. These are AR repo changes, 
   - step 3: capabilities
   - step 4: glyph repair
   - step 5: `MAP_DATA`
+  - step 6: AR-only laze/projectile/Fire Control/EventFeed code removed from the core, replaced by extension slots
   - Verified with build, lint and before/after screenshots in the fake-relay simulation. Next: Phase 1 PR, then Phase 2 in the AR repo.

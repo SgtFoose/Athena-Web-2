@@ -86,7 +86,7 @@ Links: repo https://github.com/SgtFoose/Athena-Web-2 · Workshop (Web2) id `3707
 - **Shared UI core rules** (`ui/src/core/`, see `docs/ui-core-sync.md`):
   - Core files must not import from `adapter/` or `App.tsx`. App-specific values come only from `appConfig.ts`.
   - No Web2-only strings or URLs in the core: branding, relay ports, AthenaWeb.exe steps.
-  - Features that need data only one app has must be gated by `CAPABILITIES`.
+  - **AR-only features don't live in the core.** That covers lazes, projectile tracking, Fire Control and the kill/shot feed. AR plugs them in through the core's extension slots (`AthenaMap` `mapExtensions` / `overlayExtensions` / `pulseUnitIds`, and the reserved `athena-laze` / `athena-projectile` panes). `CAPABILITIES` only gates the core's own UI (sidebar toggles, pane visibility).
   - Data-source differences (endpoints, row order, grid size) go in `MAP_DATA`.
   - Sync is one-way, **Web2 → AR**. Never copy AR code into the core.
 - **Safety check before commit:** changed files are only Web2 paths (`bridge/`, `ui/`, `@AthenaWeb2/`, Web2 docs/config); no Remastered folders, and no `1.x` release/version entries; new features achievable from relay/cache data.
@@ -113,7 +113,7 @@ ui/                      React + Vite + TypeScript + Leaflet
     components/AthenaMap.tsx     all map rendering layers (~4900 lines)
     components/Sidebar.tsx       MAP/ORBAT tabs, layer toggles, locations, world picker
     components/AppShell.tsx      3-column layout + collapsible sidebars
-    components/ITgtTargetsPanel.tsx, WelcomeOverlay.tsx, ExportStatusOverlay.tsx, SidebarHeader.tsx, MapErrorBoundary.tsx, EventFeed.tsx
+    components/ITgtTargetsPanel.tsx, WelcomeOverlay.tsx, ExportStatusOverlay.tsx, SidebarHeader.tsx, MapErrorBoundary.tsx
     hooks/useStaticMap.ts, useAthenaLibrary.ts, useITgtTargets.ts, useFollowActivePlayer.ts, useTouchInput.ts
     types/game.ts                data contract (shared with AR)
     types/ui.ts                  LayerVisibility, RenderMode, AppCapabilities, MapDataConfig
