@@ -17,6 +17,7 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - `cached` / `complete` disappear after `FINISHED_STATUS_VISIBLE_MS` = 4000 ms
   - every phase change shows the box again (reset during render, React's recommended pattern; avoids the set-state-in-effect lint rule)
 - Same branch `fix/header-version-label`; synced to AR.
+- Owner approved the push: branch `fix/header-version-label` pushed, PR #11 → `main`.
 - Validation: `npx eslint src/core/components/ExportStatusOverlay.tsx` clean, `npm --prefix ui run build` OK.
 
 ### 2026-11-22 — core: version label no longer cut off in the header (live feedback from AR)
