@@ -118,6 +118,11 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Note: VS Code's C# Dev Kit logs `Failed to load project 'Athena Desktop dnSpy/Athena Desktop/Athena Desktop.csproj'` (old-style .NET Framework project). It's harmless: the folder is decompiled reference material, never built, and Web2 has no C# code. Suggested to the owner: disable C# Dev Kit for this workspace only (no repo change). Possible follow-up: mark `Athena Desktop dnSpy/` as `linguist-vendored` in `.gitattributes`, so GitHub stops reporting the repo as 62% C#.
 - Skipped (outside this docs diff, needs a code change): an unhandled `URIError` path in the bridge's request handling, which can crash the process. Logged as an open item for the hardening branch.
 
+#### 2026-11-22 follow-up — First PR from the new workspace
+- Before pushing, checked `git config user.email` → SgtFoose noreply, and `gh api user` → `SgtFoose`.
+- The owner approved the push. `git push -u origin chore/claude-setup-toolchain` succeeded from Claude's shell; no login prompt was needed now that `gh` stores the credential.
+- Opened PR #1 → `main`: https://github.com/SgtFoose/Athena-Web-2/pull/1 ("chore: Claude Code setup: CLAUDE.md rules, toolchain, workflow and audit notes"). The owner reviews and merges.
+
 ### 2026-05-04 — v0.1.0 Release: Map Rendering Pass (Contours, Land Fill, Taxi)
 
 - Applied contour line smoothing: single Chaikin pass (after RDP) on elevation contours removes blocky stairstepping.
