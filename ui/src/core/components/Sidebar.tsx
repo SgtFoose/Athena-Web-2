@@ -514,7 +514,7 @@ function OrbatPanel({
             >
               <span style={{ color, fontWeight: 700, fontSize: 12 }}>{g.name || g.id}</span>
               <span style={{ color: '#555', fontSize: 10, fontFamily: 'monospace' }}>
-                {formatXY(posX, posY)}  {groupUnits.length}
+                {formatXY(posX, posY)} · {groupUnits.length}
               </span>
             </button>
             {/* Unit list */}

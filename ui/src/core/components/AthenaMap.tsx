@@ -3642,7 +3642,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const ll: [number, number] = [posY * scale, posX * scale];
       const markerIcon = unitIcon(unit);
       L.marker(ll, { icon: markerIcon, pane: 'athena-unit' })
-        .bindTooltip(`<b>${unit.name}</b><br>${unit.side}  ${unit.rank}<br>${unit.type}`, { sticky: true })
+        .bindTooltip(`<b>${unit.name}</b><br>${unit.side} · ${unit.rank}<br>${unit.type}`, { sticky: true })
         .addTo(unitLayerRef.current);
 
       if (recentShooterIds.has(unit.id)) {
@@ -3781,11 +3781,11 @@ function ZoomSliderControl() {
           background: 'transparent',
         }}
       />
-      <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}></span>
+      <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>−</span>
       <span style={{
         color: '#fff', fontSize: 11, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
         marginTop: 2, minWidth: 36, textAlign: 'center',
-      }}>{scaleLabel}</span>
+      }}>{scaleLabel}×</span>
     </div>
   );
 }
@@ -4789,7 +4789,7 @@ export function AthenaMap({
                 background: entry.lockSwitched ? 'linear-gradient(90deg, rgba(255,94,94,0.22), rgba(255,180,120,0.04))' : 'transparent',
               }}
             >
-              <span style={{ color: '#E8F4D1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${entry.shooter}  ${entry.weapon}`}>{entry.shooter}</span>
+              <span style={{ color: '#E8F4D1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${entry.shooter} · ${entry.weapon}`}>{entry.shooter}</span>
               <span style={{ color: entry.lock === 'LAZE' ? '#FF9B9B' : entry.lock === 'UNIT' ? '#FFC778' : '#A9D3FF', fontWeight: 700 }}>{entry.lock}</span>
               <span>{entry.source}</span>
               <span>{entry.etaSec}s</span>
