@@ -50,6 +50,24 @@ AR has data that Web2 never gets: active lazes, projectile tracking, and killed/
    - test live in Arma without BattlEye
 3. **Sync tooling.** A script copies `ui/src/core/` from Web2 to AR and writes a checksum manifest, so drift can be detected. The sync rules are documented in both repos' `CLAUDE.md`.
 
+## AR repository and release alignment (owner request 2026-11-22)
+
+AR's GitHub repo should follow the same structure and release process as Web2. Observed state of `SgtFoose/AthenaRemastered`:
+
+- 0 releases and 0 tags (Web2 publishes a GitHub Release with the EXE for every `v0.x`)
+- the source sits in a nested `AthenaRemastered/` folder, and there is a duplicate `@AthenaRemastered/` mod folder at the repo root
+- a tracked `publish/wwwroot` build output, even though `publish/` is in `.gitignore`
+- no `WORKLOG.md` and no `CLAUDE.md`; the About text still reads "a repository for testing…"
+- unknown whether `main` has a PR ruleset like Web2's `Protect Master`
+
+Planned alignment, on AR branches with the owner's approval per step:
+
+1. **Process files:** `CLAUDE.md` (rules #1–#4 plus AR context: DLL, BattlEye, server), `WORKLOG.md`, and a release-notes template with the same end-user structure as Web2 (Quick Start, first-time setup, troubleshooting, SmartScreen, What's New, Known Limitations), adapted to AR's server and the non-BattlEye requirement.
+2. **Branch protection:** the same ruleset as Web2 (PR required, 0 approvals, no deletion or force-push).
+3. **Repo layout:** decide with the owner whether to flatten the nested `AthenaRemastered/` folder, which of the two `@AthenaRemastered/` folders is canonical, and whether to stop tracking `publish/wwwroot`. Layout changes are risky for build scripts and Workshop paths, so this is done as one reviewed PR.
+4. **Releases:** tag the current state (`v1.1.6`) and publish GitHub Releases with the server package as an asset, the same way as Web2's `AthenaWeb-<version>.exe`.
+5. **README / About:** the same section structure as Web2's README (version, downloads, Quick Start, Workshop, credits) and an up-to-date About description.
+
 ## AR-side fixes planned for Phase 2
 
 Found during the owner's live AR test on 2026-11-22. These are AR repo changes, made on a branch in the AR repo:

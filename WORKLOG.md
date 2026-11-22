@@ -54,6 +54,25 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - Owner's AR v1.1.6 (Steam Workshop) live view on Malden: huge square forest blocks not following the real forest, a stair-stepped coastline, sidebars that can't collapse, and no I-TGT.
     - Noted in `docs/ui-core-sync.md`: the forest grid fix lives in Web2's bridge, so AR needs it in its C# backend too.
     - Stored I-TGT is UI-only and comes with the core. Firewill I-TGT markers need AR to stream mission markers (optional AR feature via `allMapMarkers`).
+  - Owner request: the **GitHub structure and releases** of AR must be aligned with Web2 too. AR has 0 releases and 0 tags, a nested `AthenaRemastered/` source folder, a duplicate root `@AthenaRemastered/`, tracked `publish/wwwroot`, no WORKLOG/CLAUDE.md, and an outdated About text. Added the section "AR repository and release alignment" to `docs/ui-core-sync.md` (process files, ruleset, layout decision, releases with tags, README/About), to be done on AR branches with approval per step.
+- **Phase 1 step 2: app shell into the core** (no functional changes):
+  - New core components:
+    - `AppShell.tsx` (3-column layout + collapsible sidebars)
+    - `SidebarHeader.tsx` (name/version/donate from `appConfig`)
+    - `ITgtTargetsPanel.tsx`
+    - `WelcomeOverlay.tsx` (status/hint/instructions supplied by the app)
+    - `ExportStatusOverlay.tsx`
+    - `MapErrorBoundary.tsx`
+  - New core hooks: `useITgtTargets.ts`, `useFollowActivePlayer.ts` (re-pan threshold as the named constant `FOLLOW_REPAN_MIN_DISTANCE_M = 2.5`), `useTouchInput.ts`.
+  - New core util: `utils/firewillITgt.ts` (`toFirewillITgtTargets`).
+  - `App.tsx` is now the Web2 composition: bridge hook, world selection/cache mode, health banner, Web2 welcome texts, layer defaults. Named constants: `DEFAULT_WORLD_SIZE_M`, `HEALTH_POLL_INTERVAL_MS`. JSX structure and CSS classes are unchanged.
+  - Validation:
+    - `npm --prefix ui run build` passed
+    - ESLint: no new findings (App's existing 7 → 4, one existing `set-state-in-effect` moved with the code into `useFollowActivePlayer`; the AthenaMap findings already existed)
+    - Simulation (fake relay + fake 5120 m Kunduz cache), headless Chrome:
+      - live view identical to the pre-refactor screenshot (layout, centred island, sidebar, I-TGT panel, both collapse buttons); only the branding is the new v0.1.1 one
+      - with the relay stopped, the welcome screen shows "Bridge online, relay offline (127.0.0.1:28801)", the hint and the Web2 steps
+  - Found: the welcome background `ui/public/athena-default-bg.png` contains the text "ATHENA REMASTERED – LOADING BATTLEFIELD INTEL…" (inherited from AR). Backlog: make the welcome image per-app via `appConfig`.
   - The AR screenshot (Malden) shows the pre-fix rendering: forest blocks spilling over the coast, a stair-stepped coastline, opaque dark forest. That confirms the value of porting the shared core.
 
 ### 2026-11-22 — v0.1.1 Published + end-user start guide in release notes
@@ -1216,6 +1235,7 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 - [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
 - [ ] Review `npm audit` advisories in `ui/`.
 - [ ] Repo: tracked ~59 MB EXEs trigger GitHub's large-file warning on every release. Consider Git LFS, or keeping EXEs only as Release assets.
+- [ ] UI: welcome background `athena-default-bg.png` shows "ATHENA REMASTERED" branding; make the welcome image per-app (`appConfig`) and add a Web2 image.
 - [ ] UI: closed-ring coastline smoothing leaves a small gap in the stroke at the ring start/end (seen in the 2026-11-22 simulation).
 
 ## Next Tasks (Immediate)
