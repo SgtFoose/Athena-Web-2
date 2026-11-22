@@ -10,6 +10,37 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — UI core sync: Phase 1 merged, AR Phase 2 step 1 merged, sync script (Phase 3)
+- Web2 PR #5 (Phase 1, shared UI core) merged by the owner as `de9953a`. Local `main` updated, branch deleted, sanity build passed.
+- AR repo (logged in detail in AR's own `WORKLOG.md`):
+  - PR #1 "flatten repo layout + Claude Code process files" merged as `b640b5d`
+  - .NET 9 SDK 9.0.321 installed; the AR backend builds cleanly
+  - AR `main` ruleset aligned with Web2 (one ruleset "Protect master", PR required, 0 approvals). I had first created a duplicate ruleset without checking the existing one; fixed by updating the existing one and deleting the duplicate.
+  - Owner's live findings logged there: Mk6 mortar shows a track only for the first shot until an F5 refresh; Safari vs Chrome sync drift; laze markers accurate while projectile tracks drift (client-clock prediction).
+- **Phase 3 tooling** (branch `feat/core-sync-script`):
+  - new `scripts/sync-core-to-ar.ps1`: one-way mirror `ui/src/core/` → AR `Frontend/src/core/`. It refuses uncommitted Web2 core changes (`-AllowDirty`), detects hand edits in AR through a SHA-256 manifest `core-manifest.json` (`-Force`), deletes removed files, writes the source commit and timestamp, and never commits.
+  - new `ui/src/core/README.md` explaining the one-way rule.
+  - Validation (scratch copy of an AR tree, not the real repo):
+    - with uncommitted Web2 core changes → refused (expected)
+    - `-WhatIf` against AR lists 17 files and writes nothing
+    - first sync: 17 files + manifest (commit `819a053`)
+    - second sync: 0 changes
+    - hand edit in the "AR" copy → refused, naming `modified in AR: types/ui.ts`
+    - `-Force` → only that file overwritten
+  - Docs: `docs/ui-core-sync.md` ("Sync tooling (Phase 3)"), `CLAUDE.md` core rules.
+- **Core styles into the core** (`c735fcb`): `ui/src/App.css` → `ui/src/core/styles/app.css` (shell, sidebars, welcome, overlays, map labels), so AR gets the CSS the core components need. Web2-only cache banner styles split to `ui/src/adapter/MapCacheBanner.css`. Build passed; CSS bundle unchanged at 23.31 kB.
+- **Core gaps found while integrating into AR** (fixed here, then re-synced; one-way rule):
+  - `acd7b10`: new `CAPABILITIES.worldPicker`. The sidebar's offline world picker ("select a map / use Athena Desktop to export") is bridge functionality; apps without it show "Waiting for a mission". Web2: `true` (unchanged).
+  - `6476a24`: the runtime trees fetch treats **204 No Content** (AR backend) as "no trees" instead of failing JSON parsing. Web2's bridge always returns 200.
+- **Sync script fix** (`5a1c226`): the drift check hashes content with CRLF normalised to LF.
+  - Git for Windows rewrites line endings on checkout, so raw-byte hashes flagged every unchanged file as "modified in AR". Confirmed on AR: the old manifest flagged all 17 files, while a `-Force` refresh copied 0 files.
+  - Scratch test: CRLF conversion → 0 changes; a real edit → refused.
+- **AR integration** (details in AR's `WORKLOG.md`, branch `feat/adopt-shared-core`, commit `469c25a`): the core was copied with the script and an AR `appConfig` / adapter / `extensions/projectileTracking.tsx` was added.
+  - Simulated live test via AR's real put API (mission, unit with laser, mortar shot): laze marker, projectile track, Fire Control and Recent Shots all render through the new core slots.
+  - Testing tooling: headless Chrome `--screenshot` captured too early, and `--virtual-time-budget` hangs on SignalR. A small Chrome DevTools Protocol script (scratchpad) takes timed screenshots instead.
+- Owner to-do request: align the Steam Workshop pages of AR and Web2 (names, tags, description style). Added to the backlog.
+- Owner approved push + PRs. Identity checked first (noreply email, `gh` user SgtFoose). Opened Web2 **PR #6** https://github.com/SgtFoose/Athena-Web-2/pull/6 (merge first) and AR **PR #2** https://github.com/SgtFoose/AthenaRemastered/pull/2 (merge after the owner's live Arma test).
+
 ### 2026-11-22 — UI core sync (Web2 → AR): analysis + Phase 1 step 1
 - PR #4 merged by the owner (`8c06673`); local `main` updated.
 - **Owner request:** investigate the differences between AR (`C:\AthenaRemastered`) and Web2 and bring them into sync, keeping in mind that AR has more functionality because of its custom DLL.
@@ -1277,6 +1308,7 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 - [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
 - [ ] Review `npm audit` advisories in `ui/`.
 - [ ] Repo: tracked ~59 MB EXEs trigger GitHub's large-file warning on every release. Consider Git LFS, or keeping EXEs only as Release assets.
+- [ ] Steam Workshop: align the Web2 and AR pages. Name (`@AthenaWeb2` vs "Athena Remastered"), tags (Web2 has Animation, Editor Extension, Equipment, Terrain, which don't fit a launcher), description style. Owner request 2026-11-22.
 - [ ] UI: welcome background `athena-default-bg.png` shows "ATHENA REMASTERED" branding; make the welcome image per-app (`appConfig`) and add a Web2 image.
 - [ ] UI: closed-ring coastline smoothing leaves a small gap in the stroke at the ring start/end (seen in the 2026-11-22 simulation).
 

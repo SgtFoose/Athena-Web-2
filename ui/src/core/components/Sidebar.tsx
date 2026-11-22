@@ -284,6 +284,9 @@ function CommonPanel({
             <span style={{ color: '#888', fontSize: 11 }}>Live</span>
             <span style={{ color: '#2ecc71', fontSize: 12, fontWeight: 700 }}>{displayWorld}</span>
           </div>
+        ) : !CAPABILITIES.worldPicker ? (
+          // Apps without an offline world picker just show that no mission is live.
+          <div style={{ color: '#888', fontSize: 11 }}>Waiting for a mission</div>
         ) : (
           <>
             <select

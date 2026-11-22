@@ -79,4 +79,10 @@ export interface AppCapabilities {
    * controls whether the user can switch it off.
    */
   waypointToggle: boolean
+  /**
+   * Offline world picker in the sidebar ("select a map" over the cached
+   * Athena Desktop worlds). Web2 serves the picker via its bridge; apps without
+   * it show "Waiting for a mission" until a mission is live.
+   */
+  worldPicker: boolean
 }

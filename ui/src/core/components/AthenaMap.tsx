@@ -1496,7 +1496,9 @@ function LayerManager({ units, vehicles, groups, pulseUnitIds, world, worldSize,
     const fetchTrees = () => fetch(MAP_DATA.treesUrl())
       .then(r => {
         console.log(`[Trees] Runtime API response status: ${r.status}`);
-        return r.ok ? r.json() : null;
+        // AR's backend answers 204 No Content when it has no trees; parsing that
+        // empty body as JSON throws, so treat it like "no runtime trees".
+        return r.ok && r.status !== 204 ? r.json() : null;
       })
       .then((runtime: Array<{ x: number; y: number }> | null) => {
         if (!runtime || runtime.length === 0 || cancelled) {

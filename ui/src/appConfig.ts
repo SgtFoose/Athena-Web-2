@@ -33,6 +33,8 @@ export const CAPABILITIES: AppCapabilities = {
   relayMarkers: true,
   // Web2 has shown waypoints without a sidebar toggle since v0.0.x; kept as-is.
   waypointToggle: false,
+  // Cached-world picker over the bridge's /api/health world list (since v0.0.3).
+  worldPicker: true,
 }
 
 /**
