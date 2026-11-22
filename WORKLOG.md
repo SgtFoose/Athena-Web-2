@@ -10,6 +10,54 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — v0.1.x Investigation: custom maps render squeezed into the bottom-left corner (Workshop report)
+- PR #1 (`chore/claude-setup-toolchain`) was merged by the owner as `c197289`. Local `main` updated, merged branch deleted. Created `fix/unknown-world-size` from `main` for this investigation.
+- **User report (Steam Workshop comments):** on the custom map **Kunduz**, live in-game, the player was shown and the MAP DATA panel listed all cached objects. But "everything on the map was condensed into the bottom-left corner of the map", so there was no usable map. The same user says AR and the original Athena Desktop work on that map.
+- **Owner check:** v0.1.0 EXE on a fresh install with vanilla **Malden** works fine.
+- **Root cause found (code reading, `ui/src`):**
+  - `useAthenaHub.ts` `mapWorldSize()` (line 78) hard-codes world sizes for five vanilla maps only (Altis 30720, Tanoa 15360, Malden/Enoch 12800, Stratis 8192). **Every other world falls back to 10240.**
+  - On **every** relay `state` message (several per second), `useAthenaHub.ts:459-461` calls `setWorldInfo(mapped.worldInfo)` with that relay-derived guess. That overwrites the correct `worldInfo` hydrated from the Athena Desktop cache (`/api/game/worldinfo` → `Map.txt` `WorldSize`, `useAthenaHub.ts:363-365`).
+  - `App.tsx:181-182` picks `activeWorldInfo?.size` **first**, before `staticInfo?.worldSize` (cache). So in live sessions the map extent is always the hard-coded guess.
+  - The geometry itself (roads, structures, contours) is converted by the bridge with the real `Map.txt` `WorldSize`, so it's placed at true world metres. Result: on any non-listed map smaller than 10240 m, all content sits in the bottom-left part of a 10240 m map (Leaflet `CRS.Simple` origin is bottom-left). That matches the report. On larger maps the top/right would be cut off.
+  - It isn't visible on Malden/Altis/Stratis/Tanoa/Livonia because the hard-coded guess happens to be right there. It's also not visible offline (no relay `state` overwriting the cache value).
+  - Likely also affected: VR and CDLC/community maps (any world name not in the table).
+- Could not reproduce locally: this machine has no Arma install or Athena map cache (`Documents\Athena\Maps` missing).
+- Owner approved the fix. Changes:
+  - `ui/src/hooks/useAthenaHub.ts`:
+    - documented `mapWorldSize()` as last resort only, and added the named constant `FALLBACK_WORLD_SIZE_M`
+    - new `isSameWorld()` (case-insensitive, exported)
+    - new `resolveLiveWorldInfo()`: keeps the cache-hydrated `WorldInfo` when it's for the same world as the relay frame
+    - new `cacheWorldInfoRef`, set or cleared on every `/api/game/worldinfo` hydration
+    - the relay `state` handler now calls `setWorldInfo(resolveLiveWorldInfo(...))` instead of overwriting with the guessed size
+  - `ui/src/App.tsx`: `activeWorldInfo` now uses `isSameWorld()`. Before, the relay's "kunduz" never matched the cache's "Kunduz".
+- Validation:
+  - `npm --prefix ui run build` passed.
+  - ESLint on the two changed files: 8 problems before and 8 after, identical rule hits. All are existing `react-hooks/*` findings in untouched code; none are new.
+  - **Local simulation without Arma** (scratchpad, not committed):
+    - fake relay `sim/fake-relay.js` on TCP 28801, answering `next` polls with a v2 frame for world `kunduz` and one player at 2560,2560
+    - fake cache `sim/maps/Kunduz/Map.txt` (`WorldName "Kunduz"`, `WorldSize 5120`, a test value) plus a square Z0 island
+    - bridge run with `RELAY_PORT=28801`, `ATHENA_MAPS_DIR=<sim>/maps`
+    - bridge output confirmed the bug conditions: `/api/game/worldinfo` → `Kunduz`, size 5120; `/api/staticmap/kunduz` → worldSize 5120; WebSocket `state` → `map=kunduz`, unit at 2560,2560. The old code would have used `mapWorldSize('kunduz')` = 10240.
+    - UI dev server started on :5173 against this setup for a visual check by the owner.
+    - First visual check showed the whole map as land with no player marker. Both causes were in the test setup, not the app:
+      - the fixture's `Height/Z0.txt` used `{x,y}` objects, but Athena stores contour points as `"x,y"` string tokens (`parseGridCoordToken`). So there was no coastline and the UI fell back to all-land.
+      - the Units layer is OFF by default (`App.tsx:227`).
+    - Fixed the fixture and restarted the bridge (contour memo). `/contours/0` → 1 line (512…4608 m); landmask 41616/65536 land cells (63.5%, expected 64% for a 4096 m island in a 5120 m world).
+    - **Before/after visual proof** with headless Chrome (`--headless=new --window-size=1600,1000 --virtual-time-budget=10000 --screenshot`), same simulation, same default view (zoom 0.5, centred on the map centre):
+      - **before** (fix temporarily stashed; Vite hot-reloaded the old code): island in the **bottom-left** of the view, the rest is water. The UI used a 10240 m extent, so the 5120 m world landed in the lower-left quarter. This reproduces the Workshop report.
+      - **after** (fix restored): island fills the view, centred, with symmetric water corners. The UI used the cache size, 5120 m.
+    - The owner also checked the fixed build in their own browser: the player "Tester" renders at the map centre (with the Units layer on).
+- Owner confirmed in their own browser at zoom 0.1: the island is centred in the map, with the player in the middle. Also noticed (not caused by this fix, added to the backlog):
+  - a small gap in the coastline stroke at the ring start/end (closed-ring smoothing doesn't close the ring)
+  - "Exporting world data…" stays visible during the simulation
+- Committed `99129f8`, pushed `fix/unknown-world-size`, and opened PR #2: https://github.com/SgtFoose/Athena-Web-2/pull/2. Identity checked first (noreply email, `gh` user SgtFoose).
+- **Test EXE for live validation** (not a release, nothing committed):
+  - `npm --prefix ui run build` → `robocopy ui\dist bridge\wwwroot /MIR` → `npx @yao-pkg/pkg . --targets node22-win-x64 --compress GZip --output <scratchpad>\AthenaWeb-0.1.1-test-worldsize.exe` (62 MB)
+  - then `git restore bridge/wwwroot` + `git clean -fd bridge/wwwroot`, so tracked `wwwroot` and `bridge/dist` are unchanged
+  - smoke test: the EXE served the fixed bundle `index-j0ipix27.js` and connected to the fake relay
+- **Doc bug found during the smoke test:** the EXE ignored `PORT=3005` and auto-selected 3001. The bridge reads **`WEB_PORT`** (`server.js:13,29`), but `README.md` and `CLAUDE.md` listed `PORT`. Fixed the env-var tables in both.
+- Remaining: owner runs the test EXE live in Arma on a world that isn't in the size table (e.g. VR). Then the v0.1.1 release steps (version sync, wwwroot/dist sync, CHANGELOG, release notes, GitHub Release).
+
 ### 2026-11-22 — Tooling: Move from GitHub Copilot to Claude Code + CLAUDE.md consolidation
 - Cloned `https://github.com/SgtFoose/Athena-Web-2` into the new workspace `C:\Athena-Web-2` (835 files, HEAD `c459a3f` "release: finalize v0.1.0 map rendering and dist/workshop sync").
 - Surveyed every markdown file in the repo (excluding `node_modules`):
@@ -1063,6 +1111,7 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 - [ ] UI: drop the unused `@microsoft/signalr` dependency; sync `ui/package.json` version with `APP_VERSION`.
 - [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
 - [ ] Review `npm audit` advisories in `ui/`.
+- [ ] UI: closed-ring coastline smoothing leaves a small gap in the stroke at the ring start/end (seen in the 2026-11-22 simulation).
 
 ## Next Tasks (Immediate)
 1. Connection diagnostics panel (S)

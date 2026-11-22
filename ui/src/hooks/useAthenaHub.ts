@@ -75,6 +75,26 @@ function firstFiniteNumber(obj: Record<string, unknown>, keys: string[], fallbac
   return fallback;
 }
 
+/**
+ * World size in metres used when a world isn't in the table below
+ * and no Athena Desktop cache metadata has arrived yet.
+ */
+const FALLBACK_WORLD_SIZE_M = 10240;
+
+/**
+ * Best-guess world size (metres) for a relay world name.
+ *
+ * The relay `state` feed only carries the world *name*, not its size. This
+ * table covers the vanilla terrains so the map has a sensible extent before
+ * the cache is hydrated. It is a **last resort only**: the real size comes
+ * from the Athena Desktop cache (`Map.txt` → `WorldSize`, via
+ * `/api/game/worldinfo`). See `resolveLiveWorldInfo()`, which keeps the
+ * cache value from being overwritten by this guess.
+ *
+ * @param worldName Relay world name (case-insensitive), e.g. "Altis".
+ * @returns World size in metres; `FALLBACK_WORLD_SIZE_M` for unknown worlds
+ *          (custom, CDLC and community maps such as Kunduz).
+ */
 function mapWorldSize(worldName: string): number {
   const key = worldName.trim().toLowerCase();
   switch (key) {
@@ -83,8 +103,41 @@ function mapWorldSize(worldName: string): number {
     case 'malden': return 12800;
     case 'enoch': return 12800;
     case 'stratis': return 8192;
-    default: return 10240;
+    default: return FALLBACK_WORLD_SIZE_M;
   }
+}
+
+/**
+ * Case-insensitive world-name comparison. The relay may report "kunduz"
+ * while the cache's `Map.txt` `WorldName` says "Kunduz".
+ */
+export function isSameWorld(a: string | null | undefined, b: string | null | undefined): boolean {
+  const left = String(a || '').trim().toLowerCase();
+  const right = String(b || '').trim().toLowerCase();
+  return left.length > 0 && left === right;
+}
+
+/**
+ * Decides which `WorldInfo` to expose while live relay frames are arriving.
+ *
+ * Why this exists: the relay `state` message comes in several times per second,
+ * and the `WorldInfo` built from it uses the guessed size from `mapWorldSize()`.
+ * Before this guard, every frame overwrote the cache-hydrated `WorldInfo`. On
+ * any world not in the size table, the map extent fell back to 10240 m while
+ * the geometry (placed with the real cache size) stayed correct, so all content
+ * appeared squeezed into the bottom-left corner (Workshop report, Kunduz map).
+ *
+ * @param relayInfo `WorldInfo` derived from the latest relay frame (guessed size).
+ * @param cacheInfo `WorldInfo` from the last `/api/game/worldinfo` hydration, or null.
+ * @returns The cache info when it belongs to the same world as the relay frame,
+ *          otherwise the relay info (e.g. right after a world change, before
+ *          the new world's cache has been hydrated).
+ */
+function resolveLiveWorldInfo(relayInfo: WorldInfo, cacheInfo: WorldInfo | null): WorldInfo {
+  if (cacheInfo && cacheInfo.size > 0 && isSameWorld(cacheInfo.nameWorld, relayInfo.nameWorld)) {
+    return cacheInfo;
+  }
+  return relayInfo;
 }
 
 function parseGameTime(dateText?: string, timeText?: string): GameTime | null {
@@ -254,6 +307,10 @@ function mapRelayStateToFrame(state: RelayState): { frame: GameFrame; worldInfo:
 export function useAthenHub() {
   const wsRef = useRef<WebSocket | null>(null);
   const hydrateRequestSeqRef = useRef(0);
+  // Last WorldInfo loaded from the Athena Desktop cache (real world size).
+  // Kept in a ref so the WebSocket handler, which is set up once, always
+  // sees the latest value without being re-created.
+  const cacheWorldInfoRef = useRef<WorldInfo | null>(null);
   const [connected, setConnected] = useState(false);
   const [frame, setFrame] = useState<GameFrame | null>(null);
   const [worldInfo, setWorldInfo] = useState<WorldInfo | null>(null);
@@ -361,9 +418,13 @@ export function useAthenHub() {
       if (requestSeq !== hydrateRequestSeqRef.current) return;
 
       if (wi) {
+        // Remember the cache value so live relay frames don't replace it
+        // with the guessed size (see resolveLiveWorldInfo).
+        cacheWorldInfoRef.current = wi;
         setWorldInfo(wi);
         setGeometryWorld(String(wi.nameWorld || '').trim());
       } else {
+        cacheWorldInfoRef.current = null;
         setGeometryWorld('');
       }
       setRoads(Array.isArray(r) ? r : []);
@@ -454,10 +515,11 @@ export function useAthenHub() {
           const relayState = (msg.data || {}) as RelayState;
           const mapped = mapRelayStateToFrame(relayState);
           setFrame(mapped.frame);
-          // Only overwrite worldInfo when relay actually provides a world name;
-          // otherwise preserve the REST-hydrated cache value.
+          // Only touch worldInfo when the relay provides a world name. Even then,
+          // keep the cache-hydrated value (real size) for the same world; the
+          // relay-derived info only has a guessed size.
           if (mapped.worldInfo?.nameWorld) {
-            setWorldInfo(mapped.worldInfo);
+            setWorldInfo(resolveLiveWorldInfo(mapped.worldInfo, cacheWorldInfoRef.current));
           }
           setConnected(Boolean(relayState.connected));
           // Hydrate once on first state, and again when the relay world changes.

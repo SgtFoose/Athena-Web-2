@@ -3,7 +3,7 @@ import type { ErrorInfo, ReactNode } from 'react'
 import { AthenaMap, type FirewillITgtTarget, type StoredITgtTarget }   from './components/AthenaMap'
 import { Sidebar }     from './components/Sidebar'
 import { MapCacheBanner } from './components/MapCacheBanner'
-import { useAthenHub } from './hooks/useAthenaHub'
+import { useAthenHub, isSameWorld } from './hooks/useAthenaHub'
 import { useStaticMap } from './hooks/useStaticMap'
 import { useAthenaLibrary } from './hooks/useAthenaLibrary'
 import { useHealthCheck } from './hooks/useHealthCheck'
@@ -141,7 +141,8 @@ function App() {
   const world     = liveWorld || userSelectedWorld || ''
   const hasActiveWorld = world.length > 0
   const hasMatchingGeometry = hasActiveWorld && geometryWorld.toLowerCase() === world.toLowerCase()
-  const activeWorldInfo = worldInfo?.nameWorld === world ? worldInfo : null
+  // Case-insensitive: the relay may report "kunduz" while the cache's Map.txt says "Kunduz".
+  const activeWorldInfo = isSameWorld(worldInfo?.nameWorld, world) ? worldInfo : null
 
   // When live telemetry starts, clear any UI-selected or bridge-stable world override.
   const prevLiveWorldRef = useRef('')
