@@ -1,0 +1,78 @@
+/* Web2-only: Athena Desktop map cache warning banner (MapCacheBanner.tsx). */
+/* -- Map cache warning banner --------------------------------------------- */
+.map-cache-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px;
+  pointer-events: none;
+}
+.map-cache-banner-inner {
+  position: relative;
+  pointer-events: auto;
+  background: rgba(30, 20, 8, 0.95);
+  border: 1px solid #f0a500;
+  border-radius: 8px;
+  padding: 16px 24px;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+.map-cache-banner-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+}
+.map-cache-banner-close:hover {
+  color: #e6edf3;
+}
+.map-cache-banner-icon {
+  font-size: 22px;
+  margin-bottom: 6px;
+  color: #f0a500;
+}
+.map-cache-banner-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f0a500;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+.map-cache-banner-message {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #c9d1d9;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.map-cache-banner-footer {
+  margin-top: 12px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.map-cache-banner-footer a {
+  color: #58a6ff;
+  text-decoration: none;
+}
+.map-cache-banner-footer a:hover {
+  text-decoration: underline;
+}
+

@@ -32,7 +32,7 @@ import type { LayerVisibility, RenderMode } from './core/types/ui'
 import { MapCacheBanner } from './adapter/MapCacheBanner'
 import { useAthenHub, isSameWorld } from './adapter/useAthenaHub'
 import { useHealthCheck } from './adapter/useHealthCheck'
-import './App.css'
+import './core/styles/app.css'
 
 /** Fallback world size in metres before any world metadata is known. */
 const DEFAULT_WORLD_SIZE_M = 10240

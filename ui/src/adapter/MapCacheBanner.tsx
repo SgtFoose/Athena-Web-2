@@ -1,4 +1,5 @@
 import type { HealthStatus } from './useHealthCheck';
+import './MapCacheBanner.css';
 
 interface Props {
   health: HealthStatus | null;
