@@ -10,6 +10,113 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — UI core sync (Web2 → AR): analysis + Phase 1 step 1
+- PR #4 merged by the owner (`8c06673`); local `main` updated.
+- **Owner request:** investigate the differences between AR (`C:\AthenaRemastered`) and Web2 and bring them into sync, keeping in mind that AR has more functionality because of its custom DLL.
+- Analysis (two read-only sub-agents plus my own checks):
+  - Frontends differ by +3435/−579 lines (`AthenaMap.tsx` ~2200, `useAthenaHub.ts` ~800). `types/game.ts` is still the same contract (Web2 adds only `RelayMarker`/`GameFrame.markers`).
+  - Identical in both repos: build configs, tsconfigs, ESLint config, dependencies, and all 169 shared `public/` assets. Web2 adds 12 `icons/handdrawn`.
+  - About 80% of the `AthenaMap.tsx` changes are pure rendering and portable to AR. Web2's props are a superset of AR's. Both backends serve the two endpoints the map fetches directly (`/api/game/trees`, `/api/staticmap/{world}/landmask`).
+  - Web2-only: the bridge/WebSocket data layer, cache picker, health banner, relay marker layers (AO/Spawn/Firewill).
+  - AR-only (custom DLL): lazes, projectiles, killed/fired events, the EVENTS panel. Web2 still carries that code inert. `EventFeed.tsx` is unused in Web2.
+  - Data-specific tuning to verify against AR data: landmask Y-flip/dilation, `hide`-roads-as-dirt, airport thresholds.
+  - Glyphs `−`, `×`, `·` were deleted (not repaired) during an earlier mojibake cleanup in Web2.
+  - AR history has a reverted earlier port (`7941dbf` → `1e3be1a`).
+- **Owner decisions:**
+  - approach "shared UI core + one-way sync (Web2 → AR)"
+  - AR gets the same process as Web2 (CLAUDE.md with rules #1–#4, WORKLOG, branch + PR)
+- Plan documented in the new `docs/ui-core-sync.md`:
+  - Phase 1: Web2 core/adapter split
+  - Phase 2: AR adoption with its own SignalR adapter + capabilities
+  - Phase 3: sync script + checksum manifest
+- **Phase 1 step 1** (branch `refactor/ui-core-split`, no functional changes):
+  - `git mv` into `ui/src/core/` (AthenaMap, Sidebar, EventFeed, useStaticMap, useAthenaLibrary, types/game) and `ui/src/adapter/` (useAthenaHub, useHealthCheck, MapCacheBanner)
+  - new `core/types/ui.ts` with `RenderMode` and `LayerVisibility` (moved out of `App.tsx`, which core components used to import), plus a new `AppCapabilities` type
+  - new `ui/src/appConfig.ts`: the single source of app-specific values for the core (`API_BASE`, `APP_NAME`, `APP_VERSION`, `DONATE_URL` moved from `App.tsx`, and `CAPABILITIES`: lazes/projectiles/killFeed off, relayMarkers on)
+  - relative imports updated
+  - Validation: `npm --prefix ui run build` passed. No core file imports `adapter/` or `App`; core reads app values only via `appConfig`.
+- **AR live test by the owner** (AR mod without BattlEye): the game seems to freeze right after "Athena Remastered: Connected. Requesting map data…".
+  - Code reading: AR's backend auto-enqueues a full `world` export on every mission start (`Backend/Services/GameStateService.cs:102-103`). The Arma side then runs `ATH_fnc_World` (roads/structures/trees/forests/elevations exported in-game). This is likely the stall on larger maps.
+  - Asked the owner for the map, whether it recovers after a few minutes, the backend console and the RPT `Athena Queue:` lines.
+  - Candidate AR fix for Phase 2: skip the export when the world is already cached.
+  - Owner clarified: the freeze happens in the **main menu**, with no mission loaded.
+    - Root cause: AR's `init.sqf` is registered as `postInit` (`@AthenaRemastered/addons/athena/config.cpp:19-21`). It therefore also runs in the main-menu background scene, which is a real world (often Altis), and it has no main-menu guard.
+    - So it connects, `getMission.sqf` reports the menu scene, and the backend auto-exports the whole menu world. Arma stalls in the menu.
+  - Workaround given to the owner: start Arma with AR but without the AR backend (init waits in the handshake loop and does nothing heavy), load a small mission (VR/Stratis), then start the backend.
+  - AR Phase 2 fixes to plan:
+    - (1) main-menu guard at the top of AR `init.sqf` (exact check to be tested live)
+    - (2) skip the auto world export when the world is already cached
+  - Follow-up from the owner: the game was **not** frozen. On starting the AR backend (v1.1.6, port 5000), the AR UI immediately showed **Malden** (the last-used world) while Arma was in the main menu, which looks like a stuck game.
+    - Cause: `Backend/Services/GameStateService.cs:21-22` calls `LoadCachedWorld()` in the constructor ("Auto-load last-used world from disk cache so the map renders without the game", `:845`). The console confirms `Loaded cached world 'Malden'` before `Now listening`.
+    - AR also reads the Athena Desktop cache (`StaticAthenaCacheService`), like Web2.
+    - Planned AR fix (Phase 2): drop the startup auto-load and show the shared core's welcome screen until a mission arrives (Web2 behaviour since v0.0.4). Added to `docs/ui-core-sync.md` ("AR-side fixes planned for Phase 2").
+  - Owner then loaded a mission on Malden. AR showed "Rendering map for: Malden — This may take a few minutes…" and "Rendering map geometry for 'Malden'", and the game ran at ~16 FPS during the export, even though the backend had already loaded Malden from cache at startup. This confirms AR fix (2): skip the auto export for cached worlds.
+  - Owner's AR v1.1.6 (Steam Workshop) live view on Malden: huge square forest blocks not following the real forest, a stair-stepped coastline, sidebars that can't collapse, and no I-TGT.
+    - Noted in `docs/ui-core-sync.md`: the forest grid fix lives in Web2's bridge, so AR needs it in its C# backend too.
+    - Stored I-TGT is UI-only and comes with the core. Firewill I-TGT markers need AR to stream mission markers (optional AR feature via `allMapMarkers`).
+  - Owner request: the **GitHub structure and releases** of AR must be aligned with Web2 too. AR has 0 releases and 0 tags, a nested `AthenaRemastered/` source folder, a duplicate root `@AthenaRemastered/`, tracked `publish/wwwroot`, no WORKLOG/CLAUDE.md, and an outdated About text. Added the section "AR repository and release alignment" to `docs/ui-core-sync.md` (process files, ruleset, layout decision, releases with tags, README/About), to be done on AR branches with approval per step.
+- **Phase 1 step 2: app shell into the core** (no functional changes):
+  - New core components:
+    - `AppShell.tsx` (3-column layout + collapsible sidebars)
+    - `SidebarHeader.tsx` (name/version/donate from `appConfig`)
+    - `ITgtTargetsPanel.tsx`
+    - `WelcomeOverlay.tsx` (status/hint/instructions supplied by the app)
+    - `ExportStatusOverlay.tsx`
+    - `MapErrorBoundary.tsx`
+  - New core hooks: `useITgtTargets.ts`, `useFollowActivePlayer.ts` (re-pan threshold as the named constant `FOLLOW_REPAN_MIN_DISTANCE_M = 2.5`), `useTouchInput.ts`.
+  - New core util: `utils/firewillITgt.ts` (`toFirewillITgtTargets`).
+  - `App.tsx` is now the Web2 composition: bridge hook, world selection/cache mode, health banner, Web2 welcome texts, layer defaults. Named constants: `DEFAULT_WORLD_SIZE_M`, `HEALTH_POLL_INTERVAL_MS`. JSX structure and CSS classes are unchanged.
+  - Validation:
+    - `npm --prefix ui run build` passed
+    - ESLint: no new findings (App's existing 7 → 4, one existing `set-state-in-effect` moved with the code into `useFollowActivePlayer`; the AthenaMap findings already existed)
+    - Simulation (fake relay + fake 5120 m Kunduz cache), headless Chrome:
+      - live view identical to the pre-refactor screenshot (layout, centred island, sidebar, I-TGT panel, both collapse buttons); only the branding is the new v0.1.1 one
+      - with the relay stopped, the welcome screen shows "Bridge online, relay offline (127.0.0.1:28801)", the hint and the Web2 steps
+  - Committed `75296b6`.
+- **Phase 1 step 3: capabilities** (`b6a97af`):
+  - `CAPABILITIES` now gates the laze/projectile panes and the Fire Control panel in `AthenaMap`, plus the sidebar toggles: marker toggles need `relayMarkers`; Waypoints / Active Lazes / Projectile Tracking need `waypointToggle` / `lazes` / `projectiles`, in AR's original order.
+  - New flag `waypointToggle`: Web2 keeps rendering waypoints without a toggle, as before.
+  - Web2 UI is unchanged (same toggle list; those layers never had data in Web2).
+- **Phase 1 step 4: glyph repair** (`4487532`):
+  - restored characters deleted in the earlier mojibake cleanup: zoom slider `−` and `{scale}×`, unit tooltip `side · rank`, Fire Control `shooter · weapon`, ORBAT group `position · count`
+  - AR has these as mojibake (`Â·`), so they were restored by intent rather than copied
+  - kept the readable ASCII replacements (`--`, `Time:`)
+  - verified no `Â`/`â€` remain in `ui/src`; headless screenshot of the slider shows `+`, `−`, `0.5×`
+- **Phase 1 step 5: `MAP_DATA`:**
+  - new `MapDataConfig` type plus `MAP_DATA` in `appConfig.ts` (`treesUrl`, `landmaskUrl`, `landmaskGridSize` 1536, `landmaskRowOrder` `south-first`)
+  - `AthenaMap` no longer builds URLs or hard-codes the flip
+  - Found in AR: `Backend/Controllers/StaticMapController.cs:65` returns the land mask with **row 0 = north**, the opposite of Web2's bridge. AR's appConfig must use `north-first`, or its land fill would render upside down. Documented in `docs/ui-core-sync.md` (appConfig contract table).
+  - Validation: build passed; simulation screenshot identical to step 2 (island centred), slider glyphs visible.
+  - Committed `966b6bc`.
+- **AR live test, projectile tracking** (owner, AR v1.1.6, Malden): M5 Sandstorm MLRS fired 230 mm rockets at grid 066047 (artillery computer: DIST 3014, MIN 2846, MAX 3829, ETA 33 s). AR's "Recent Shots" received both rockets (`rockets_230mm_GAT · R_230mm_HE`), but the AR map showed no projectile track or Fire Control panel. Owner: "there are also bugs in Projectile tracking, a function Web 2 can't have." Exact expected vs. actual behaviour to be clarified and fixed in AR Phase 2 with live testing.
+  - Follow-up from the owner: the **M4 Scorcher does trigger** Fire Control: Lock FREE, Src HDG, ETA 5 s, target 5180,11729, with a dashed track straight north from the vehicle.
+    - Read-only analysis of AR `Frontend/src/components/AthenaMap.tsx`: with no target data for indirect fire, AR falls back to the vehicle (hull) heading, not the gun azimuth or the artillery computer target. The MLRS is recognised (`rocket` profile, :393) but no track is drawn; suspected missing target plus narrow `maxTrackAngleDeg` (unverified). Code smell: missile match on `includes('at')` (:405).
+    - Fix direction (AR Phase 2): send the projectile's initial velocity from `Fired` via SQF/DLL and compute the ballistic impact. Documented in `docs/ui-core-sync.md` ("Projectile tracking bugs observed live").
+- **Owner decision:** AR-only features (lazes, projectile tracking, Fire Control, kill/shot feed) move out of the shared core into the AR repo. The core offers extension slots instead.
+- **Phase 1 step 6: AR-only code out of the core:**
+  - `ui/src/core/components/AthenaMap.tsx` (4906 → 3984 lines). A one-off node script (scratchpad, not committed) removed blocks only via unique start/end markers and aborts without writing on any mismatch; the first run aborted on a CRLF-sensitive marker and wrote nothing. Removed:
+    - projectile/laze types and helpers (`normDeg` … `buildPredictedPath`; kept `clamp` and `toITgt8`, which other code uses)
+    - `ProjectileDebugEntry`
+    - the laze rendering and projectile prediction effects in `LayerManager`
+    - the projectile refs and the 1 s `clockMs` timer
+    - the Fire Control panel
+  - Firing pulse kept as a generic feature: `recentShooterIds` now comes from the new optional prop `pulseUnitIds` (stable empty default `NO_PULSE_UNITS`).
+  - New `AthenaMap` extension slots: `mapExtensions` (inside `MapContainer`) and `overlayExtensions` (over the map). Panes `athena-laze` / `athena-projectile` stay reserved for AR.
+  - Removed props `lazes` / `firedEvents` / `firedImpacts`; `App.tsx` no longer passes them. Deleted the unused `core/components/EventFeed.tsx`.
+  - The removed Web2 copy remains in git history at `966b6bc` for AR Phase 2. Documented in `docs/ui-core-sync.md` ("AR-only features live in the AR repo"), with the capabilities table updated. `CLAUDE.md` core rules updated.
+  - Validation:
+    - build passed
+    - ESLint: same 11 findings as before, no new ones
+    - simulation screenshot identical to step 5
+    - One run logged a Leaflet console error `Cannot read properties of undefined (reading '_leaflet_pos')`, on the first cold page load right after starting the Vite dev server. Not reproduced in 8 further runs of the new code (0/8). Baseline without step 6 (stashed): 0/4. Most likely Vite's first-load dependency optimisation reload, which the production build doesn't do. Logged as unconfirmed; watch for it.
+- Docs: `docs/ui-core-sync.md` now has the appConfig contract, the core component list, the capabilities table and status.
+- Owner asked whether the AR projectile tracking (M4 Scorcher / MLRS: turret direction of the first round + post-impact correction, built ~7 months ago) can be done better.
+  - Proposed v2: exact launch vector from the projectile (`Fired` / `ProjectileCreated`), a physics trajectory simulation (gravity + `airFriction` drag + cache terrain height), live in-flight sampling at about 4 Hz (needed for rocket motor phases), the exact impact via the projectile `Explode` EH, and explicit `CfgAmmo` simulation-type classification.
+  - Owner approved adding it to the plan. Documented in `docs/ui-core-sync.md` ("Design: AR projectile tracking v2"), with verification points (EH availability, drag accuracy, salvo FPS cost) and performance guardrails. Implementation is AR Phase 2.
+- Owner approved the push. Checked identity first (noreply email, `gh` user SgtFoose). Pushed `refactor/ui-core-split` (9 commits) and opened **PR #5**: https://github.com/SgtFoose/Athena-Web-2/pull/5 ("refactor(ui): shared UI core for Web2 and Athena Remastered (Phase 1)"). No release needed: no functional change for Web2 users. `CLAUDE.md` repository layout updated, and new "Shared UI core rules" added to the working rules.
+  - Found: the welcome background `ui/public/athena-default-bg.png` contains the text "ATHENA REMASTERED – LOADING BATTLEFIELD INTEL…" (inherited from AR). Backlog: make the welcome image per-app via `appConfig`.
+  - The AR screenshot (Malden) shows the pre-fix rendering: forest blocks spilling over the coast, a stair-stepped coastline, opaque dark forest. That confirms the value of porting the shared core.
+
 ### 2026-11-22 — v0.1.1 Published + end-user start guide in release notes
 - PR #3 (`release/v0.1.1`) merged by the owner as `7a697ed`. Local `main` updated, release branch deleted.
 - Published the GitHub Release (owner approved): `gh release create v0.1.1 bridge/dist/AthenaWeb-0.1.1.exe --target main --title "Athena Web 2 v0.1.1" --notes-file .github/release-notes-template-v0.1.1.md --latest`.
@@ -1170,6 +1277,7 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 - [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
 - [ ] Review `npm audit` advisories in `ui/`.
 - [ ] Repo: tracked ~59 MB EXEs trigger GitHub's large-file warning on every release. Consider Git LFS, or keeping EXEs only as Release assets.
+- [ ] UI: welcome background `athena-default-bg.png` shows "ATHENA REMASTERED" branding; make the welcome image per-app (`appConfig`) and add a Web2 image.
 - [ ] UI: closed-ring coastline smoothing leaves a small gap in the stroke at the ring start/end (seen in the 2026-11-22 simulation).
 
 ## Next Tasks (Immediate)

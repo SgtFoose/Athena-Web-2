@@ -1,4 +1,4 @@
-import type { HealthStatus } from '../hooks/useHealthCheck';
+import type { HealthStatus } from './useHealthCheck';
 
 interface Props {
   health: HealthStatus | null;

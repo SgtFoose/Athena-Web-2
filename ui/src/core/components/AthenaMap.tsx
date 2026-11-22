@@ -1,9 +1,9 @@
 import { MapContainer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
-import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, FiredEvent, FiredImpactEvent, ActiveLaze, RelayMarker } from '../types/game';
-import { API_BASE } from '../apiBase';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import type { Unit, Vehicle, Group, Road, ForestsData, MapLocation, MapStructure, ElevationsData, ContourLine, RelayMarker } from '../types/game';
+import { CAPABILITIES, MAP_DATA } from '../../appConfig';
 import 'leaflet/dist/leaflet.css';
 
 // Arma uses a square world coordinate system [0..worldSize].
@@ -627,37 +627,6 @@ function waypointStyle(wpType: string): { color: string; endColor: string; endIc
   return { color: '#333', endColor: '#aaa', endIcon: '' };
 }
 
-type ProjectileProfile = {
-  speedMps: number;
-  rangeM: number;
-  lateralFactor: number;
-  color: string;
-  headingOffsetDeg?: number;
-  maxTrackAngleDeg: number;
-  requiresLock: boolean;
-  allowEnemyTargetInference: boolean;
-  preferLiveLaze: boolean;
-  launchDelayMs: number;
-  lingerAfterImpactMs: number;
-  // Ballistic trajectory: ETA (s) = ballA * distance^ballB  derived from live calibration.
-  // When set, overrides the fixed-speed speedMps formula for ETA calculation.
-  useBallistics?: boolean;
-  ballA?: number;
-  ballB?: number;
-};
-
-type TargetEstimate = {
-  x: number;
-  y: number;
-  source: 'event' | 'laze' | 'waypoint' | 'enemy' | 'unit' | 'heading';
-  eventSource?: string;
-};
-
-type GuidedLock = {
-  kind: 'unit' | 'laze';
-  unitId: string;
-};
-
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
 }
@@ -666,421 +635,6 @@ function toITgt8(x: number, y: number): string {
   const x4 = Math.max(0, Math.min(9999, Math.floor(x / 10))).toString().padStart(4, '0');
   const y4 = Math.max(0, Math.min(9999, Math.floor(y / 10))).toString().padStart(4, '0');
   return `${x4}${y4}`;
-}
-
-function normDeg(deg: number): number {
-  let d = deg % 360;
-  if (d < 0) d += 360;
-  return d;
-}
-
-function shortestAngleDiff(a: number, b: number): number {
-  const d = Math.abs(normDeg(a) - normDeg(b));
-  return d > 180 ? 360 - d : d;
-}
-
-function getProjectileProfile(ev: FiredEvent): ProjectileProfile | null {
-  const text = `${ev.weapon} ${ev.ammo} ${ev.projectile}`.toLowerCase();
-  if (!text.trim()) return null;
-
-  if (text.includes('cruise')) {
-    // Calibrated from live VLS tests: practical time-of-flight is about 14s at ~1500m.
-    return { speedMps: 110, rangeM: 14000, lateralFactor: 0.12, color: '#ff6b6b', maxTrackAngleDeg: 70, requiresLock: true, allowEnemyTargetInference: true, preferLiveLaze: true, launchDelayMs: 1200, lingerAfterImpactMs: 9500 };
-  }
-  if ((text.includes('artillery') || text.includes('shell') || text.includes('mortar')) &&
-      !text.includes('shipcannon') &&
-      !text.includes('weapon_shipcannon_120mm')) {
-    // Calibrated from M4 Scorcher: 1391m29s, 11178m72s  ETA  1.235  d^0.4363
-     return { speedMps: 230, rangeM: 9000, lateralFactor: 0, color: '#ffd43b', maxTrackAngleDeg: 28, requiresLock: false, allowEnemyTargetInference: false, preferLiveLaze: false, launchDelayMs: 0, lingerAfterImpactMs: 2500, useBallistics: true, ballA: 1.235, ballB: 0.4363 };
-  }
-  if (text.includes('rocket') || text.includes('mlrs') || text.includes('230mm')) {
-    // Calibrated from MLRS rockets_230mm_GAT: 1393m23s  ETA  0.979  d^0.4363 (same exponent as SPG)
-     return { speedMps: 190, rangeM: 5000, lateralFactor: 0, color: '#74c0fc', maxTrackAngleDeg: 22, requiresLock: false, allowEnemyTargetInference: false, preferLiveLaze: false, launchDelayMs: 0, lingerAfterImpactMs: 2500, useBallistics: true, ballA: 0.979, ballB: 0.4363 };
-  }
-  if (text.includes('shipcannon')) {
-    // MK45 naval gun (weapon_ShipCannon_120mm). Non-monotonic ETA curve  medium ranges are slowest
-    // (high-arc trajectory). Ballistic fit anchored at 762m29s and 12352m76s.
-    // fired_impact telemetry will correct the mid-range underestimate after the first shot lands.
-    // lateralFactor: 0  indirect fire flies a straight horizontal path; curvature is only vertical.
-    // A non-zero factor always curves left of the bearing which looks wrong (south for NW shots, etc.).
-    return { speedMps: 90, rangeM: 14000, lateralFactor: 0, color: '#e599f7', maxTrackAngleDeg: 22, requiresLock: false, allowEnemyTargetInference: false, preferLiveLaze: false, launchDelayMs: 0, lingerAfterImpactMs: 2500, useBallistics: true, ballA: 3.424, ballB: 0.3457 };
-  }
-  if (text.includes('missile') || text.includes('sam') || text.includes('at')) {
-    return { speedMps: 300, rangeM: 7000, lateralFactor: 0.06, color: '#ffa94d', maxTrackAngleDeg: 40, requiresLock: true, allowEnemyTargetInference: true, preferLiveLaze: false, launchDelayMs: 0, lingerAfterImpactMs: 2500 };
-  }
-  return null;
-}
-
-function targetFromFiredEvent(ev: FiredEvent): TargetEstimate | null {
-  if (!ev.targetSource?.trim()) return null;
-  if (typeof ev.targetX !== 'number' || !Number.isFinite(ev.targetX)) return null;
-  if (typeof ev.targetY !== 'number' || !Number.isFinite(ev.targetY)) return null;
-
-  const source = ev.targetSource.toLowerCase();
-  const text = `${ev.weapon} ${ev.ammo} ${ev.projectile}`.toLowerCase();
-  const isUnguidedIndirect = text.includes('rocket') || text.includes('mlrs') || text.includes('230mm') || text.includes('artillery') || text.includes('shell') || text.includes('mortar') || text.includes('shipcannon');
-
-  // Ignore broad laser/scan target inference for unguided indirect fire.
-  if (isUnguidedIndirect && source !== 'assigned') return null;
-
-  return {
-    x: ev.targetX,
-    y: ev.targetY,
-    source: 'event',
-    eventSource: ev.targetSource,
-  };
-}
-
-function projectileSourceTag(target: TargetEstimate): string {
-  if (target.source === 'event') {
-    switch ((target.eventSource ?? '').toLowerCase()) {
-      case 'assigned': return 'LOCK';
-      case 'laser': return 'LASE';
-      case 'scan': return 'SCAN';
-      default: return 'RPT';
-    }
-  }
-  if (target.source === 'laze') return 'LASE';
-  if (target.source === 'unit') return 'TGT';
-  return target.source === 'waypoint' ? 'WP' : target.source === 'enemy' ? 'TGT' : 'HDG';
-}
-
-function findNearestEnemyUnitId(
-  srcX: number,
-  srcY: number,
-  dirDeg: number,
-  shooterSide: string,
-  allUnits: Record<string, Unit>,
-  profile: ProjectileProfile,
-): string | null {
-  if (!profile.allowEnemyTargetInference) return null;
-
-  const rad = (dirDeg * Math.PI) / 180;
-  const fx = Math.sin(rad);
-  const fy = Math.cos(rad);
-  const maxTrackCos = Math.cos((profile.maxTrackAngleDeg * Math.PI) / 180);
-
-  let best: { id: string; score: number } | null = null;
-  for (const u of Object.values(allUnits)) {
-    if (u.side === shooterSide) continue;
-    if (!Number.isFinite(u.posX) || !Number.isFinite(u.posY)) continue;
-    if (u.posX === 0 && u.posY === 0) continue;
-
-    const dx = u.posX - srcX;
-    const dy = u.posY - srcY;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 50 || dist > profile.rangeM * 1.35) continue;
-
-    const nx = dx / dist;
-    const ny = dy / dist;
-    const dot = nx * fx + ny * fy;
-    if (dot < maxTrackCos) continue;
-
-    const anglePenalty = 1 - dot;
-    const rangePenalty = dist / Math.max(profile.rangeM, 1);
-    const score = anglePenalty * 0.7 + rangePenalty * 0.3;
-    if (!best || score < best.score) best = { id: u.id, score };
-  }
-
-  return best?.id ?? null;
-}
-
-function findNearestLazeUnitId(
-  srcX: number,
-  srcY: number,
-  dirDeg: number,
-  shooterUnitId: string,
-  lazes: ActiveLaze[],
-  profile: ProjectileProfile,
-): string | null {
-  if (lazes.length === 0) return null;
-
-  const ownLaze = lazes.find(l => l.unitId === shooterUnitId);
-  if (ownLaze && Number.isFinite(ownLaze.posX) && Number.isFinite(ownLaze.posY)) {
-    return ownLaze.unitId;
-  }
-
-  const rad = (dirDeg * Math.PI) / 180;
-  const fx = Math.sin(rad);
-  const fy = Math.cos(rad);
-  const maxTrackCos = Math.cos((Math.min(85, profile.maxTrackAngleDeg + 15) * Math.PI) / 180);
-
-  let best: { unitId: string; score: number } | null = null;
-  for (const l of lazes) {
-    if (!Number.isFinite(l.posX) || !Number.isFinite(l.posY)) continue;
-
-    const dx = l.posX - srcX;
-    const dy = l.posY - srcY;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 50 || dist > profile.rangeM * 1.35) continue;
-
-    const nx = dx / dist;
-    const ny = dy / dist;
-    const dot = nx * fx + ny * fy;
-    if (dot < maxTrackCos) continue;
-
-    const anglePenalty = 1 - dot;
-    const rangePenalty = dist / Math.max(profile.rangeM, 1);
-    const score = anglePenalty * 0.75 + rangePenalty * 0.25;
-    if (!best || score < best.score) best = { unitId: l.unitId, score };
-  }
-
-  return best?.unitId ?? null;
-}
-
-function findNearestLazeUnitIdByTargetPoint(
-  targetX: number,
-  targetY: number,
-  lazes: ActiveLaze[],
-  maxDist = 1200,
-): string | null {
-  let best: { unitId: string; dist: number } | null = null;
-  for (const l of lazes) {
-    if (!Number.isFinite(l.posX) || !Number.isFinite(l.posY)) continue;
-    const dist = Math.hypot(l.posX - targetX, l.posY - targetY);
-    if (dist > maxDist) continue;
-    if (!best || dist < best.dist) {
-      best = { unitId: l.unitId, dist };
-    }
-  }
-  return best?.unitId ?? null;
-}
-
-function resolveGuidedLockTarget(
-  lock: GuidedLock,
-  units: Record<string, Unit>,
-  lazes: ActiveLaze[],
-  worldSize: number,
-): TargetEstimate | null {
-  if (lock.kind === 'unit') {
-    const unit = units[lock.unitId];
-    if (!unit) return null;
-    if (!Number.isFinite(unit.posX) || !Number.isFinite(unit.posY)) return null;
-    if (unit.posX === 0 && unit.posY === 0) return null;
-    return {
-      x: clamp(unit.posX, 0, worldSize),
-      y: clamp(unit.posY, 0, worldSize),
-      source: 'unit',
-    };
-  }
-
-  const laze = lazes.find(l => l.unitId === lock.unitId);
-  if (!laze) return null;
-  if (!Number.isFinite(laze.posX) || !Number.isFinite(laze.posY)) return null;
-  return {
-    x: clamp(laze.posX, 0, worldSize),
-    y: clamp(laze.posY, 0, worldSize),
-    source: 'laze',
-  };
-}
-
-function acquireGuidedLock(
-  ev: FiredEvent,
-  launchX: number,
-  launchY: number,
-  launchDirDeg: number,
-  shooterSide: string,
-  units: Record<string, Unit>,
-  lazes: ActiveLaze[],
-  profile: ProjectileProfile,
-): GuidedLock | null {
-  const source = (ev.targetSource ?? '').toLowerCase();
-  const preferLaze = profile.preferLiveLaze || source === 'laser' || source === 'scan';
-
-  // If telemetry says this was laser-based, keep lock on active laze first.
-  if (preferLaze) {
-    if (typeof ev.targetX === 'number' && Number.isFinite(ev.targetX) && typeof ev.targetY === 'number' && Number.isFinite(ev.targetY)) {
-      const byTargetPoint = findNearestLazeUnitIdByTargetPoint(ev.targetX, ev.targetY, lazes);
-      if (byTargetPoint) {
-        return { kind: 'laze', unitId: byTargetPoint };
-      }
-    }
-
-    const lazeUnitId = findNearestLazeUnitId(launchX, launchY, launchDirDeg, ev.unitId, lazes, profile);
-    if (lazeUnitId) {
-      return { kind: 'laze', unitId: lazeUnitId };
-    }
-  }
-
-  const eventEntityId = ev.targetEntityId?.trim();
-  if (eventEntityId) {
-    const byId = units[eventEntityId];
-    if (byId && Number.isFinite(byId.posX) && Number.isFinite(byId.posY)) {
-      return { kind: 'unit', unitId: byId.id };
-    }
-  }
-
-  if (typeof ev.targetX === 'number' && Number.isFinite(ev.targetX) && typeof ev.targetY === 'number' && Number.isFinite(ev.targetY)) {
-    let nearest: { id: string; dist: number } | null = null;
-    for (const u of Object.values(units)) {
-      if (u.side === shooterSide) continue;
-      if (!Number.isFinite(u.posX) || !Number.isFinite(u.posY)) continue;
-      const dist = Math.hypot(u.posX - ev.targetX, u.posY - ev.targetY);
-      if (dist > 1000) continue;
-      if (!nearest || dist < nearest.dist) nearest = { id: u.id, dist };
-    }
-    if (nearest) {
-      return { kind: 'unit', unitId: nearest.id };
-    }
-  }
-
-  const inferredUnitId = findNearestEnemyUnitId(launchX, launchY, launchDirDeg, shooterSide, units, profile);
-  if (inferredUnitId) {
-    return { kind: 'unit', unitId: inferredUnitId };
-  }
-
-  const lazeUnitId = findNearestLazeUnitId(launchX, launchY, launchDirDeg, ev.unitId, lazes, profile);
-  if (lazeUnitId) {
-    return { kind: 'laze', unitId: lazeUnitId };
-  }
-
-  return null;
-}
-
-function targetFromLazes(
-  srcX: number,
-  srcY: number,
-  dirDeg: number,
-  shooterUnitId: string,
-  lazes: ActiveLaze[],
-  worldSize: number,
-  profile: ProjectileProfile,
-): TargetEstimate | null {
-  if (lazes.length === 0) return null;
-
-  const ownLaze = lazes.find(l => l.unitId === shooterUnitId);
-  if (ownLaze && Number.isFinite(ownLaze.posX) && Number.isFinite(ownLaze.posY)) {
-    return {
-      x: clamp(ownLaze.posX, 0, worldSize),
-      y: clamp(ownLaze.posY, 0, worldSize),
-      source: 'laze',
-    };
-  }
-
-  const rad = (dirDeg * Math.PI) / 180;
-  const fx = Math.sin(rad);
-  const fy = Math.cos(rad);
-  const maxTrackCos = Math.cos((Math.min(85, profile.maxTrackAngleDeg + 15) * Math.PI) / 180);
-
-  let best: { x: number; y: number; score: number } | null = null;
-  for (const l of lazes) {
-    if (!Number.isFinite(l.posX) || !Number.isFinite(l.posY)) continue;
-    const dx = l.posX - srcX;
-    const dy = l.posY - srcY;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 50 || dist > profile.rangeM * 1.35) continue;
-    const nx = dx / dist;
-    const ny = dy / dist;
-    const dot = nx * fx + ny * fy;
-    if (dot < maxTrackCos) continue;
-
-    const anglePenalty = 1 - dot;
-    const rangePenalty = dist / Math.max(profile.rangeM, 1);
-    const score = anglePenalty * 0.75 + rangePenalty * 0.25;
-    if (!best || score < best.score) best = { x: l.posX, y: l.posY, score };
-  }
-
-  if (!best) return null;
-  return {
-    x: clamp(best.x, 0, worldSize),
-    y: clamp(best.y, 0, worldSize),
-    source: 'laze',
-  };
-}
-
-function lazeLabel(unit: Unit | undefined): string {
-  if (!unit) return 'Laser';
-  if (unit.playerName?.trim()) return unit.playerName.trim();
-  return unit.name?.trim() || unit.type || 'Laser';
-}
-
-function estimateTarget(
-  srcX: number,
-  srcY: number,
-  dirDeg: number,
-  shooterSide: string,
-  grp: Group | undefined,
-  allUnits: Record<string, Unit>,
-  worldSize: number,
-  profile: ProjectileProfile,
-): TargetEstimate {
-  if (grp && (grp.wpX !== 0 || grp.wpY !== 0)) {
-    return { x: grp.wpX, y: grp.wpY, source: 'waypoint' };
-  }
-
-  const rad = (dirDeg * Math.PI) / 180;
-  const fx = Math.sin(rad);
-  const fy = Math.cos(rad);
-  const maxTrackCos = Math.cos((profile.maxTrackAngleDeg * Math.PI) / 180);
-
-  if (profile.allowEnemyTargetInference) {
-    let best: { x: number; y: number; score: number } | null = null;
-    for (const u of Object.values(allUnits)) {
-      if (u.side === shooterSide) continue;
-      if (!Number.isFinite(u.posX) || !Number.isFinite(u.posY)) continue;
-      if (u.posX === 0 && u.posY === 0) continue;
-      const dx = u.posX - srcX;
-      const dy = u.posY - srcY;
-      const dist = Math.hypot(dx, dy);
-      if (dist < 50 || dist > profile.rangeM * 1.25) continue;
-      const nx = dx / dist;
-      const ny = dy / dist;
-      const dot = nx * fx + ny * fy;
-      if (dot < maxTrackCos) continue;
-      const anglePenalty = 1 - dot;
-      const rangePenalty = dist / Math.max(profile.rangeM, 1);
-      const score = anglePenalty * 0.7 + rangePenalty * 0.3;
-      if (!best || score < best.score) best = { x: u.posX, y: u.posY, score };
-    }
-
-    if (best) return { x: best.x, y: best.y, source: 'enemy' };
-  }
-
-  const dx = Math.sin(rad) * profile.rangeM;
-  const dy = Math.cos(rad) * profile.rangeM;
-  return {
-    x: clamp(srcX + dx, 0, worldSize),
-    y: clamp(srcY + dy, 0, worldSize),
-    source: 'heading',
-  };
-}
-
-function buildPredictedPath(
-  srcX: number,
-  srcY: number,
-  dstX: number,
-  dstY: number,
-  lateralFactor: number,
-  progress: number,
-  samples = 42,
-): [number, number][] {
-  const dx = dstX - srcX;
-  const dy = dstY - srcY;
-  const dist = Math.hypot(dx, dy);
-  const nx = dist > 0.001 ? dx / dist : 1;
-  const ny = dist > 0.001 ? dy / dist : 0;
-  const px = -ny;
-  const py = nx;
-  const offset = dist * lateralFactor;
-
-  const p0x = srcX;
-  const p0y = srcY;
-  const p1x = srcX + dx * 0.5 + px * offset;
-  const p1y = srcY + dy * 0.5 + py * offset;
-  const p2x = dstX;
-  const p2y = dstY;
-
-  const tMax = clamp(progress, 0, 1);
-  const points: [number, number][] = [];
-  const count = Math.max(2, Math.floor(samples * tMax));
-  for (let i = 0; i <= count; i++) {
-    const t = (i / count) * tMax;
-    const inv = 1 - t;
-    const x = inv * inv * p0x + 2 * inv * t * p1x + t * t * p2x;
-    const y = inv * inv * p0y + 2 * inv * t * p1y + t * t * p2y;
-    points.push([x, y]);
-  }
-  return points;
 }
 
 function firingPulseIcon(size = 28): L.DivIcon {
@@ -1684,7 +1238,7 @@ function contourStyle(z: number): { color: string; weight: number; opacity: numb
   return              { color: '#BC8F8F', weight: 0.75, opacity: 1 };  // RosyBrown
 }
 
-import type { LayerVisibility, RenderMode } from '../App';
+import type { LayerVisibility, RenderMode } from '../types/ui';
 
 // Elevation colour ramp helpers  Bus Athena Desktop palette.
 // HeatMap 1 (ground forces): green #0A7002  red smooth transition
@@ -1700,9 +1254,8 @@ interface LayerManagerProps {
   units:      Record<string, Unit>;
   vehicles:   Record<string, Vehicle>;
   groups:     Record<string, Group>;
-  lazes:      ActiveLaze[];
-  firedEvents: FiredEvent[];
-  firedImpacts: FiredImpactEvent[];
+  /** Unit ids to draw with the "just fired" pulse (supplied by apps with shot telemetry). */
+  pulseUnitIds: Set<string>;
   world:      string;
   worldSize:  number;
   roads:      Road[];
@@ -1717,22 +1270,9 @@ interface LayerManagerProps {
   vehicleMap:  Map<string, string>;
   locationMap: Map<string, { DrawStyle: string; SizeText: number; Name: string }>;
   shorelineRefreshToken: number;
-  onProjectileDebugChange?: (entries: ProjectileDebugEntry[]) => void;
 }
 
-type ProjectileDebugEntry = {
-  id: string;
-  trackKey: string;
-  shooter: string;
-  weapon: string;
-  lock: 'LAZE' | 'UNIT' | 'FREE';
-  source: string;
-  etaSec: number;
-  target: string;
-  lockSwitched: boolean;
-};
-
-function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpacts, world, worldSize, roads, forests: _forests, locations, structures, elevations, contours, layers, renderMode, vehicleMap, locationMap, shorelineRefreshToken, onProjectileDebugChange }: LayerManagerProps) {
+function LayerManager({ units, vehicles, groups, pulseUnitIds, world, worldSize, roads, forests: _forests, locations, structures, elevations, contours, layers, renderMode, vehicleMap, locationMap, shorelineRefreshToken }: LayerManagerProps) {
   const map = useMap();
 
   useEffect(() => {
@@ -1780,14 +1320,6 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
   const topoLayerRef       = useRef<L.LayerGroup>(L.layerGroup());
   const groupLayerRef      = useRef<L.LayerGroup>(L.layerGroup());
   const waypointLayerRef    = useRef<L.LayerGroup>(L.layerGroup());
-  const lazeLayerRef        = useRef<L.LayerGroup>(L.layerGroup());
-  const projectileLayerRef = useRef<L.LayerGroup>(L.layerGroup());
-  const projectileLaunchRef = useRef<Map<string, { x: number; y: number; dir: number }>>(new Map());
-  const projectileLockRef = useRef<Map<string, GuidedLock>>(new Map());
-  const projectileTerminalRef = useRef<Map<string, number>>(new Map());
-  const projectileLastEtaRef = useRef<Map<string, number>>(new Map());
-  const projectileLockModeRef = useRef<Map<string, 'LAZE' | 'UNIT' | 'FREE'>>(new Map());
-  const projectileLockSwitchAtRef = useRef<Map<string, number>>(new Map());
   const vehicleLayerRef    = useRef<L.LayerGroup>(L.layerGroup());
   const contourLayerRef    = useRef<L.LayerGroup>(L.layerGroup());
   const coastLayerRef      = useRef<L.LayerGroup>(L.layerGroup());
@@ -1800,32 +1332,15 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
 
   // Track map zoom level so vehicle crew labels can appear/disappear reactively
   const [mapZoom, setMapZoom] = useState(() => map.getZoom());
-  const [clockMs, setClockMs] = useState(() => Date.now());
   useEffect(() => {
     const onZoom = () => setMapZoom(map.getZoom());
     map.on('zoomend', onZoom);
     return () => { map.off('zoomend', onZoom); };
   }, [map]);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => setClockMs(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const recentShooterIds = useMemo(() => {
-    const set = new Set<string>();
-    const blinkWindowMs = 2200;
-    firedEvents.forEach(ev => {
-      if (!ev.unitId) return;
-      const atMs = Date.parse(ev.at);
-      if (!Number.isFinite(atMs)) return;
-      const age = clockMs - atMs;
-      if (age >= 0 && age <= blinkWindowMs) {
-        set.add(ev.unitId);
-      }
-    });
-    return set;
-  }, [firedEvents, clockMs]);
+  // Units that fired recently get a pulse on their unit/vehicle/group marker.
+  // Computed by the app from its shot telemetry (AR); empty in Web2.
+  const recentShooterIds = pulseUnitIds;
 
   // Create custom panes with fixed z-indices so layer order is always maintained
   // regardless of toggle sequence (addTo re-inserts at DOM end, breaking stacking).
@@ -1872,8 +1387,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     objectLayerRef.current.addTo(map);
     groupLayerRef.current.addTo(map);
     waypointLayerRef.current.addTo(map);
-    lazeLayerRef.current.addTo(map);
-    projectileLayerRef.current.addTo(map);
+    // Laze/projectile layers are supplied by AR via the `mapExtensions` slot.
     vehicleLayerRef.current.addTo(map);
     unitLayerRef.current.addTo(map);
   }, [map]);
@@ -1912,8 +1426,10 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     showPane('athena-peak',      layers.locations);
     showPane('athena-group',     layers.groups);
     showPane('athena-waypoint',  layers.waypoints);
-    showPane('athena-laze',      layers.lazes);
-    showPane('athena-projectile', layers.projectiles);
+    // Laze/projectile layers only exist in apps whose data source provides that
+    // telemetry (AR's extension DLL); see CAPABILITIES in appConfig.ts.
+    showPane('athena-laze',      CAPABILITIES.lazes && layers.lazes);
+    showPane('athena-projectile', CAPABILITIES.projectiles && layers.projectiles);
     showPane('athena-vehicle',   layers.vehicles);
     showPane('athena-unit',      layers.units);
     // objects are always visible
@@ -1977,7 +1493,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       staticCacheRef.current.treesWorld = world;
     };
 
-    const fetchTrees = () => fetch(`${API_BASE}/api/game/trees`)
+    const fetchTrees = () => fetch(MAP_DATA.treesUrl())
       .then(r => {
         console.log(`[Trees] Runtime API response status: ${r.status}`);
         return r.ok ? r.json() : null;
@@ -2150,8 +1666,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       // Path 1 (fallback): static raster land mask for fully solid land/ocean fill.
       if (world) {
         try {
-          const resp = await fetch(
-            `${API_BASE}/api/staticmap/${encodeURIComponent(world)}/landmask?gridSize=1536`);
+          const resp = await fetch(MAP_DATA.landmaskUrl(world, MAP_DATA.landmaskGridSize));
           if (!cancelled && resp.ok) {
             const data: { width: number; height: number; worldSize: number; mask: string } =
               await resp.json();
@@ -2165,9 +1680,12 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
             const ctx = cvs.getContext('2d')!;
             const img = ctx.createImageData(data.width, data.height);
             for (let gy = 0; gy < data.height; gy++) {
-              // Mask row 0 = worldY0 (south). Canvas row 0 = top of image = north.
-              // Flip vertically so south maps to bottom of overlay.
-              const srcRow = (data.height - 1 - gy) * data.width;
+              // Canvas row 0 = top of image = north. With a south-first mask
+              // (row 0 = worldY 0, Web2 bridge) flip vertically so south maps to
+              // the bottom of the overlay; a north-first mask is already in image order.
+              const srcRow = (MAP_DATA.landmaskRowOrder === 'south-first'
+                ? (data.height - 1 - gy)
+                : gy) * data.width;
               for (let gx = 0; gx < data.width; gx++) {
                 if (grown[srcRow + gx]) {
                   const o = (gy * data.width + gx) * 4;
@@ -3198,371 +2716,6 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
     });
   }, [groups, units, vehicles, worldSize, vehicleMap, recentShooterIds]);
 
-  //  Active laser designations 
-  useEffect(() => {
-    lazeLayerRef.current.clearLayers();
-    if (lazes.length === 0) return;
-
-    const scale = 100 / worldSize;
-    lazes.forEach(laze => {
-      if (!Number.isFinite(laze.posX) || !Number.isFinite(laze.posY)) return;
-      const ll: [number, number] = [laze.posY * scale, laze.posX * scale];
-      const label = escapeHtml(lazeLabel(units[laze.unitId]));
-
-      L.marker(ll, {
-        pane: 'athena-laze',
-        interactive: false,
-        icon: L.divIcon({
-          className: '',
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-          html: `<div style="position:relative;transform:translate(-50%,-50%);pointer-events:none;">`
-            + `<div style="position:absolute;left:-14px;top:-14px;width:28px;height:28px;border:2px solid rgba(15,15,20,0.95);border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,0.8),0 0 10px rgba(0,0,0,0.55);"></div>`
-            + `<div style="position:absolute;left:-11px;top:-11px;width:22px;height:22px;border:2px solid rgba(255,96,96,0.98);border-radius:50%;box-shadow:0 0 10px rgba(255,72,72,0.85), inset 0 0 0 1px rgba(255,255,255,0.5);"></div>`
-            + `<div style="position:absolute;left:-1px;top:-13px;width:2px;height:8px;background:rgba(255,96,96,1);"></div>`
-            + `<div style="position:absolute;left:-1px;top:5px;width:2px;height:8px;background:rgba(255,96,96,1);"></div>`
-            + `<div style="position:absolute;left:-13px;top:-1px;width:8px;height:2px;background:rgba(255,96,96,1);"></div>`
-            + `<div style="position:absolute;left:5px;top:-1px;width:8px;height:2px;background:rgba(255,96,96,1);"></div>`
-            + `<div style="position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#fff;border:1px solid rgba(20,20,30,0.85);box-shadow:0 0 6px rgba(255,96,96,0.9);"></div>`
-            + `<div style="position:absolute;left:20px;top:-11px;white-space:nowrap;font-size:10px;font-weight:700;color:#ffd1d1;padding:1px 5px;border-radius:4px;background:rgba(20,20,25,0.72);border:1px solid rgba(255,170,170,0.7);text-shadow:none;">${label}</div>`
-            + `</div>`,
-        }),
-      }).addTo(lazeLayerRef.current);
-    });
-  }, [lazes, units, worldSize]);
-
-  //  Simulated projectile tracking (prediction-only) 
-  useEffect(() => {
-    projectileLayerRef.current.clearLayers();
-    if (firedEvents.length === 0) {
-      onProjectileDebugChange?.([]);
-      return;
-    }
-
-    const scale = 100 / worldSize;
-    const now = clockMs;
-    const activeKeys = new Set<string>();
-    const debugEntries: ProjectileDebugEntry[] = [];
-
-    // Deduplicate repeated events in the rolling fired queue
-    const dedup = new Map<string, FiredEvent>();
-    firedEvents.forEach(ev => {
-      const key = `${ev.at}|${ev.unitId}|${ev.vehicleId}|${ev.weapon}|${ev.ammo}|${ev.projectile}`;
-      if (!dedup.has(key)) dedup.set(key, ev);
-    });
-
-    // Build lookup of the most recent actual impact per shooter/weapon combination.
-    // Key strategy is intentionally tolerant because Arma can report different unit IDs
-    // for the same vehicle-fired shot (e.g. gunner/commander variants across handlers).
-    const impactLookup = new Map<string, FiredImpactEvent>();
-    for (const imp of firedImpacts) {
-      const keys = [
-        `${imp.unitId}|${imp.vehicleId}|${imp.weapon}|${imp.muzzle}`,
-        `${imp.vehicleId}|${imp.weapon}|${imp.muzzle}`,
-        `${imp.unitId}|${imp.weapon}|${imp.muzzle}`,
-        `${imp.weapon}|${imp.muzzle}`,
-      ];
-      for (const k of keys) {
-        const existing = impactLookup.get(k);
-        if (!existing || Date.parse(imp.at) > Date.parse(existing.at)) {
-          impactLookup.set(k, imp);
-        }
-      }
-    }
-
-    dedup.forEach((ev, key) => {
-      const profile = getProjectileProfile(ev);
-      if (!profile) return;
-
-      const terminalUntil = projectileTerminalRef.current.get(key);
-      if (terminalUntil !== undefined && terminalUntil > now) return;
-      if (terminalUntil !== undefined && terminalUntil <= now) {
-        projectileTerminalRef.current.delete(key);
-      }
-
-      const firedAt = Date.parse(ev.at);
-      if (!Number.isFinite(firedAt)) return;
-
-      const unit = units[ev.unitId];
-      const vehicleByVehicleId = ev.vehicleId ? vehicles[ev.vehicleId] : undefined;
-      const vehicleByUnitLink = unit?.vehicleId ? vehicles[unit.vehicleId] : undefined;
-      // Some vehicle-fired events can report vehicle netId in unitId; support that shape too.
-      const vehicleByUnitId = vehicles[ev.unitId];
-      const vehicle = vehicleByVehicleId ?? vehicleByUnitLink ?? vehicleByUnitId;
-
-      const srcX = vehicle?.posX ?? unit?.posX;
-      const srcY = vehicle?.posY ?? unit?.posY;
-      const eventDir = typeof ev.fireDir === 'number' && Number.isFinite(ev.fireDir) ? normDeg(ev.fireDir) : undefined;
-      let dirDeg = normDeg(eventDir ?? vehicle?.dir ?? unit?.dir ?? 0);
-
-      // If telemetry contains a concrete target point and heading points away from it,
-      // flip heading by 180 for this event (some platforms report inverted weapon vectors).
-      if (typeof ev.targetX === 'number' && Number.isFinite(ev.targetX) && typeof ev.targetY === 'number' && Number.isFinite(ev.targetY)) {
-        const toTargetX = ev.targetX - srcX;
-        const toTargetY = ev.targetY - srcY;
-        const toTargetLen = Math.hypot(toTargetX, toTargetY);
-        if (toTargetLen > 1) {
-          const targetBearing = normDeg((Math.atan2(toTargetX, toTargetY) * 180) / Math.PI);
-          if (shortestAngleDiff(dirDeg, targetBearing) > 90) {
-            dirDeg = normDeg(dirDeg + 180);
-          }
-        }
-      }
-
-      if (profile.headingOffsetDeg) {
-        dirDeg = normDeg(dirDeg + profile.headingOffsetDeg);
-      }
-      if (!Number.isFinite(srcX) || !Number.isFinite(srcY)) return;
-
-      let launch = projectileLaunchRef.current.get(key);
-      if (!launch) {
-        launch = { x: srcX, y: srcY, dir: dirDeg };
-        projectileLaunchRef.current.set(key, launch);
-      }
-
-      const shooterSide = unit?.side ?? 'UNKNOWN';
-      let target: TargetEstimate | null = null;
-      let lockMode: 'LAZE' | 'UNIT' | 'FREE' = profile.requiresLock ? 'UNIT' : 'FREE';
-      if (profile.requiresLock) {
-        const prevLockMode = projectileLockModeRef.current.get(key);
-        const lastEtaSec = projectileLastEtaRef.current.get(key);
-        if (profile.preferLiveLaze && prevLockMode === 'LAZE' && lazes.length === 0 && lastEtaSec !== undefined && lastEtaSec <= 3) {
-          projectileTerminalRef.current.set(key, now + 5000);
-          projectileLaunchRef.current.delete(key);
-          projectileLockRef.current.delete(key);
-          projectileLockModeRef.current.delete(key);
-          projectileLockSwitchAtRef.current.delete(key);
-          projectileLastEtaRef.current.delete(key);
-          return;
-        }
-
-        let lock: GuidedLock | null = projectileLockRef.current.get(key) ?? null;
-        if (!lock) {
-          lock = acquireGuidedLock(ev, launch.x, launch.y, launch.dir, shooterSide, units, lazes, profile);
-          if (lock) projectileLockRef.current.set(key, lock);
-        }
-
-        if (profile.preferLiveLaze && lock?.kind === 'unit' && lazes.length > 0) {
-          const preferredLazeUnitId = findNearestLazeUnitId(launch.x, launch.y, launch.dir, ev.unitId, lazes, profile);
-          if (preferredLazeUnitId) {
-            lock = { kind: 'laze', unitId: preferredLazeUnitId };
-            projectileLockRef.current.set(key, lock);
-          }
-        }
-
-        if (lock) {
-          lockMode = lock.kind === 'laze' ? 'LAZE' : 'UNIT';
-          target = resolveGuidedLockTarget(lock, units, lazes, worldSize);
-          if (!target) {
-            // If the original lock vanished, try to reacquire while preserving lock type semantics.
-            let reacquired: GuidedLock | null = null;
-            if (lock.kind === 'laze') {
-              if (typeof ev.targetX === 'number' && Number.isFinite(ev.targetX) && typeof ev.targetY === 'number' && Number.isFinite(ev.targetY)) {
-                const byTargetPoint = findNearestLazeUnitIdByTargetPoint(ev.targetX, ev.targetY, lazes);
-                if (byTargetPoint) {
-                  reacquired = { kind: 'laze', unitId: byTargetPoint };
-                }
-              }
-              if (!reacquired) {
-                const lazeUnitId = findNearestLazeUnitId(launch.x, launch.y, launch.dir, ev.unitId, lazes, profile);
-                if (lazeUnitId) {
-                  reacquired = { kind: 'laze', unitId: lazeUnitId };
-                }
-              }
-            } else {
-              reacquired = acquireGuidedLock(ev, launch.x, launch.y, launch.dir, shooterSide, units, lazes, profile);
-            }
-
-            if (reacquired) {
-              projectileLockRef.current.set(key, reacquired);
-              lockMode = reacquired.kind === 'laze' ? 'LAZE' : 'UNIT';
-              target = resolveGuidedLockTarget(reacquired, units, lazes, worldSize);
-            }
-          }
-        }
-
-        if (!target) {
-          return;
-        }
-      } else {
-        const grp = unit?.groupId ? groups[unit.groupId] : undefined;
-        target = targetFromFiredEvent(ev)
-          ?? targetFromLazes(launch.x, launch.y, launch.dir, ev.unitId, lazes, worldSize, profile)
-          ?? estimateTarget(launch.x, launch.y, launch.dir, shooterSide, grp, units, worldSize, profile);
-      }
-
-      let dstX = target.x;
-      let dstY = target.y;
-
-      // For unguided weapons, use actual impact coordinates once the shell has landed.
-      // The SQF tracker sends fired_impact 0.1 s after impact with the last-known position.
-      // Also accept data from a previous shot of the same fire mission (same unit+weapon aimed
-      // in the same direction) to correct the predicted range before the current shell lands.
-      if (!profile.requiresLock) {
-        const impactKeys = [
-          `${ev.unitId}|${ev.vehicleId}|${ev.weapon}|${ev.muzzle}`,
-          `${ev.vehicleId}|${ev.weapon}|${ev.muzzle}`,
-          `${ev.unitId}|${ev.weapon}|${ev.muzzle}`,
-          `${ev.weapon}|${ev.muzzle}`,
-        ];
-        const impact = impactKeys.map(k => impactLookup.get(k)).find((v): v is FiredImpactEvent => !!v);
-        if (impact) {
-          const impactReceivedAt = Date.parse(impact.at);
-          const impactAge = now - impactReceivedAt;
-          // Current shot: impact arrived after firing with wall-clock delta  TOF
-          const isCurrentShot = impactReceivedAt > firedAt &&
-              Math.abs((impactReceivedAt - firedAt) - impact.timeOfFlight * 1000) < 10_000;
-          // Previous shot, same fire mission: recent (<10 min) and aimed in the same direction (<25)
-          const toImpactX = impact.impactX - launch.x;
-          const toImpactY = impact.impactY - launch.y;
-          const impactBearing = normDeg((Math.atan2(toImpactX, toImpactY) * 180) / Math.PI);
-          const isPrevShot = !isCurrentShot && impactAge < 600_000 &&
-              shortestAngleDiff(dirDeg, impactBearing) < 25;
-          if (isCurrentShot || isPrevShot) {
-            dstX = impact.impactX;
-            dstY = impact.impactY;
-          }
-        }
-      }
-
-      if (!Number.isFinite(dstX) || !Number.isFinite(dstY)) return;
-
-      const distance = Math.hypot(dstX - launch.x, dstY - launch.y);
-      if (distance < 5) return;
-
-      const launchAt = firedAt + profile.launchDelayMs;
-      if (now < launchAt) return;
-
-      // The ballistic model gives a more accurate ETA for artillery/rockets whose
-      // time-of-flight is non-linear with range (high arc at short range, flat at long).
-      // Fallback to fixed-speed formula for non-ballistic profiles (missiles, etc.).
-      // For unguided weapons, prefer the actual TOF from the fired_impact report.
-      let etaMs: number;
-      if (!profile.requiresLock) {
-        const impactKeys = [
-          `${ev.unitId}|${ev.vehicleId}|${ev.weapon}|${ev.muzzle}`,
-          `${ev.vehicleId}|${ev.weapon}|${ev.muzzle}`,
-          `${ev.unitId}|${ev.weapon}|${ev.muzzle}`,
-          `${ev.weapon}|${ev.muzzle}`,
-        ];
-        const impact = impactKeys.map(k => impactLookup.get(k)).find((v): v is FiredImpactEvent => !!v);
-        if (impact) {
-          const impactReceivedAt = Date.parse(impact.at);
-          const impactAge = now - impactReceivedAt;
-          const isCurrentShot = impactReceivedAt > firedAt &&
-              Math.abs((impactReceivedAt - firedAt) - impact.timeOfFlight * 1000) < 10_000;
-          const toImpactX = impact.impactX - launch.x;
-          const toImpactY = impact.impactY - launch.y;
-          const impactBearing = normDeg((Math.atan2(toImpactX, toImpactY) * 180) / Math.PI);
-          const isPrevShot = !isCurrentShot && impactAge < 600_000 &&
-              shortestAngleDiff(dirDeg, impactBearing) < 25;
-          if (isCurrentShot || isPrevShot) {
-            etaMs = impact.timeOfFlight * 1000;
-          } else {
-            etaMs = (profile.useBallistics && profile.ballA && profile.ballB)
-              ? profile.ballA * Math.pow(Math.max(distance, 1), profile.ballB) * 1000
-              : (distance / Math.max(profile.speedMps, 1)) * 1000;
-          }
-        } else {
-          etaMs = (profile.useBallistics && profile.ballA && profile.ballB)
-            ? profile.ballA * Math.pow(Math.max(distance, 1), profile.ballB) * 1000
-            : (distance / Math.max(profile.speedMps, 1)) * 1000;
-        }
-      } else {
-        etaMs = (profile.useBallistics && profile.ballA && profile.ballB)
-          ? profile.ballA * Math.pow(Math.max(distance, 1), profile.ballB) * 1000
-          : (distance / Math.max(profile.speedMps, 1)) * 1000;
-      }
-      const impactAt = launchAt + etaMs;
-      const expiresAt = impactAt + profile.lingerAfterImpactMs;
-      if (now >= expiresAt) return;
-
-      const progress = clamp((now - launchAt) / etaMs, 0, 1);
-      const worldPts = buildPredictedPath(launch.x, launch.y, dstX, dstY, profile.lateralFactor, progress);
-      const mapPts = worldPts.map(([x, y]) => [y * scale, x * scale] as [number, number]);
-      if (mapPts.length < 2) return;
-      activeKeys.add(key);
-
-      L.polyline(mapPts, {
-        color: profile.color,
-        weight: 2.2,
-        opacity: 1,
-        dashArray: '6,5',
-        interactive: false,
-        pane: 'athena-projectile',
-      }).addTo(projectileLayerRef.current);
-
-      const cur = mapPts[mapPts.length - 1];
-  const etaSec = Math.max(0, Math.ceil((impactAt - now) / 1000));
-      projectileLastEtaRef.current.set(key, etaSec);
-      const sourceTag = projectileSourceTag(target);
-      const shooterName = unit ? (unit.playerName?.trim() || unit.name || unit.id) : ev.unitId;
-      const weaponLabel = ev.weapon?.trim() || ev.projectile?.trim() || ev.ammo?.trim() || 'Unknown';
-      debugEntries.push({
-        id: key.slice(-8),
-        trackKey: key,
-        shooter: shooterName,
-        weapon: weaponLabel,
-        lock: lockMode,
-        source: sourceTag,
-        etaSec,
-        target: `${Math.round(dstX)},${Math.round(dstY)}`,
-        lockSwitched: false,
-      });
-
-      L.marker(cur, {
-        pane: 'athena-projectile',
-        interactive: false,
-        icon: L.divIcon({
-          className: '',
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-          html: `<div style="width:8px;height:8px;border-radius:50%;background:${profile.color};box-shadow:0 0 6px ${profile.color};"></div>` +
-            `<div style="margin-top:2px;white-space:nowrap;font-size:9px;font-weight:700;color:${profile.color};text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000;">${sourceTag} ETA ${etaSec}s</div>`,
-        }),
-      }).addTo(projectileLayerRef.current);
-    });
-
-    // Drop cached launch points for projectiles that are no longer active.
-    for (const key of projectileLaunchRef.current.keys()) {
-      if (!activeKeys.has(key)) projectileLaunchRef.current.delete(key);
-    }
-    for (const key of projectileLockRef.current.keys()) {
-      if (!activeKeys.has(key)) projectileLockRef.current.delete(key);
-    }
-    for (const key of projectileLastEtaRef.current.keys()) {
-      if (!activeKeys.has(key)) projectileLastEtaRef.current.delete(key);
-    }
-    for (const key of projectileTerminalRef.current.keys()) {
-      if (projectileTerminalRef.current.get(key)! <= now) projectileTerminalRef.current.delete(key);
-    }
-    for (const key of projectileLockModeRef.current.keys()) {
-      if (!activeKeys.has(key)) projectileLockModeRef.current.delete(key);
-    }
-    for (const key of projectileLockSwitchAtRef.current.keys()) {
-      if (!activeKeys.has(key)) projectileLockSwitchAtRef.current.delete(key);
-    }
-
-    const switchFlashMs = 2500;
-    const debugWithSwitch = debugEntries.map(entry => {
-      const prev = projectileLockModeRef.current.get(entry.trackKey);
-      const current = entry.lock;
-      if (prev && prev !== current) {
-        projectileLockSwitchAtRef.current.set(entry.trackKey, now);
-      }
-      projectileLockModeRef.current.set(entry.trackKey, current);
-
-      const switchedAt = projectileLockSwitchAtRef.current.get(entry.trackKey);
-      const lockSwitched = switchedAt !== undefined && now - switchedAt <= switchFlashMs;
-      return {
-        ...entry,
-        lockSwitched,
-      };
-    });
-
-    onProjectileDebugChange?.(debugWithSwitch.slice(0, 5));
-  }, [firedEvents, firedImpacts, units, vehicles, groups, lazes, worldSize, clockMs, onProjectileDebugChange]);
-
   //  Vehicle markers 
   useEffect(() => {
     vehicleLayerRef.current.clearLayers();
@@ -3640,7 +2793,7 @@ function LayerManager({ units, vehicles, groups, lazes, firedEvents, firedImpact
       const ll: [number, number] = [posY * scale, posX * scale];
       const markerIcon = unitIcon(unit);
       L.marker(ll, { icon: markerIcon, pane: 'athena-unit' })
-        .bindTooltip(`<b>${unit.name}</b><br>${unit.side}  ${unit.rank}<br>${unit.type}`, { sticky: true })
+        .bindTooltip(`<b>${unit.name}</b><br>${unit.side} · ${unit.rank}<br>${unit.type}`, { sticky: true })
         .addTo(unitLayerRef.current);
 
       if (recentShooterIds.has(unit.id)) {
@@ -3663,9 +2816,16 @@ interface MapProps {
   vehicles:   Record<string, Vehicle>;
   groups:     Record<string, Group>;
   relayMarkers?: RelayMarker[];
-  lazes?:     ActiveLaze[];
-  firedEvents?: FiredEvent[];
-  firedImpacts?: FiredImpactEvent[];
+  /** Unit ids to draw with the "just fired" pulse (apps with shot telemetry, e.g. AR). */
+  pulseUnitIds?: Set<string>;
+  /**
+   * Extension slot rendered INSIDE the Leaflet map, so children can use
+   * react-leaflet's `useMap()`. AR plugs its laze/projectile layers in here,
+   * using the reserved `athena-laze` / `athena-projectile` panes.
+   */
+  mapExtensions?: ReactNode;
+  /** Extension slot rendered over the map area, outside Leaflet (e.g. AR's Fire Control panel). */
+  overlayExtensions?: ReactNode;
   worldSize?: number;
   world?:     string;
   roads:      Road[];
@@ -3705,6 +2865,9 @@ export type FirewillITgtTarget = {
   y: number;
   deletedInFirewill: boolean;
 };
+
+/** Stable empty default for `pulseUnitIds` (a new Set per render would re-run marker effects). */
+const NO_PULSE_UNITS: Set<string> = new Set();
 
 const DEFAULT_MAP_CENTER: [number, number] = [50, 50];
 const DEFAULT_MAP_ZOOM = 4;
@@ -3779,11 +2942,11 @@ function ZoomSliderControl() {
           background: 'transparent',
         }}
       />
-      <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}></span>
+      <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10 }}>−</span>
       <span style={{
         color: '#fff', fontSize: 11, fontWeight: 600, fontVariantNumeric: 'tabular-nums',
         marginTop: 2, minWidth: 36, textAlign: 'center',
-      }}>{scaleLabel}</span>
+      }}>{scaleLabel}×</span>
     </div>
   );
 }
@@ -4629,9 +3792,9 @@ function StartupRecenterControl({ world, worldSize }: { world: string; worldSize
 export function AthenaMap({
   units, vehicles, groups,
   relayMarkers = [],
-  lazes = [],
-  firedEvents = [],
-  firedImpacts = [],
+  pulseUnitIds = NO_PULSE_UNITS,
+  mapExtensions,
+  overlayExtensions,
   world = '', worldSize = 10240,
   roads = [], forests = null, locations = [], structures = [], elevations = null, contours = [],
   layers, onLayersChange, renderMode = '2d',
@@ -4646,7 +3809,6 @@ export function AthenaMap({
   isTouchInput = false,
 }: MapProps) {
   const bounds: L.LatLngBoundsExpression = [[0, 0], [100, 100]];
-  const [projectileDebugEntries, setProjectileDebugEntries] = useState<ProjectileDebugEntry[]>([]);
   const [cursorCoords, setCursorCoords] = useState<{ x: number; y: number; z: number | null } | null>(null);
   const [cursorHudCollapsed, setCursorHudCollapsed] = useState(false);
   const elevLookup = useMemo(() => {
@@ -4698,9 +3860,7 @@ export function AthenaMap({
         units={units}
         vehicles={vehicles}
         groups={groups}
-        lazes={lazes}
-        firedEvents={firedEvents}
-        firedImpacts={firedImpacts}
+        pulseUnitIds={pulseUnitIds}
         world={world}
         worldSize={worldSize}
         roads={roads}
@@ -4715,87 +3875,10 @@ export function AthenaMap({
         vehicleMap={vehicleMap}
         locationMap={locationMap}
         shorelineRefreshToken={shorelineRefreshToken}
-        onProjectileDebugChange={setProjectileDebugEntries}
       />
+      {mapExtensions}
     </MapContainer>
-    {projectileDebugEntries.length > 0 && (
-      <div
-        style={{
-          position: 'absolute',
-          top: 12,
-          right: 58,
-          zIndex: 1200,
-          pointerEvents: 'none',
-          minWidth: 320,
-          maxWidth: 420,
-          background: 'linear-gradient(180deg, rgba(30,40,26,0.88), rgba(12,18,12,0.92))',
-          border: '1px solid rgba(193,214,160,0.55)',
-          boxShadow: '0 0 0 1px rgba(12,18,10,0.7), 0 8px 18px rgba(0,0,0,0.45)',
-          color: '#D9EBC2',
-          borderRadius: 6,
-          fontFamily: 'Consolas, "Lucida Console", monospace',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '6px 10px',
-            fontSize: 11,
-            letterSpacing: 1,
-            background: 'rgba(162,189,120,0.12)',
-            borderBottom: '1px solid rgba(193,214,160,0.35)',
-            textTransform: 'uppercase',
-            fontWeight: 700,
-          }}
-        >
-          <span>Fire Control</span>
-          <span style={{ color: '#FFCD7E' }}>Track Live</span>
-        </div>
-        <div style={{ padding: '6px 8px 8px 8px' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.7fr 0.8fr 0.8fr 0.7fr 1fr',
-              columnGap: 8,
-              fontSize: 10,
-              opacity: 0.78,
-              padding: '0 2px 5px 2px',
-              borderBottom: '1px dashed rgba(193,214,160,0.25)',
-              marginBottom: 4,
-            }}
-          >
-            <span>Callsign</span>
-            <span>Lock</span>
-            <span>Src</span>
-            <span>ETA</span>
-            <span>Target</span>
-          </div>
-          {projectileDebugEntries.map(entry => (
-            <div
-              key={entry.trackKey}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1.7fr 0.8fr 0.8fr 0.7fr 1fr',
-                columnGap: 8,
-                fontSize: 11,
-                padding: '3px 2px',
-                borderBottom: '1px solid rgba(193,214,160,0.10)',
-                background: entry.lockSwitched ? 'linear-gradient(90deg, rgba(255,94,94,0.22), rgba(255,180,120,0.04))' : 'transparent',
-              }}
-            >
-              <span style={{ color: '#E8F4D1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={`${entry.shooter}  ${entry.weapon}`}>{entry.shooter}</span>
-              <span style={{ color: entry.lock === 'LAZE' ? '#FF9B9B' : entry.lock === 'UNIT' ? '#FFC778' : '#A9D3FF', fontWeight: 700 }}>{entry.lock}</span>
-              <span>{entry.source}</span>
-              <span>{entry.etaSec}s</span>
-              <span>{entry.target}{entry.lockSwitched ? ' SW' : ''}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
+    {overlayExtensions}
     <div
       style={{
         position: 'fixed',

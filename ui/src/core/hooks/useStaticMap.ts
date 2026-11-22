@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { StaticWorldInfo, ContourLine } from '../types/game';
-import { API_BASE } from '../apiBase';
+import { API_BASE } from '../../appConfig';
 
 const API = `${API_BASE}/api/staticmap`;
 

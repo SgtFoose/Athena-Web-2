@@ -83,6 +83,12 @@ Links: repo https://github.com/SgtFoose/Athena-Web-2 · Workshop (Web2) id `3707
 - Before adding a feature, classify it as `Web2-only` or `Remastered-only`. Reject cross-repo edits by default.
 - Keep docs scoped to `v0.x` language. No `v1.x` release notes, BattlEye steps, or DLL guidance. Short factual references to AR are allowed only where they explain the repo boundary (as in the section above).
 - Preserve existing Web2 look-and-feel (see "Bus-exact rendering" below); don't import Remastered backend assumptions.
+- **Shared UI core rules** (`ui/src/core/`, see `docs/ui-core-sync.md`):
+  - Core files must not import from `adapter/` or `App.tsx`. App-specific values come only from `appConfig.ts`.
+  - No Web2-only strings or URLs in the core: branding, relay ports, AthenaWeb.exe steps.
+  - **AR-only features don't live in the core.** That covers lazes, projectile tracking, Fire Control and the kill/shot feed. AR plugs them in through the core's extension slots (`AthenaMap` `mapExtensions` / `overlayExtensions` / `pulseUnitIds`, and the reserved `athena-laze` / `athena-projectile` panes). `CAPABILITIES` only gates the core's own UI (sidebar toggles, pane visibility).
+  - Data-source differences (endpoints, row order, grid size) go in `MAP_DATA`.
+  - Sync is one-way, **Web2 → AR**. Never copy AR code into the core.
 - **Safety check before commit:** changed files are only Web2 paths (`bridge/`, `ui/`, `@AthenaWeb2/`, Web2 docs/config); no Remastered folders, and no `1.x` release/version entries; new features achievable from relay/cache data.
 - **Branch + PR workflow (agreed 2026-11-22):** `main` has a GitHub ruleset (`Protect Master`) that requires changes to go through a pull request (0 required approvals, since authors can't approve their own PRs) and blocks deletion and force-pushes. Never commit straight to `main`. Each task gets its own branch off up-to-date `main` with a prefix: `feat/`, `fix/`, `docs/`, `chore/`, `release/` (e.g. `fix/ao-camp-labels`). Open a PR to `main` with an English description: what changed, why, how to test, and screenshots for UI changes. The owner merges. Use Conventional Commit style messages (`feat:`, `fix:`, `docs:`, `chore:`, `build:`, `release:`), matching existing history.
 - **Git/GitHub operations:** only commit, push, tag, or touch GitHub Releases/API when the user asks; confirm before each such remote operation. Auth comes from the user's session (`gh` CLI or `GITHUB_TOKEN` env var). Never hardcode, print, commit, or store tokens anywhere in the repo, prompts, release notes, or source.
@@ -99,17 +105,22 @@ bridge/                  Node.js bridge (CommonJS)
   dist/                  AthenaWeb.exe + AthenaWeb-<version>.exe (tracked, must match release)
   public/
 ui/                      React + Vite + TypeScript + Leaflet
-  src/App.tsx            root; active-world logic, layer defaults
+  src/App.tsx            Web2 composition: core + adapter, active-world logic, welcome texts, layer defaults
+  src/appConfig.ts       the ONLY place the core reads app values from (API_BASE, name/version, DONATE_URL, CAPABILITIES, MAP_DATA)
   src/version.ts         APP_VERSION / APP_NAME
   src/apiBase.ts
-  src/components/AthenaMap.tsx   all map rendering layers (~4900 lines)
-  src/components/Sidebar.tsx     MAP/ORBAT tabs, layer toggles, locations, world picker, I-TGT targets
-  src/components/EventFeed.tsx   kills/shots feed
-  src/components/MapCacheBanner.tsx  cache health warning
-  src/hooks/useAthenaHub.ts      bridge WebSocket + REST geometry hydration
-  src/hooks/useStaticMap.ts      contours/landmask fetch
-  src/hooks/useHealthCheck.ts, useAthenaLibrary.ts
-  src/types/game.ts              TS interfaces for game data
+  src/core/              SHARED UI CORE, copied one-way to Athena Remastered (docs/ui-core-sync.md)
+    components/AthenaMap.tsx     all map rendering layers (~4900 lines)
+    components/Sidebar.tsx       MAP/ORBAT tabs, layer toggles, locations, world picker
+    components/AppShell.tsx      3-column layout + collapsible sidebars
+    components/ITgtTargetsPanel.tsx, WelcomeOverlay.tsx, ExportStatusOverlay.tsx, SidebarHeader.tsx, MapErrorBoundary.tsx
+    hooks/useStaticMap.ts, useAthenaLibrary.ts, useITgtTargets.ts, useFollowActivePlayer.ts, useTouchInput.ts
+    types/game.ts                data contract (shared with AR)
+    types/ui.ts                  LayerVisibility, RenderMode, AppCapabilities, MapDataConfig
+    utils/firewillITgt.ts
+  src/adapter/           Web2-only data layer
+    useAthenaHub.ts              bridge WebSocket + REST geometry hydration
+    useHealthCheck.ts, MapCacheBanner.tsx
   public/icons/vehicles/         Bus original vehicle icon PNGs
   icon-mapping.md                vehicle class → category → icon table (see below)
 @AthenaWeb2/             Steam Workshop distribution stub (EXE + no-op stub PBO, publish scripts)

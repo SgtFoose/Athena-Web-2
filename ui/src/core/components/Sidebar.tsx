@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { GameFrame, Group, Unit, MapLocation, ServerSettings } from '../types/game';
-import type { LayerVisibility, RenderMode } from '../App';
-import { APP_VERSION } from '../version';
+import type { LayerVisibility, RenderMode } from '../types/ui';
+import { APP_VERSION, CAPABILITIES } from '../../appConfig';
 
 //  Helpers 
 
@@ -348,14 +348,21 @@ function CommonPanel({
           { key: 'roads',      label: 'Roads' },
           { key: 'structures', label: 'Structures' },
           { key: 'locations',  label: 'Locations' },
-          { key: 'armaMarkers', label: 'Arma Markers' },
-          { key: 'firewillITgtMarkers', label: 'Firewill I-TGT Markers' },
-          { key: 'aoMarkers',  label: 'AO Markers' },
-          { key: 'spawnMarkers', label: 'Spawn Markers' },
+          // Mission-marker layers: only when the data source streams markers.
+          { key: 'armaMarkers', label: 'Arma Markers', show: CAPABILITIES.relayMarkers },
+          { key: 'firewillITgtMarkers', label: 'Firewill I-TGT Markers', show: CAPABILITIES.relayMarkers },
+          { key: 'aoMarkers',  label: 'AO Markers', show: CAPABILITIES.relayMarkers },
+          { key: 'spawnMarkers', label: 'Spawn Markers', show: CAPABILITIES.relayMarkers },
           { key: 'groups',     label: 'Groups' },
+          // AR-only telemetry layers (extension DLL); see CAPABILITIES in appConfig.ts.
+          { key: 'waypoints',  label: 'Waypoints', show: CAPABILITIES.waypointToggle },
+          { key: 'lazes',      label: 'Active Lazes', show: CAPABILITIES.lazes },
+          { key: 'projectiles', label: 'Projectile Tracking', show: CAPABILITIES.projectiles },
           { key: 'vehicles',   label: 'Vehicles' },
           { key: 'units',      label: 'Units' },
-        ] as { key: keyof LayerVisibility; label: string }[]).map(({ key, label }) => (
+        ] as { key: keyof LayerVisibility; label: string; show?: boolean }[])
+          .filter(({ show }) => show !== false)
+          .map(({ key, label }) => (
           <label key={key} style={{
             display: 'flex', alignItems: 'center', gap: 8,
             marginBottom: 5, cursor: 'pointer', userSelect: 'none',
@@ -507,7 +514,7 @@ function OrbatPanel({
             >
               <span style={{ color, fontWeight: 700, fontSize: 12 }}>{g.name || g.id}</span>
               <span style={{ color: '#555', fontSize: 10, fontFamily: 'monospace' }}>
-                {formatXY(posX, posY)}  {groupUnits.length}
+                {formatXY(posX, posY)} · {groupUnits.length}
               </span>
             </button>
             {/* Unit list */}
