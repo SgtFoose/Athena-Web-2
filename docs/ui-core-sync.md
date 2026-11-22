@@ -83,6 +83,53 @@ Additional code smell: the missile profile matches `text.includes('at')` (AR `At
 
 Planned AR fix direction: send the projectile's initial velocity vector (azimuth + elevation) from the `Fired` event through AR's SQF/DLL, compute the ballistic impact point from it, and keep `fired_impact` as the correction. Replace the substring weapon matching with explicit, ordered rules.
 
+### Design: AR projectile tracking v2 (approved by the owner 2026-11-22)
+
+**Current approach (built ~7 months ago):**
+- the direction comes from the turret azimuth of the first round
+- distance and time come from per-weapon curves fitted to two test shots (`ETA ≈ ballA × d^ballB`)
+- the impact point and ETA are corrected only after the first impact
+
+That is a guess plus a correction. Arma itself knows the exact trajectory, and AR's DLL lets us read it out.
+
+**New approach**, all AR-side (SQF + DLL + backend + the AR UI extension):
+
+1. **Exact launch data.**
+   - Hook the `Fired` event, or better the `ProjectileCreated` mission event, which also covers other players' projectiles in multiplayer.
+   - Read `velocity _projectile` and the launch position.
+   - That gives the real launch azimuth **and** elevation, including the angle the artillery computer chose. No turret estimate and no first-round calibration.
+2. **Physical trajectory prediction.**
+   - Simulate Arma's projectile model in small time steps: gravity plus drag (`airFriction` from `CfgAmmo` × v·|v|).
+   - Stop where the path meets the terrain, using the elevation data already in the map cache.
+   - This gives the impact point and ETA on the **first** shot, for any range, with no per-weapon `ballA/ballB` table.
+3. **Live in-flight tracking.**
+   - One shared low-rate loop (about 4 Hz) samples the position and velocity of all active projectiles and sends them through the DLL.
+   - The UI draws the **real** trail and re-runs the prediction from the latest sample, so the impact estimate converges during flight.
+   - This is required for MLRS rockets: their motor burns in the first seconds, so a pure ballistic prediction from the launch velocity is wrong there.
+4. **Exact impact.**
+   - The projectile `Explode` event handler (Arma 3 2.10+) reports the exact impact position.
+   - This replaces the estimate-from-first-impact correction and makes `fired_impact` exact.
+5. **Weapon classification:** explicit, ordered rules on `CfgAmmo` simulation type and class (`shotShell`, `shotRocket`, `shotMissile`, …) instead of substring matching on names.
+
+| | Current | v2 |
+|---|---|---|
+| Direction | turret azimuth (estimate) | real launch vector |
+| First shot | inaccurate until first impact | accurate immediately |
+| ETA | curve fitted to two test shots | physics simulation + live updates |
+| MLRS rockets | no track | live tracking (covers the motor phase) |
+| Impact | estimated | exact (`Explode`) |
+| Other players' fire (MP) | unclear | `ProjectileCreated` |
+
+**To verify live before building on it:**
+- `ProjectileCreated` and `Explode` are available in the owner's Arma version
+- `airFriction`-based trajectories match real 155 mm and 230 mm impacts
+- FPS cost of tracking a full MLRS salvo (12 rockets)
+
+**Performance guardrails:**
+- one shared loop rather than one script per projectile
+- a cap on the number of tracked projectiles
+- data is sent only while projectiles are in flight
+
 The removed Web2 copy of that code is still in git history: commit `966b6bc` (`ui/src/core/components/AthenaMap.tsx`, and `EventFeed.tsx`). AR's current frontend also has its own copy. In Phase 2, AR builds its extension from those sources and fixes the projectile tracking bug there, with live testing.
 
 ## Capabilities
