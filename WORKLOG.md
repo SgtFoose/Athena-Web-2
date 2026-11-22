@@ -39,6 +39,7 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - Simulated live test via AR's real put API (mission, unit with laser, mortar shot): laze marker, projectile track, Fire Control and Recent Shots all render through the new core slots.
   - Testing tooling: headless Chrome `--screenshot` captured too early, and `--virtual-time-budget` hangs on SignalR. A small Chrome DevTools Protocol script (scratchpad) takes timed screenshots instead.
 - Owner to-do request: align the Steam Workshop pages of AR and Web2 (names, tags, description style). Added to the backlog.
+- Owner approved push + PRs. Identity checked first (noreply email, `gh` user SgtFoose). Opened Web2 **PR #6** https://github.com/SgtFoose/Athena-Web-2/pull/6 (merge first) and AR **PR #2** https://github.com/SgtFoose/AthenaRemastered/pull/2 (merge after the owner's live Arma test).
 
 ### 2026-11-22 — UI core sync (Web2 → AR): analysis + Phase 1 step 1
 - PR #4 merged by the owner (`8c06673`); local `main` updated.
