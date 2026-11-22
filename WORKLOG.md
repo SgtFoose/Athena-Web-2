@@ -19,6 +19,7 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Web2 test EXE `D:\AthenaWeb2-test\AthenaWeb.exe` (`v0.1.1-test (d3278fb)`): `npm --prefix ui run build` (no `ATHENA_RELEASE`), `robocopy ui\dist bridge\wwwroot /MIR`, pkg output straight to D:; tracked `bridge/wwwroot` restored so `bridge/dist` and the repo stay unchanged. `TEST-INSTRUCTIONS.txt` added.
 - Validation: both builds exit 0; the embedded commit SHA was found in each bundle; `git status` clean in both repos.
 - Pending: owner live test in Arma.
+- Owner approved the push: branch `docs/log-test-builds` pushed, PR #10 → `main`.
 
 ### 2026-11-22 — Pushed branches and opened stacked PRs
 - Owner approved the push. `gh auth status`: SgtFoose; commit identity is the SgtFoose noreply address in both repos.
