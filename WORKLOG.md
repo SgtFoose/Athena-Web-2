@@ -109,7 +109,8 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
     - ESLint: same 11 findings as before, no new ones
     - simulation screenshot identical to step 5
     - One run logged a Leaflet console error `Cannot read properties of undefined (reading '_leaflet_pos')`, on the first cold page load right after starting the Vite dev server. Not reproduced in 8 further runs of the new code (0/8). Baseline without step 6 (stashed): 0/4. Most likely Vite's first-load dependency optimisation reload, which the production build doesn't do. Logged as unconfirmed; watch for it.
-- Docs: `docs/ui-core-sync.md` now has the appConfig contract, the core component list, the capabilities table and status. `CLAUDE.md` repository layout updated, and new "Shared UI core rules" added to the working rules.
+- Docs: `docs/ui-core-sync.md` now has the appConfig contract, the core component list, the capabilities table and status.
+- Owner approved the push. Checked identity first (noreply email, `gh` user SgtFoose). Pushed `refactor/ui-core-split` (9 commits) and opened **PR #5**: https://github.com/SgtFoose/Athena-Web-2/pull/5 ("refactor(ui): shared UI core for Web2 and Athena Remastered (Phase 1)"). No release needed: no functional change for Web2 users. `CLAUDE.md` repository layout updated, and new "Shared UI core rules" added to the working rules.
   - Found: the welcome background `ui/public/athena-default-bg.png` contains the text "ATHENA REMASTERED – LOADING BATTLEFIELD INTEL…" (inherited from AR). Backlog: make the welcome image per-app via `appConfig`.
   - The AR screenshot (Malden) shows the pre-fix rendering: forest blocks spilling over the coast, a stair-stepped coastline, opaque dark forest. That confirms the value of porting the shared core.
 
