@@ -10,6 +10,25 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — UI core sync: Phase 1 merged, AR Phase 2 step 1 merged, sync script (Phase 3)
+- Web2 PR #5 (Phase 1, shared UI core) merged by the owner as `de9953a`. Local `main` updated, branch deleted, sanity build passed.
+- AR repo (logged in detail in AR's own `WORKLOG.md`):
+  - PR #1 "flatten repo layout + Claude Code process files" merged as `b640b5d`
+  - .NET 9 SDK 9.0.321 installed; the AR backend builds cleanly
+  - AR `main` ruleset aligned with Web2 (one ruleset "Protect master", PR required, 0 approvals). I had first created a duplicate ruleset without checking the existing one; fixed by updating the existing one and deleting the duplicate.
+  - Owner's live findings logged there: Mk6 mortar shows a track only for the first shot until an F5 refresh; Safari vs Chrome sync drift; laze markers accurate while projectile tracks drift (client-clock prediction).
+- **Phase 3 tooling** (branch `feat/core-sync-script`):
+  - new `scripts/sync-core-to-ar.ps1`: one-way mirror `ui/src/core/` → AR `Frontend/src/core/`. It refuses uncommitted Web2 core changes (`-AllowDirty`), detects hand edits in AR through a SHA-256 manifest `core-manifest.json` (`-Force`), deletes removed files, writes the source commit and timestamp, and never commits.
+  - new `ui/src/core/README.md` explaining the one-way rule.
+  - Validation (scratch copy of an AR tree, not the real repo):
+    - with uncommitted Web2 core changes → refused (expected)
+    - `-WhatIf` against AR lists 17 files and writes nothing
+    - first sync: 17 files + manifest (commit `819a053`)
+    - second sync: 0 changes
+    - hand edit in the "AR" copy → refused, naming `modified in AR: types/ui.ts`
+    - `-Force` → only that file overwritten
+  - Docs: `docs/ui-core-sync.md` ("Sync tooling (Phase 3)"), `CLAUDE.md` core rules.
+
 ### 2026-11-22 — UI core sync (Web2 → AR): analysis + Phase 1 step 1
 - PR #4 merged by the owner (`8c06673`); local `main` updated.
 - **Owner request:** investigate the differences between AR (`C:\AthenaRemastered`) and Web2 and bring them into sync, keeping in mind that AR has more functionality because of its custom DLL.

@@ -185,6 +185,22 @@ Found during the owner's live AR test on 2026-11-22. These are AR repo changes, 
 | Sidebars can't be collapsed (awkward on tablets). | AR has the pre-Web2 app shell. | Comes with the shared core's app shell (Phase 1 step 2). |
 | No I-TGT. | AR predates the I-TGT work. | **Stored I-TGT targets** (T / middle click / SAVE TGT, target panel) are UI-only and come with the shared core. **Firewill I-TGT markers** need mission markers from the game: Web2 gets them from Bus's relay, but AR's backend has no markers (`GameFrame` has no `Markers`). Optional AR feature: collect `allMapMarkers` in AR's SQF/DLL and stream them as `GameFrame.markers`; then enable `CAPABILITIES.relayMarkers` in AR. |
 
+## Sync tooling (Phase 3)
+
+`scripts/sync-core-to-ar.ps1` mirrors `ui/src/core/` into AR's `Frontend/src/core/`:
+
+```powershell
+.\scripts\sync-core-to-ar.ps1 -WhatIf          # show what would change
+.\scripts\sync-core-to-ar.ps1                  # sync (AR path defaults to C:\AthenaRemastered)
+.\scripts\sync-core-to-ar.ps1 -ArRepo D:\AR    # other AR checkout
+```
+
+- It refuses uncommitted Web2 core changes, so the manifest always points at a real Web2 commit (override: `-AllowDirty`).
+- It writes `Frontend/src/core/core-manifest.json` in AR (source commit, UTC timestamp, SHA-256 per file).
+- **Drift check:** files edited, added or deleted by hand in AR's core since the last sync abort the run and are listed (override: `-Force`).
+- It deletes AR core files that no longer exist in Web2.
+- It never commits. Review the change and commit it in AR on a branch.
+
 ## Status
 
 - 2026-11-22: analysis done, approach approved by the owner. Phase 1 started on branch `refactor/ui-core-split`.
