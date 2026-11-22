@@ -40,6 +40,29 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 - Noted that the `gh` CLI is not installed on this machine.
 - Validation: `git config --local --list` shows the three values above.
 
+#### 2026-11-22 follow-up — First commit from the new workspace
+- Committed `CLAUDE.md` + `WORKLOG.md` as `04c71da` ("docs: add CLAUDE.md and log move from Copilot to Claude Code"). Checked the author before committing: `Sgt.Foose <17387175+SgtFoose@users.noreply.github.com>` (noreply address, so no personal email is exposed).
+- `git push origin main` from Claude's shell failed: `Cannot prompt because user interactivity has been disabled`. Git Credential Manager needs an interactive login the first time.
+- Next step: the owner runs the first push from their own VS Code terminal and signs in as `SgtFoose`. Later pushes reuse the stored credential.
+- A second push attempt from Claude's shell (with interactive login enabled) was blocked by Claude Code's auto-mode permission check, which doesn't allow pushes that involve a credential login.
+- The owner pushed from their own terminal: `c459a3f..04c71da  main -> main`. Checked with `git fetch`: `origin/main` = `04c71da`, author `Sgt.Foose <17387175+SgtFoose@users.noreply.github.com>`, so no personal email is exposed on GitHub.
+- GitHub credentials for `SgtFoose` are now stored in Git Credential Manager on this machine.
+- The push output showed `Bypassed rule violations for refs/heads/main: Changes must be made through a pull request.` `main` has a ruleset that requires PRs; the owner's admin rights bypassed it for this push.
+
+#### 2026-11-22 follow-up — Dev toolchain check on the new machine
+- The owner tried `npm --prefix ui run build` and got `npm` not recognized.
+- Checked the machine: `node`, `npm`, and `gh` are not installed (no `%ProgramFiles%\nodejs`, no nvm). `winget` v1.29.380 is available.
+- Node is needed for `npm --prefix ui run build`, the bridge (`node server.js`), and `npm run build:exe` (pkg target `node22-win-x64`). Waited for the owner's OK before installing.
+- The owner approved. Installed via winget: `OpenJS.NodeJS.22` → Node v22.23.5 / npm 10.9.9, and `GitHub.cli` → gh 2.105.0. Node 22 matches the pkg EXE target.
+- Owner decision: from now on, work on branches and open PRs to `main`, following the GitHub ruleset. Added this workflow to `CLAUDE.md`, along with toolchain/PATH notes.
+- Created branch `chore/claude-setup-toolchain`.
+- Validation:
+  - `npm --prefix ui ci` succeeded. npm audit reports advisories; not addressed yet.
+  - `npm --prefix ui run build` passed (`tsc -b && vite build`, 84 modules, JS bundle 476.57 kB / 144.82 kB gzip). The pre-v0.1.0 `ui/src/App.tsx` nullability error is resolved, so I removed that open item from `CLAUDE.md`.
+  - `node --check bridge/server.js` passed.
+  - The build left no tracked files changed (`ui/dist` is ignored, and `bridge/wwwroot` wasn't touched).
+- Small finding: `ui/package.json` still reports `"version": "0.0.2"` (`frontend@0.0.2`), while `APP_VERSION` is `0.1.0`. Not changed yet; worth syncing at the next release.
+
 ### 2026-05-04 — v0.1.0 Release: Map Rendering Pass (Contours, Land Fill, Taxi)
 
 - Applied contour line smoothing: single Chaikin pass (after RDP) on elevation contours removes blocky stairstepping.

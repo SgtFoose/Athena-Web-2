@@ -83,6 +83,7 @@ Links: repo https://github.com/SgtFoose/Athena-Web-2 · Workshop (Web2) id `3707
 - Keep docs scoped to `v0.x` language. No `v1.x` notes, BattlEye steps, or DLL guidance.
 - Preserve existing Web2 look-and-feel (see "Bus-exact rendering" below); don't import Remastered backend assumptions.
 - **Safety check before commit:** changed files are only Web2 paths (`bridge/`, `ui/`, `@AthenaWeb2/`, Web2 docs/config); no Remastered folders or `1.x` text; new features achievable from relay/cache data.
+- **Branch + PR workflow (agreed 2026-11-22):** `main` has a GitHub ruleset that requires changes to go through a pull request. Never commit straight to `main`. Each task gets its own branch off up-to-date `main` with a prefix: `feat/`, `fix/`, `docs/`, `chore/`, `release/` (e.g. `fix/ao-camp-labels`). Open a PR to `main` with an English description: what changed, why, how to test, and screenshots for UI changes. The owner merges. Use Conventional Commit style messages (`feat:`, `fix:`, `docs:`, `chore:`, `build:`, `release:`), matching existing history.
 - **Git/GitHub operations:** only commit, push, tag, or touch GitHub Releases/API when the user asks; confirm before each such remote operation. Auth comes from the user's session (`gh` CLI or `GITHUB_TOKEN` env var). Never hardcode, print, commit, or store tokens anywhere in the repo, prompts, release notes, or source.
 
 ---
@@ -223,7 +224,6 @@ Documentation sync is always-on: any change to behavior, packaging, setup, or re
 - AO camp objective number labels (`1..5`) not consistently visible on camp icons.
 - Tanoa taxi/runway coverage ~95%; some isolated connector tiles render as dirt.
 - Vegetation/hedge orientation mismatch at `X:6874.88 Y:7381.98` (Tanoa cache) — long-standing.
-- A pre-v0.1.0 note mentioned `ui/src/App.tsx` nullability error (`health` possibly `null`) blocking `npm run build`; confirm it's resolved.
 - Relay map-export chunk delivery to bridge still unconfirmed (Desktop cache is the working path).
 - Parity backlog & next tasks: see bottom of `WORKLOG.md` (connection diagnostics panel, ORBAT player/AI styling, anchors + Locate, tracking lines with bearing/distance, session save/load, ink layers, record/playback).
 
@@ -231,3 +231,6 @@ Documentation sync is always-on: any change to behavior, packaging, setup, or re
 
 - Windows. Older WORKLOG entries reference paths on a previous machine (`C:\Users\jvdv2\...`); use `%USERPROFILE%` equivalents on the current machine. Repo now lives at `C:\Athena-Web-2`.
 - Arma Workshop root: `C:\Program Files (x86)\Steam\steamapps\common\Arma 3\!Workshop\`.
+- Toolchain (installed 2026-11-22 via winget): Node.js 22 LTS (`OpenJS.NodeJS.22`, npm 10), GitHub CLI `gh` (`GitHub.cli`). Install UI deps with `npm --prefix ui ci`.
+- Shells started before those installs don't have them on PATH. Restart VS Code, or in PowerShell run: `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')`.
+- Claude Code's auto mode blocks `git push` when a credential login prompt is involved. The owner does any first-time login (`git push`, `gh auth login`) in their own terminal.
