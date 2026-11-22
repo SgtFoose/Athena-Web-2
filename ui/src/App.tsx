@@ -8,7 +8,18 @@ import { useStaticMap } from './hooks/useStaticMap'
 import { useAthenaLibrary } from './hooks/useAthenaLibrary'
 import { useHealthCheck } from './hooks/useHealthCheck'
 import type { RelayMarker } from './types/game'
-import { APP_VERSION } from './version'
+import { APP_VERSION, APP_NAME } from './version'
+
+/**
+ * Donate link shown in the sidebar header (the owner's public PayPal.Me page).
+ *
+ * Why PayPal.Me: before v0.1.1 this was a `paypal.com/donate/?business=...`
+ * link inherited from Athena Remastered. That donate page only works for
+ * PayPal accounts with donations enabled; for this account PayPal answered
+ * "this organization can't accept donations at the moment". PayPal.Me works
+ * with a personal account and needs no extra parameters.
+ */
+const DONATE_URL = 'https://paypal.me/jeroenvdvelden'
 import './App.css'
 
 export type RenderMode = '2d' | 'heatmap1' | 'heatmap2'
@@ -427,12 +438,12 @@ function App() {
     <div className={`app-shell ${leftSidebarCollapsed ? 'left-collapsed' : ''} ${rightSidebarCollapsed ? 'right-collapsed' : ''}`}>
       <aside className={`sidebar ${leftSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <span className="logo-text">ATHENA REMASTERED</span>
+          <span className="logo-text">{APP_NAME.toUpperCase()}</span>
           <span className="header-right">
             <span className="version-label">v{APP_VERSION}</span>
             <a
               className="donate-link"
-              href="https://www.paypal.com/donate/?business=G76WK9YDWUSAE&item_name=Athena+Remastered+Dev&EUR&no_note=0"
+              href={DONATE_URL}
               target="_blank"
               rel="noreferrer"
               title="Support development"
@@ -490,10 +501,10 @@ function App() {
             <img
               className="welcome-bg"
               src="/athena-default-bg.png"
-              alt="Athena Remastered"
+              alt={APP_NAME}
             />
             <div className="welcome-banner">
-              <div className="welcome-title">ATHENA REMASTERED</div>
+              <div className="welcome-title">{APP_NAME.toUpperCase()}</div>
               <div className="welcome-status">
                 {welcomeStatusText}
               </div>

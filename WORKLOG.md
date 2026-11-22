@@ -10,6 +10,49 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
 
 ## Timeline
 
+### 2026-11-22 — v0.1.1 Release: custom map world-size fix
+- PR #2 (`fix/unknown-world-size`) merged by the owner as `365addc`. Local `main` updated, merged branch deleted.
+- Stopped the local simulation (fake relay, bridge, Vite dev server); ports 3000, 3001, 5173 and 28801 confirmed free.
+- At the owner's request, copied the test build to `D:\AthenaWeb-0.1.1-test\` (`AthenaWeb-0.1.1-test-worldsize.exe`, SHA256 `883D3C8D…` matches the original, plus `TEST-INSTRUCTIONS.txt`).
+- **Live validation by the owner** (home PC, test EXE, iPad client, Arma 3 + Bus `@Athena`, Domination mission on **VR**):
+  - VR wasn't cached at first ("No cached data for VR"), so the fix had no real size to use (expected; fallback 10240).
+  - Owner ran the Athena Desktop **Export**; Arma reported "All world data supplied to relay". The cache `Documents\Athena\Maps\VR\` was created (`Map`, `Objects`, `Forests`, `Locations`, `Trees`, `Height/`; no roads on VR). `Map.txt` `WorldSize` = **8192**.
+  - After restarting the EXE: player NightHawk at X 482 / Y 3326.68, matching Athena Desktop grid `G:004033`.
+  - **Map-extent check:** dragged to the map's left edge at zoom 0.1 and tapped the right edge → **X 7976.96**, i.e. about 8192 (real VR size), not 10240 (old guess). **Fix confirmed live.**
+- Release `v0.1.1` prepared on `release/v0.1.1`:
+  - Version sync:
+    - `ui/src/version.ts` `APP_VERSION` → `0.1.1` (rewritten without BOM after PowerShell 5 `Set-Content -Encoding utf8` added one)
+    - `ui/package.json` + `ui/package-lock.json` → `0.1.1` via `npm version --no-git-tag-version` (was `0.0.2`; backlog item closed)
+    - `README.md`: version, tracked EXE path, new v0.1.1 highlights, Quick Start / SmartScreen / maintainer / first-time export EXE names, workshop change-note path
+    - `CHANGELOG.md` `[0.1.1]` entry
+    - `CLAUDE.md` current version and open items
+  - Release notes: `.github/release-notes-template-v0.1.1.md` (download path, SmartScreen + `Unblock-File`, highlights, first-time export reminder, known limitations).
+  - Workshop: `@AthenaWeb2/workshop-change-note-0.1.1.txt`; `Update-Workshop.ps1` default change note → 0.1.1. Publishing to the Workshop remains the owner's call.
+  - **Added to v0.1.1 at the owner's request:** the owner reported the PayPal Donate link was broken.
+    - The link (inherited from AR; AR has the identical link) contained a bare `&EUR` parameter instead of `currency_code=EUR`, and `item_name=Athena+Remastered+Dev`.
+    - Owner chose to keep the same PayPal account ID and fix the parameters, and to include the "ATHENA REMASTERED" branding fix in this release.
+    - Changes, committed separately (final commit `dfb40fa`):
+      - `ui/src/App.tsx`: `DONATE_URL` constant (with comment); first attempt used `item_name=Athena+Web+2&currency_code=EUR`, final value is the PayPal.Me link (see below)
+      - `ui/src/App.tsx`: sidebar header, welcome title and image alt now use the existing `APP_NAME` constant
+      - `ui/index.html`: page title `frontend` → `Athena Web 2`
+    - Owner tested the corrected `donate/?business=` link: PayPal answered "Deze organisatie kan op dit moment geen donaties accepteren" ("this organization can't accept donations at the moment"). The URL is now well-formed, but that donate page needs a PayPal account with donations enabled.
+    - Owner chose PayPal.Me and provided their PayPal.Me settings URL. `DONATE_URL` → public link `https://paypal.me/jeroenvdvelden` (locale/country query parameters dropped). Folded into the fix commit (amended, unpushed) → `dfb40fa`.
+    - Process note: the first release commit (`31825ee`, unpushed) already held a 62 MB EXE. It was undone locally (`git reset --soft`) before rebuilding, so only the final EXE enters history.
+    - Process note: Windows PowerShell 5 mangles double quotes in native-command arguments (a here-string passed to `git commit -m` was split into pathspecs). Commit messages containing quotes now go through `git commit -F <file>`.
+  - Build (final):
+    - `npm --prefix ui run build` → bundle `index-CQGC_xb4.js`
+    - `robocopy ui\dist bridge\wwwroot /MIR`
+    - `npm run build:exe` → `bridge/dist/AthenaWeb.exe`
+  - Dist parity: `bridge/dist/AthenaWeb-0.1.1.exe`, `bridge/dist/AthenaWeb.exe`, `@AthenaWeb2/AthenaWeb-0.1.1.exe` and `@AthenaWeb2/AthenaWeb.exe` are identical (SHA256 `513722d8f4985962…`, 62,044,389 bytes). Removed the tracked `AthenaWeb-0.1.0.exe` from both folders. Updated `repo_dist_contents.json` (path, blob SHA `5d47cec8…`, SHA256, size).
+  - Smoke test of `AthenaWeb-0.1.1.exe`:
+    - page title `Athena Web 2`, bundle `assets/index-CQGC_xb4.js`
+    - bundle contains `https://paypal.me/jeroenvdvelden`, "Athena Web 2" and `0.1.1`; the old PayPal ID and "ATHENA REMASTERED" are gone
+    - `/api/health` returns 503 by design when no map cache exists (this machine has none; `server.js:493`)
+- Owner noted `paypal.com/paypalme/jeroenvdvelden` also works. Kept the official short form `paypal.me/jeroenvdvelden`, which redirects there; no rebuild needed.
+- Owner approved the push. Checked identity first (noreply email, `gh` user SgtFoose). Pushed `release/v0.1.1` (`dfb40fa`, `c74dbb1`) and opened PR #3: https://github.com/SgtFoose/Athena-Web-2/pull/3.
+  - GitHub warned `GH001: Large files detected` for the ~59 MB EXEs: over the recommended 50 MB, under the hard 100 MB limit. Same as earlier releases. Possible future improvement: Git LFS, or stop tracking EXEs in the repo and rely on Release assets.
+- Next: owner merges PR #3. Then, with the owner's go-ahead: tag `v0.1.1` and a GitHub Release with `AthenaWeb-0.1.1.exe`, verifying the asset SHA256 against local. Optional Workshop update.
+
 ### 2026-11-22 — v0.1.x Investigation: custom maps render squeezed into the bottom-left corner (Workshop report)
 - PR #1 (`chore/claude-setup-toolchain`) was merged by the owner as `c197289`. Local `main` updated, merged branch deleted. Created `fix/unknown-world-size` from `main` for this investigation.
 - **User report (Steam Workshop comments):** on the custom map **Kunduz**, live in-game, the player was shown and the MAP DATA panel listed all cached objects. But "everything on the map was condensed into the bottom-left corner of the map", so there was no usable map. The same user says AR and the original Athena Desktop work on that map.
@@ -1107,10 +1150,12 @@ Scope decision (2026-04-06): defer shot origin tracking, ballistic reconstructio
 ### Cleanup / Hardening (found 2026-11-22)
 - [ ] Bridge: validate world names in map-cache routes; make cache-mode changes POST-only (`fix/validate-world-names`; details withheld until fixed).
 - [ ] Bridge: catch malformed URL encoding in the request handler so a bad request can't crash the process.
-- [ ] UI: remove leftover AR branding ("ATHENA REMASTERED") and AR's donate link from `ui/src/App.tsx`.
-- [ ] UI: drop the unused `@microsoft/signalr` dependency; sync `ui/package.json` version with `APP_VERSION`.
+- [x] UI: remove leftover AR branding ("ATHENA REMASTERED") and fix the donate link in `ui/src/App.tsx` (done in v0.1.1).
+- [ ] UI: drop the unused `@microsoft/signalr` dependency.
+- [x] UI: sync `ui/package.json` version with `APP_VERSION` (done in v0.1.1).
 - [ ] UI: review laze/projectile code inherited from AR against Web2's capability boundary.
 - [ ] Review `npm audit` advisories in `ui/`.
+- [ ] Repo: tracked ~59 MB EXEs trigger GitHub's large-file warning on every release. Consider Git LFS, or keeping EXEs only as Release assets.
 - [ ] UI: closed-ring coastline smoothing leaves a small gap in the stroke at the ring start/end (seen in the 2026-11-22 simulation).
 
 ## Next Tasks (Immediate)

@@ -2,6 +2,25 @@
 
 All notable changes to Athena Web 2 will be documented in this file.
 
+## [0.1.1] - 2026-11-22
+
+### Fixed
+
+- Fixed live sessions on custom, community and CDLC maps (for example Kunduz and VR) rendering all map content squeezed into the bottom-left corner. Live relay frames only carry the world name; the UI replaced the real world size from the Athena Desktop cache (`Map.txt` `WorldSize`) with a built-in guess that only knows Altis, Tanoa, Malden, Livonia and Stratis and falls back to 10240 m. The cached world size is now kept for the active world.
+- Fixed world-name matching between the relay and the map cache being case-sensitive (for example relay `kunduz` vs cache `Kunduz`)
+- Fixed the sidebar **Donate** link: the inherited PayPal donate page (with a malformed `&EUR` parameter) could not accept donations; it now points to PayPal.Me (`https://paypal.me/jeroenvdvelden`)
+- Fixed leftover "ATHENA REMASTERED" branding in the sidebar header and welcome screen; both now show "ATHENA WEB 2". The browser tab title is now "Athena Web 2" (was "frontend")
+
+### Changed
+
+- `ui/package.json` version now matches the app version (was `0.0.2`)
+- README/env docs: the bridge HTTP/WS port variable is `WEB_PORT` (previously documented as `PORT`)
+
+### Known Limitations
+
+- Maps still need a one-time Athena Desktop **Export** before Web2 can use their real size and static layers; without a cache, unlisted maps fall back to a 10240 m extent
+- Taxi/runway tile coverage remains approximately 95% on Tanoa (unchanged from v0.1.0)
+
 ## [0.1.0] - 2026-05-04
 
 ### Changed

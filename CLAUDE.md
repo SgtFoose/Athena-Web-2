@@ -58,7 +58,7 @@ Arma 3 → Athena extension (SQF + Bus DLL) → Relay.exe (named pipe → TCP 28
 - **Live data** (units, vehicles, groups, markers, kills, shots) — streamed from the relay.
 - **Static geometry** (roads, structures, forests, trees, locations, elevation, contours) — read from the Athena Desktop cache on disk: `%USERPROFILE%\Documents\Athena\Maps\{world}\`. A map must be exported once via Athena Desktop (`Export` button) before Web2 can render its static layers.
 
-Current version: **v0.1.0** (2026-05-04). Release line is `v0.x`.
+Current version: **v0.1.1** (2026-11-22). Release line is `v0.x`.
 
 Links: repo https://github.com/SgtFoose/Athena-Web-2 · Workshop (Web2) id `3707444008` · Bus's Athena mod Workshop id `1181881736` · Firewill I-TGT mod id `366425329` · Athena Remastered Workshop id `3687225607`.
 
@@ -220,7 +220,7 @@ Documentation sync is always-on: any change to behavior, packaging, setup, or re
 
 ---
 
-## Open items (as of v0.1.0 — verify against WORKLOG before acting)
+## Open items (as of v0.1.1 — verify against WORKLOG before acting)
 
 - AO camp objective number labels (`1..5`) not consistently visible on camp icons.
 - Tanoa taxi/runway coverage ~95%; some isolated connector tiles render as dirt.
@@ -229,8 +229,7 @@ Documentation sync is always-on: any change to behavior, packaging, setup, or re
 - Cleanup/hardening found 2026-11-22 (tracked in WORKLOG backlog "Cleanup / Hardening"):
   - bridge world-name validation (security, low severity; keep details out of public docs until fixed)
   - malformed URL encoding can crash the bridge
-  - leftover AR branding and donate link in `ui/src/App.tsx`
-  - unused `@microsoft/signalr` dependency; `ui/package.json` version out of sync with `APP_VERSION`
+  - unused `@microsoft/signalr` dependency
   - inherited laze/projectile code to review
   - `npm audit` advisories
 - Security findings for unfixed issues: describe them only at a high level in public files (WORKLOG, CHANGELOG, issues). Put the exact details in the fix PR.
