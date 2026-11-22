@@ -39,6 +39,18 @@ Purpose: track every step, fix, and next action while migrating from the legacy 
   - Code reading: AR's backend auto-enqueues a full `world` export on every mission start (`Backend/Services/GameStateService.cs:102-103`). The Arma side then runs `ATH_fnc_World` (roads/structures/trees/forests/elevations exported in-game). This is likely the stall on larger maps.
   - Asked the owner for the map, whether it recovers after a few minutes, the backend console and the RPT `Athena Queue:` lines.
   - Candidate AR fix for Phase 2: skip the export when the world is already cached.
+  - Owner clarified: the freeze happens in the **main menu**, with no mission loaded.
+    - Root cause: AR's `init.sqf` is registered as `postInit` (`@AthenaRemastered/addons/athena/config.cpp:19-21`). It therefore also runs in the main-menu background scene, which is a real world (often Altis), and it has no main-menu guard.
+    - So it connects, `getMission.sqf` reports the menu scene, and the backend auto-exports the whole menu world. Arma stalls in the menu.
+  - Workaround given to the owner: start Arma with AR but without the AR backend (init waits in the handshake loop and does nothing heavy), load a small mission (VR/Stratis), then start the backend.
+  - AR Phase 2 fixes to plan:
+    - (1) main-menu guard at the top of AR `init.sqf` (exact check to be tested live)
+    - (2) skip the auto world export when the world is already cached
+  - Follow-up from the owner: the game was **not** frozen. On starting the AR backend (v1.1.6, port 5000), the AR UI immediately showed **Malden** (the last-used world) while Arma was in the main menu, which looks like a stuck game.
+    - Cause: `Backend/Services/GameStateService.cs:21-22` calls `LoadCachedWorld()` in the constructor ("Auto-load last-used world from disk cache so the map renders without the game", `:845`). The console confirms `Loaded cached world 'Malden'` before `Now listening`.
+    - AR also reads the Athena Desktop cache (`StaticAthenaCacheService`), like Web2.
+    - Planned AR fix (Phase 2): drop the startup auto-load and show the shared core's welcome screen until a mission arrives (Web2 behaviour since v0.0.4). Added to `docs/ui-core-sync.md` ("AR-side fixes planned for Phase 2").
+  - The AR screenshot (Malden) shows the pre-fix rendering: forest blocks spilling over the coast, a stair-stepped coastline, opaque dark forest. That confirms the value of porting the shared core.
 
 ### 2026-11-22 — v0.1.1 Published + end-user start guide in release notes
 - PR #3 (`release/v0.1.1`) merged by the owner as `7a697ed`. Local `main` updated, release branch deleted.

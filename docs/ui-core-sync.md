@@ -50,6 +50,17 @@ AR has data that Web2 never gets: active lazes, projectile tracking, and killed/
    - test live in Arma without BattlEye
 3. **Sync tooling.** A script copies `ui/src/core/` from Web2 to AR and writes a checksum manifest, so drift can be detected. The sync rules are documented in both repos' `CLAUDE.md`.
 
+## AR-side fixes planned for Phase 2
+
+Found during the owner's live AR test on 2026-11-22. These are AR repo changes, made on a branch in the AR repo:
+
+| Problem | Cause | Planned fix |
+|---|---|---|
+| AR's map shows Malden (the last-used world) as soon as the backend starts, even while Arma is still in the main menu. Users think the game is running or stuck. | `GameStateService` calls `LoadCachedWorld()` in its constructor. | Drop the startup auto-load. Show the shared core's welcome screen until a real mission arrives; offline maps stay available through the world picker. |
+| The AR script runs in Arma's main menu and triggers a world export of the menu's background world. | `init.sqf` is a `postInit` function, with no main-menu guard. | Add a main-menu guard at the top of `init.sqf` (exact check verified live). |
+| A full world export runs on every mission start. | `PutMission()` always enqueues `world`. | Only export when the world isn't cached yet. |
+| Forest blocks spill over the coastline, the coastline is stair-stepped, and the forest is opaque dark green. | AR has the pre-fix rendering. | Comes with the shared core (forest 16×16 grid + Y-flip, RDP + Chaikin smoothing, Bus-exact colours). |
+
 ## Status
 
 - 2026-11-22: analysis done, approach approved by the owner. Phase 1 started on branch `refactor/ui-core-split`.
